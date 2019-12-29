@@ -1,0 +1,47 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<configuration>
+  <agent shorttermcapacity="10">
+    <receptors>
+      <env>
+        <sensor name="d1" cataory="distance" group="env.distance" range="[0.0 - 10.0]" levels="[3-6]">
+          <property name="direction" type="float" value="-1.07"></property>
+        </sensor>
+        <sensor name="d2" cataory="distance" group="env.distance" range="[0.0 - 10.0]" levels="[3-6]">
+          <property name="direction" type="float" value="-0.78"></property>
+        </sensor>
+        <sensor name="d3" cataory="distance" group="env.distance" range="[0.0 - 10.0]" levels="[3-6]">
+          <property name="direction" type="float" value="0"></property>
+        </sensor>
+        <sensor name="d4" cataory="distance" group="env.distance" range="[0.0 - 10.0]" levels="[3-6]">
+          <property name="direction" type="float" value="0.78"></property>
+        </sensor>
+        <sensor name="d5" cataory="distance" group="env.distance" range="[0.0 - 10.0]" levels="[3-6]">
+          <property name="direction" type="float" value="1.07"></property>
+        </sensor>
+        <sensor name="d6" cataory="distance" group="env.distance" range="[0.0 - 10.0]" levels="[3-6]">
+          <property name="direction" type="float" value="3.14"></property>
+        </sensor>
+      </env>
+      <gestures>
+        <sensor name="g1" cataory="direction" group="body.objdirection"  range="[-3.14 - 3.14]">
+          <property name="direction" type="float" value="3.14"></property>
+        </sensor>
+        <sensor name="g1" cataory="direction" group="body.objdirection"  range="[-3.14 - 3.14]">
+          <property name="direction" type="float" value="3.14"></property>
+        </sensor>
+        <sensor name="g1" cataory="direction" group="body.objdirection"  range="[-3.14 - 3.14]">
+          <property name="direction" type="float" value="3.14"></property>
+        </sensor>
+      </gestures>
+      <actions>
+        <sensor name="a1" cataory="omege" group="action"  range="[0 - 3.14]" />
+        <sensor name="a2" cataory="speed" group="action"  range="[0 - 10]" />
+      </actions>
+    </receptors>
+    
+  </agent>
+
+  <evolution>
+    
+  </evolution>
+</configuration>
