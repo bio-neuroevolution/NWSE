@@ -30,6 +30,10 @@ namespace NWSELib.net
         /// 记忆信息有N列，N为所有感知节点和处理节点的数量（输出和特征节点除外）
         /// </summary>
         private ValueTuple<double, int, double>[][] memories;
+        /// <summary>
+        /// 记忆最早的时间点
+        /// </summary>
+        private int memoryBeginTime;
 
         /// <summary>
         /// 所有感知节点
@@ -38,8 +42,17 @@ namespace NWSELib.net
         {
             get => nodes.FindAll(n => n is Receptor);
         }
+
         /// <summary>
-        /// 
+        /// 所有处理节点
+        /// </summary>
+        public List<Node> Handlers
+        {
+            get => nodes.FindAll(n => n is HandlerNode);
+        }
+
+        /// <summary>
+        /// 效应器
         /// </summary>
         public List<Node> Effectors
         {
@@ -60,7 +73,7 @@ namespace NWSELib.net
         /// </summary>
         /// <param name="obs"></param>
         /// <returns></returns>
-        public List<double> activate(List<double> obs)
+        public List<double> activate(List<double> obs,int time)
         {
             //初始化
             Reset();
@@ -71,11 +84,13 @@ namespace NWSELib.net
             }
 
             //反复执行直到都激活
-            int time = 1;
-            while(!this.nodes.TrueForAll(n=>n.IsActivate()))
+            while(!this.Handlers.TrueForAll(n=>n.IsActivate()))
             {
-                this.nodes.ForEach(n => n.activate(time++));
+                this.Handlers.ForEach(n => n.activate(time++));
             }
+            //写入短时记忆
+            int col = time;
+            
 
             //取出输出节点
             return this.Effectors.ConvertAll<double>(n => (double)n.Value);

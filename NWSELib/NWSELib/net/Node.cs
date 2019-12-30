@@ -33,6 +33,10 @@ namespace NWSELib.net
         }
         #endregion
 
+        #region 评价信息
+        /** 可靠度 */
+        protected double realiability;
+        #endregion
         /// <summary>
         /// 设置当前值
         /// </summary>
