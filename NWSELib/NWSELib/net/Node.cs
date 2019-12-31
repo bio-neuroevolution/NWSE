@@ -37,6 +37,8 @@ namespace NWSELib.net
         /** 可靠度 */
         protected double realiability;
         #endregion
+        
+        #region 激活与重置
         /// <summary>
         /// 设置当前值
         /// </summary>
@@ -67,5 +69,6 @@ namespace NWSELib.net
         {
             return this.curTime >= 0;
         }
+        #endregion
     }
 }

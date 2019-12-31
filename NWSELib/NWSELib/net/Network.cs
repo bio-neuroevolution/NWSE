@@ -11,6 +11,7 @@ namespace NWSELib.net
     /// </summary>
     public class Network
     {
+        #region
         /// <summary>
         /// 染色体
         /// </summary>
@@ -67,6 +68,7 @@ namespace NWSELib.net
         }
 
 
+        
 
         /// <summary>
         /// 激活
