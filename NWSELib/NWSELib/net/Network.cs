@@ -70,7 +70,7 @@ namespace NWSELib.net
         /// </summary>
         public List<Node> Handlers
         {
-            get => nodes.FindAll(n => n is HandlerNode);
+            get => nodes.FindAll(n => n is Handler);
         }
 
         /// <summary>
@@ -90,6 +90,18 @@ namespace NWSELib.net
                     return i;
             }
             return -1;
+        }
+        /// <summary>
+        /// 根据节点Id的上游连接节点
+        /// </summary>
+        public List<Node> getInputNodes(int id){
+            int index = this.idToIndex(id);
+            List<Node> r = new List<Node>();
+            for(int i=0;i<this.nodes.Count;i++){
+                if(this.adjMatrix[i][index] !=0)
+                    r.Add(this.nodes[i]);
+            }
+            return r;
         }
 
         #endregion
@@ -115,13 +127,18 @@ namespace NWSELib.net
                 this.nodes.add(receptor);
             }
             for(int i=0;i<genome.handlerGenes.Count;i++){
-                HandlerNode handler = new HandlerNode(genome.handlerGenes[i]);
+                Handler handler = new Handler(genome.handlerGenes[i]);
                 this.nodes.Add(handler);
             }
             for(int i=0;i<genome.infrernceGenes.Count;i++){
                 Inference inference = new Inference(genome.infrernceGenes[i]);
                 this.nodes.Add(inference);
             }
+            for(int i=0;i<this.ActionReceptors.Count;i++){
+                Effector effector = new Effector(this.ActionReceptors[i].Gene.toActionGene());
+                this.nodes.Add(effector);
+            }
+
             //构造连接矩阵
             adjMatrix = new double[this.nodes.Count][this.nodes.Count];
             for(int i=0;i<this.genome.connectionGene.Count;i++){
@@ -132,9 +149,8 @@ namespace NWSELib.net
             }
 
             //初始化记忆部分
-
-
-
+            this.memories = new (double, int, double)[this.nodes.Count][Session.GetConfiguration().agent.shorttermcapacity];
+            this.memoryBeginTime = -1;
         }
 
         #endregion

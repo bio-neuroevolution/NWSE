@@ -16,6 +16,26 @@ namespace NWSELib.genome
         protected string group;
         
         /// <summary>
+        /// 所属分组
+        /// </summary>
+        public String Group
+        {
+            get => this.group;
+        }
+        
+        /// <summary>
+        /// 将动作感知基因转为动作基因
+        /// </summary>
+        public ReceptorGene toActionGene(){
+            return new ReceptorGene(){
+                id = this.id,
+                name = this.name.SubString(1),
+                generation = this.generation,
+                cataory = this.cataory,
+                sectionCount = this.sectionCount
+            };
+        }
+        /// <summary>
         /// 转字符串
         /// </summary>
         /// <returns></returns>

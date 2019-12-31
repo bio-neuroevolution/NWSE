@@ -59,7 +59,7 @@ namespace NWSELib.net
         /// <param name="value"></param>
         /// <param name="time"></param>
         /// <returns></returns>
-        public virtual Object activate(int time,Object value=null)
+        public virtual Object activate(Network net,int time,Object value=null)
         {
             if (this.curTime >= 0) return this.curValue;
             Object prev = this.curValue;
