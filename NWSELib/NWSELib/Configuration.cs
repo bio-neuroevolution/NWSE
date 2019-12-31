@@ -1,17 +1,16 @@
-﻿using NWSELib.common;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Linq;
 using System.Xml;
 using System.Xml.Serialization;
-using System.Linq;
+using NWSELib.common;
 
 namespace NWSELib
 {
-    [XmlRoot(ElementName ="configuration")]
+    [XmlRoot(ElementName = "configuration")]
     public class Configuration
     {
-        [XmlElement(ElementName ="agent")]
+        [XmlElement(ElementName = "agent")]
         public Agent agent = new Agent();
 
         public class Agent
@@ -23,8 +22,8 @@ namespace NWSELib
         }
         public class Receptors
         {
-            [XmlArray(ElementName ="env")]
-            [XmlArrayItem(Type =typeof(Sensor),ElementName ="sensor")]
+            [XmlArray(ElementName = "env")]
+            [XmlArrayItem(Type = typeof(Sensor), ElementName = "sensor")]
             public List<Sensor> env = new List<Sensor>();
 
             [XmlArray(ElementName = "gestures")]

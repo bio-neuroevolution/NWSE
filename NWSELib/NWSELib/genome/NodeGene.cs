@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace NWSELib.genome
 {
@@ -26,12 +24,18 @@ namespace NWSELib.genome
         protected string cataory;
 
         /// <summary>
+        /// 所属分组
+        /// </summary>
+        protected string group;
+
+
+        /// <summary>
         /// 分段数
         /// </summary>
         protected int sectionCount;
 
 
-
+        public int Id { get => id; set => id = value; }
         /// <summary>
         /// 对应感受器名称
         /// </summary>
@@ -47,8 +51,17 @@ namespace NWSELib.genome
         public string Cataory { get => cataory; set => cataory = value; }
 
         /// <summary>
+        /// 所属分组
+        /// </summary>
+        public String Group
+        {
+            get => this.group;
+        }
+
+        /// <summary>
         /// 每层的分段数
         /// </summary>
         public int SectionCount { get => sectionCount; set => sectionCount = value; }
+
     }
 }

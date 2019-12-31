@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 
 namespace NWSELib.common
 {
-    
+
 
     public class ValueRange
     {
@@ -68,7 +67,7 @@ namespace NWSELib.common
 
             this.includeMin = value.StartsWith("(") ? false : true;
             this.includeMax = value.EndsWith(")") ? false : true;
-            
+
 
         }
         /// <summary>

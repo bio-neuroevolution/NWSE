@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace NWSELib.genome
 {
@@ -8,7 +7,7 @@ namespace NWSELib.genome
     /// 感知器类型
     /// </summary>
     public enum SensorType
-    { 
+    {
         /// <summary>
         /// 任意
         /// </summary>
@@ -16,7 +15,7 @@ namespace NWSELib.genome
         /// <summary>
         /// 环境
         /// </summary>
-        Env=1,
+        Env = 1,
         /// <summary>
         /// 自身身体姿态
         /// </summary>
@@ -76,7 +75,7 @@ namespace NWSELib.genome
         /// <summary>
         /// 方向感知
         /// </summary>
-        public readonly static SensorCataory DIRECTION= new SensorCataory()
+        public readonly static SensorCataory DIRECTION = new SensorCataory()
         {
             SensorType = SensorType.Any,
             name = "direction",

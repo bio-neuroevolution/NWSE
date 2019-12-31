@@ -1,18 +1,21 @@
 {
   "format": 1,
   "restore": {
-    "D:\\gitlib\\NWSE\\NWSELib\\NWSELib\\NWSELib.csproj": {}
+    "E:\\gitlib\\annunakichb\\NWSE\\NWSELib\\NWSELib\\NWSELib.csproj": {}
   },
   "projects": {
-    "D:\\gitlib\\NWSE\\NWSELib\\NWSELib\\NWSELib.csproj": {
+    "E:\\gitlib\\annunakichb\\NWSE\\NWSELib\\NWSELib\\NWSELib.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\gitlib\\NWSE\\NWSELib\\NWSELib\\NWSELib.csproj",
+        "projectUniqueName": "E:\\gitlib\\annunakichb\\NWSE\\NWSELib\\NWSELib\\NWSELib.csproj",
         "projectName": "NWSELib",
-        "projectPath": "D:\\gitlib\\NWSE\\NWSELib\\NWSELib\\NWSELib.csproj",
+        "projectPath": "E:\\gitlib\\annunakichb\\NWSE\\NWSELib\\NWSELib\\NWSELib.csproj",
         "packagesPath": "C:\\Users\\Administrator\\.nuget\\packages\\",
-        "outputPath": "D:\\gitlib\\NWSE\\NWSELib\\NWSELib\\obj\\",
+        "outputPath": "E:\\gitlib\\annunakichb\\NWSE\\NWSELib\\NWSELib\\obj\\",
         "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
+        ],
         "configFilePaths": [
           "C:\\Users\\Administrator\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"

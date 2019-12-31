@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Linq;
 
 namespace NWSELib.genome
 {
@@ -10,26 +7,17 @@ namespace NWSELib.genome
     /// </summary>
     public class ReceptorGene : NodeGene
     {
-        /// <summary>
-        /// 所属分组
-        /// </summary>
-        protected string group;
-        
-        /// <summary>
-        /// 所属分组
-        /// </summary>
-        public String Group
-        {
-            get => this.group;
-        }
-        
+
+
         /// <summary>
         /// 将动作感知基因转为动作基因
         /// </summary>
-        public ReceptorGene toActionGene(){
-            return new ReceptorGene(){
-                id = this.id,
-                name = this.name.SubString(1),
+        public ReceptorGene toActionGene()
+        {
+            return new ReceptorGene()
+            {
+                Id = this.Id,
+                name = this.name.Substring(1),
                 generation = this.generation,
                 cataory = this.cataory,
                 sectionCount = this.sectionCount
@@ -41,7 +29,7 @@ namespace NWSELib.genome
         /// <returns></returns>
         public override string ToString()
         {
-            return name + ":"+this.sectionCount;
+            return name + ":" + this.sectionCount;
         }
         /// <summary>
         /// 解析字符串

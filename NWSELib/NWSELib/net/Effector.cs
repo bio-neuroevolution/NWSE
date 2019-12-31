@@ -1,10 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using NWSELib.genome;
 
 namespace NWSELib.net
 {
     public class Effector : Node
     {
+        public Effector(NodeGene gene) : base(gene)
+        {
+
+        }
     }
 }

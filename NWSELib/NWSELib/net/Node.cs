@@ -1,7 +1,6 @@
-﻿using NWSELib.genome;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System;
+using NWSELib.common;
+using NWSELib.genome;
 
 namespace NWSELib.net
 {
@@ -11,29 +10,37 @@ namespace NWSELib.net
     public abstract class Node
     {
         #region 基本信息
-        
+
         /// <summary>节点基因</summary>
         protected NodeGene gene;
-            
+
         /// <summary>节点Id</summary>
-        public int Id  {get => this.gen.Id;}
+        public int Id { get => this.gene.Id; }
         public String Name
         {
             get => gene.Name;
         }
-        public string Cataory{
+        public string Cataory
+        {
             get => gene.Cataory;
+        }
+        public String Group
+        {
+            get => gene.Group;
+        }
+        public NodeGene Gene
+        {
+            get => this.gene;
         }
         #endregion
 
         #region 状态信息
         /// <summary>当前值</summary>
-        protected Object curValue;
+        protected Vector curValue;
         /// <summary>当前时间</summary>
         protected int curTime;
 
-        
-        public Object Value
+        public Vector Value
         {
             get { return this.curValue; }
         }
@@ -42,7 +49,8 @@ namespace NWSELib.net
             get { return this.curTime; }
         }
 
-        public Node(NodeGene gene){
+        public Node(NodeGene gene)
+        {
             this.gene = gene;
         }
         #endregion
@@ -51,7 +59,7 @@ namespace NWSELib.net
         /** 可靠度 */
         protected double realiability;
         #endregion
-        
+
         #region 激活与重置
         /// <summary>
         /// 设置当前值
@@ -59,11 +67,11 @@ namespace NWSELib.net
         /// <param name="value"></param>
         /// <param name="time"></param>
         /// <returns></returns>
-        public virtual Object activate(Network net,int time,Object value=null)
+        public virtual Object activate(Network net, int time, Object value = null)
         {
             if (this.curTime >= 0) return this.curValue;
             Object prev = this.curValue;
-            this.curValue = value;
+            this.curValue = (Vector)value;
             this.curTime = time;
             return prev;
         }

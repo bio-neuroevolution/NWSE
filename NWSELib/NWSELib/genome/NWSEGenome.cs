@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace NWSELib.genome
 {
@@ -16,11 +14,11 @@ namespace NWSELib.genome
         /// <summary>
         /// 不同处理器的选择概率
         /// </summary>
-        public readonly  List<double> handlerSelectionProb = new List<double>();
+        public readonly List<double> handlerSelectionProb = new List<double>();
         /// <summary>
         /// 处理器基因
         /// </summary>
-        public readonly  List<HandlerGene> handlerGenes = new List<HandlerGene>();
+        public readonly List<HandlerGene> handlerGenes = new List<HandlerGene>();
 
         /// <summary>
         /// 推理器基因
@@ -30,7 +28,7 @@ namespace NWSELib.genome
         /// <summary>
         /// 连接基因，两个神经元的ID
         /// </summary>
-        public readonly  List<(int,int)> connectionGene = new List<(int,int)>();
+        public readonly List<(int, int)> connectionGene = new List<(int, int)>();
 
     }
 }

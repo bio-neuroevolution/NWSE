@@ -1,9 +1,11 @@
-﻿using System;
-using NWSELib.genmoe;
+﻿using NWSELib.genome;
 
-public class Inference : Node
+namespace NWSELib.net
 {
-	public Inference(NodeGene gene):base(gene)
+	public class Inference : Node
 	{
+		public Inference(NodeGene gene) : base(gene)
+		{
+		}
 	}
 }
