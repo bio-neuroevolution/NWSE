@@ -1,8 +1,9 @@
 ﻿using System;
+using NWSELib.genmoe;
 
-public class Inference
+public class Inference : Node
 {
-	public Inference()
+	public Inference(NodeGene gene):base(gene)
 	{
 	}
 }

@@ -14,6 +14,11 @@ namespace NWSELib.net
         /// <summary>分段值</summary>
         protected int sectionIndex;
 
+        
+        public Receptor(NodeGene gene):base(gene){
+            
+        }
+
         /// <summary>
         /// 设置当前值
         /// </summary>

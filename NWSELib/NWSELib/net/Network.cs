@@ -11,7 +11,7 @@ namespace NWSELib.net
     /// </summary>
     public class Network
     {
-        #region
+        #region 基本信息
         /// <summary>
         /// 染色体
         /// </summary>
@@ -23,19 +23,21 @@ namespace NWSELib.net
         /// <summary>
         /// 邻接矩阵
         /// </summary>
-        private List<List<int>> adjMatrix = new List<List<int>>();
+        private double[][] adjMatrix = new double[][];
 
         /// <summary>
         /// 记忆信息，每个记忆是三个值，分别是分段前值、分段索引、分段后值
         /// 记忆信息有T行，T为最大短时记忆容量（参见Configuration）
         /// 记忆信息有N列，N为所有感知节点和处理节点的数量（输出和特征节点除外）
         /// </summary>
-        private ValueTuple<double, int, double>[][] memories;
+        private (double, int, double)[][] memories;
         /// <summary>
         /// 记忆最早的时间点
         /// </summary>
         private int memoryBeginTime;
+        #endregion
 
+        #region 节点查询
         /// <summary>
         /// 所有感知节点
         /// </summary>
@@ -43,6 +45,25 @@ namespace NWSELib.net
         {
             get => nodes.FindAll(n => n is Receptor);
         }
+        /// <summary>
+        /// 所有环境感知节点
+        ///</summary>
+        public List<Node> EnvReceptors{
+            get => nodes.FindAll(n=> n is Receptor && n.Group.startsWith("env"));
+        }
+        /// <summary>
+        /// 所有姿态感知节点
+        ///</summary>
+        public List<Node> GesturesReceptors{
+            get => nodes.FindAll(n=> n is Receptor && n.Group.startsWith("gestures"));
+        }
+        /// <summary>
+        /// 所有动作感知节点
+        ///</summary>
+        public List<Node> ActionReceptors{
+            get => nodes.FindAll(n=> n is Receptor && n.Group.startsWith("action"));
+        }
+          
 
         /// <summary>
         /// 所有处理节点
@@ -59,6 +80,21 @@ namespace NWSELib.net
         {
             get => nodes.FindAll(n => n is Effector);
         }
+
+        /// <summary>
+        /// 根据节点Id查找节点索引下标
+        /// </summary>
+        public int idToIndex(int id){
+            for(int i=0;i<this.nodes.Count;i++){
+                if(this.nodes[i].Id == id)
+                    return i;
+            }
+            return -1;
+        }
+
+        #endregion
+
+        #region 初始化
         /// <summary>
         /// 重置计算
         /// </summary>
@@ -66,6 +102,42 @@ namespace NWSELib.net
         {
             this.nodes.ForEach(a => a.Reset());
         }
+
+        
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        public Network(NWSEGenome genome){
+            this.genome = genome;
+            //初始化节点
+            for(int i=0;i<genome.receptorGenes.Count;i++){
+                Receptor receptor = new Receptor(genome.receptorGenes[i]);
+                this.nodes.add(receptor);
+            }
+            for(int i=0;i<genome.handlerGenes.Count;i++){
+                HandlerNode handler = new HandlerNode(genome.handlerGenes[i]);
+                this.nodes.Add(handler);
+            }
+            for(int i=0;i<genome.infrernceGenes.Count;i++){
+                Inference inference = new Inference(genome.infrernceGenes[i]);
+                this.nodes.Add(inference);
+            }
+            //构造连接矩阵
+            adjMatrix = new double[this.nodes.Count][this.nodes.Count];
+            for(int i=0;i<this.genome.connectionGene.Count;i++){
+                (int,int) connection = this.genome.connectionGene.Count[i];
+                int srcIndex = this.idToIndex(connection[0]);
+                int destIndex = this.idToIndex(connection[1]);
+                this.adjMatrix[srcIndex][destIndex] = 1;
+            }
+
+            //初始化记忆部分
+
+
+
+        }
+
+        #endregion
 
 
         

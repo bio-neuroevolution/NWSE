@@ -11,18 +11,28 @@ namespace NWSELib.net
     public abstract class Node
     {
         #region 基本信息
+        
         /// <summary>节点基因</summary>
         protected NodeGene gene;
             
+        /// <summary>节点Id</summary>
+        public int Id  {get => this.gen.Id;}
+        public String Name
+        {
+            get => gene.Name;
+        }
+        public string Cataory{
+            get => gene.Cataory;
+        }
+        #endregion
+
+        #region 状态信息
         /// <summary>当前值</summary>
         protected Object curValue;
         /// <summary>当前时间</summary>
         protected int curTime;
 
-        public String Name
-        {
-            get => gene.Name;
-        }
+        
         public Object Value
         {
             get { return this.curValue; }
@@ -30,6 +40,10 @@ namespace NWSELib.net
         public int CurTime
         {
             get { return this.curTime; }
+        }
+
+        public Node(NodeGene gene){
+            this.gene = gene;
         }
         #endregion
 

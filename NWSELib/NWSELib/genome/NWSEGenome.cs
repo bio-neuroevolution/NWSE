@@ -12,20 +12,25 @@ namespace NWSELib.genome
         /// <summary>
         /// 感受器基因
         /// </summary>
-        private List<ReceptorGene> receptorGenes = new List<ReceptorGene>();
+        public readonly List<ReceptorGene> receptorGenes = new List<ReceptorGene>();
         /// <summary>
         /// 不同处理器的选择概率
         /// </summary>
-        private List<double> handlerSelectionProb = new List<double>();
+        public readonly  List<double> handlerSelectionProb = new List<double>();
         /// <summary>
         /// 处理器基因
         /// </summary>
-        private List<HandlerGene> handlerGenes = new List<HandlerGene>();
+        public readonly  List<HandlerGene> handlerGenes = new List<HandlerGene>();
+
+        /// <summary>
+        /// 推理器基因
+        /// </summary>
+        public readonly List<InferenceGene> infrernceGenes = new List<InferenceGene>();
 
         /// <summary>
         /// 连接基因，两个神经元的ID
         /// </summary>
-        private List<ValueTuple<String, String>> connectionGene = new List<(string, string)>();
+        public readonly  List<(int,int)> connectionGene = new List<(int,int)>();
 
     }
 }

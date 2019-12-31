@@ -10,10 +10,11 @@ namespace NWSELib.genome
     /// </summary>
     public class ReceptorGene : NodeGene
     {
+        /// <summary>
+        /// 所属分组
+        /// </summary>
+        protected string group;
         
-       
-        
-
         /// <summary>
         /// 转字符串
         /// </summary>
