@@ -14,42 +14,36 @@ namespace NWSELib.net.handler
 		public override Object activate(Network net, int time, Object value = null)
 		{
 			List<Node> inputs = net.getInputNodes(this.Id);
-			if (!inputs.All(n => n.IsActivate()))
+			if (!inputs.All(n => n.IsActivate(time)))
 				return null;
 			int t = time;
 
 			//取得时间参数
 			int valueTime = (int)((HandlerGene)this.gene).param[0];
-			if (valueTime < 0 || valueTime > Session.GetConfiguration().agent.shorttermcapacity)
-				valueTime = 0;
+			
 
 			//从记忆库中获取各个节点对应配置的输入
 			List<Vector> vs = new List<Vector>();
 			if (inputs.Count == 1)
 			{
-				int index = net.idToIndex(inputs[0].Id);
-				for (int i = 0; i < valueTime; i++)
-				{
-					(Vector ov, int section, Vector fv) = net.getMemoryItem(time - i, index);
-					vs.Add(fv);
-				}
+				int valueCount = valueTime;
+				if (valueCount < 0 || valueCount > Session.GetConfiguration().agent.shorttermcapacity)
+					valueCount = 2;
+				vs = inputs[0].GetValues(time, valueCount);
 
 			}
 			else
 			{
+				if (valueTime < 0 || valueTime > Session.GetConfiguration().agent.shorttermcapacity)
+					valueTime = 0;
 				for (int i = 0; i < inputs.Count; i++)
 				{
-					int index = net.idToIndex(inputs[0].Id);
-					(Vector ov, int section, Vector fv) = net.getMemoryItem(time, index);
-					vs.Add(fv);
+					vs.Add(inputs[i].GetValue(time, valueTime));
 				}
 			}
 			Vector result = vs.average();
 			base.activate(net, time, result);
 			return result;
-
-
-
 		}
 	}
 }

@@ -82,6 +82,15 @@ namespace NWSELib.common
                     this.values.Add(0.0);
             }
         }
+
+        public Vector clone()
+        {
+            Vector v = new Vector();
+            v.fixedSize = this.fixedSize;
+            v.maxCapacity = this.maxCapacity;
+            v.values.AddRange(this.values);
+            return v;
+        }
         #endregion
 
         #region 值运算
@@ -128,11 +137,91 @@ namespace NWSELib.common
         {
             return this.values.Average();
         }
+
+        public double length()
+        {
+            return System.Math.Sqrt(this.values.ToList().ConvertAll(v => v * v).Aggregate((x, y) => x + y));
+        }
+
+        public Vector normalize()
+        {
+            Vector v = this.clone();
+            double len = this.length();
+            for(int i = 0; i < this.Size; i++)
+            {
+                v[i] = this[i] / len;
+            }
+            return v;
+        }
+
+        public static Vector operator -(Vector v1, Vector v2)
+        {
+            int size = VectorExtender.maxSize();
+            Vector v = new Vector(true, size);
+            for(int i = 0; i < size; i++)
+            {
+                if (v1.Size <= i)
+                {
+                    v[i] = -v2[i];
+                    break;
+                }else if(v2.Size <= i)
+                {
+                    v[i] = v1[i];
+                }
+                else
+                {
+                    v[i] = v1[i] - v2[i];
+                }
+
+            }
+            return v;
+        }
+
+        /// <summary>
+        /// 计算向量组的方差
+        /// </summary>
+        /// <param name="vs">向量组，长度都一样</param>
+        /// <returns>因为是对称矩阵，所以只返回了一个向量</returns>
+        public static Vector variance(params Vector[] vs)
+        {
+            int size = VectorExtender.maxSize(vs);
+            List<Vector> cv = new List<Vector>();
+            List<double> avg = new List<double>();
+            
+            for(int i = 0; i < size; i++)
+            {
+                cv.Add(VectorExtender.column(vs.ToList(), i));
+                avg.Add(cv[i].average());
+            }
+            int dim = avg.Count;
+            int n = cv[0].Size;
+            Vector r = new Vector(true,dim*(dim+1)/2);
+            int index = 0;
+            for (int i = 0; i < size; i++)
+            {
+                for(int j = 0; j < size; j++)
+                {
+                    if (i > j) continue;
+                    double sum = 0.0;
+                    for(int k = 0; k < n; k++)
+                    {
+                        sum += (cv[i][k] - avg[i])*(cv[j][k] - avg[j]);
+                    }
+                    sum /= (n - 1);
+                    r[index++] = sum;
+                }
+            }
+            return r;
+        } 
         #endregion
     }
     public static class VectorExtender
     {
-
+        public static int maxSize(params Vector[] vs)
+        {
+            if (vs == null || vs.Length <= 0) return 0;
+            return vs.ToList().ConvertAll<int>(v => v.Size).Max();
+        }
         #region 向量集
         public static int maxSize(this List<Vector> vs)
         {

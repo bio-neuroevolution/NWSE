@@ -13,12 +13,14 @@ namespace NWSELib.net.handler
         public readonly String Name;
         public readonly int ParamCount;
         public readonly List<(double, double)> ParamRange;
+        public readonly Type handlerType;
 
-        public HandlerFunction(String name, int paramCount, params (double, double)[] range)
+        public HandlerFunction(String name, int paramCount, Type handlerType,params (double, double)[] range)
         {
             this.Name = name;
             this.ParamCount = paramCount;
             this.ParamRange = new List<(double, double)>(range);
+            this.handlerType = handlerType;
         }
         #endregion
 
@@ -28,16 +30,16 @@ namespace NWSELib.net.handler
         public readonly static List<HandlerFunction> Items = new List<HandlerFunction>(
             new HandlerFunction[]
             {
-                new HandlerFunction("min",1,(1,10)),
-                new HandlerFunction("max",1,(1,10)),
-                new HandlerFunction("avg",1,(1,10)),
-                new HandlerFunction("var",1,(1,10)),
-                new HandlerFunction("diff",2,(0,10),(0,10)),
-                new HandlerFunction("direction",0),
-                new HandlerFunction("argmin",1,(1,10)),
-                new HandlerFunction("argmax",1,(1,10)),
-                new HandlerFunction("prj",1,(1,10)),
-                new HandlerFunction("seq",1,(1,10))
+                //new HandlerFunction("min",1,(1,10)),
+                //new HandlerFunction("max",1,(1,10)),
+                new HandlerFunction("avg",1,typeof(AverageHandler),(1,10)),
+                new HandlerFunction("var",1,typeof(VarianceHandler),(1,10)),
+                new HandlerFunction("diff",2,typeof(DiffHandler),(0,10),(0,10)),
+                new HandlerFunction("direction",0,typeof(DirectionHandler)),
+                //new HandlerFunction("argmin",1,(1,10)),
+                //new HandlerFunction("argmax",1,(1,10)),
+                //new HandlerFunction("prj",1,(1,10)),
+               // new HandlerFunction("seq",1,(1,10))
             }
             );
 

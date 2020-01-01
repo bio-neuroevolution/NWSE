@@ -30,5 +30,10 @@ namespace NWSELib.genome
         /// </summary>
         public readonly List<(int, int)> connectionGene = new List<(int, int)>();
 
+        /// <summary>
+        /// 评判基因
+        /// </summary>
+        public JuegeGene judgeGene = new JuegeGene();
+
     }
 }

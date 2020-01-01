@@ -23,16 +23,7 @@ namespace NWSELib.net
         /// </summary>
         private double[,] adjMatrix;
 
-        /// <summary>
-        /// 记忆信息，每个记忆是三个值，分别是分段前值、分段索引、分段后值
-        /// 记忆信息有T行，T为最大短时记忆容量（参见Configuration）
-        /// 记忆信息有N列，N为所有感知节点和处理节点的数量（输出和特征节点除外）
-        /// </summary>
-        private (Vector, int, Vector)[,] memories;
-        /// <summary>
-        /// 记忆最早的时间点
-        /// </summary>
-        private int memoryBeginTime;
+        
         #endregion
 
         #region 节点查询
@@ -135,7 +126,7 @@ namespace NWSELib.net
             }
             for (int i = 0; i < genome.handlerGenes.Count; i++)
             {
-                Handler handler = new Handler(genome.handlerGenes[i]);
+                Handler handler = Handler.create(genome.handlerGenes[i]);
                 this.nodes.Add(handler);
             }
             for (int i = 0; i < genome.infrernceGenes.Count; i++)
@@ -159,61 +150,14 @@ namespace NWSELib.net
                 this.adjMatrix[srcIndex, destIndex] = 1;
             }
 
-            //初始化记忆部分
-            int capacity = Session.GetConfiguration().agent.shorttermcapacity;
-            this.memories = new (Vector, int, Vector)[this.nodes.Count, capacity];
-            this.memoryBeginTime = -1;
+            
         }
 
         #endregion
 
 
-        #region 记忆管理
-        /// <summary>
-        /// 短时记忆容量
-        /// </summary>
-        public int MemoryCapcaity
-        {
-            get => this.memories.GetLength(1);
-
-        }
-
-        /// <summary>
-        /// 取得短时记忆数据
-        /// </summary>
-        /// <param name="time"></param>
-        /// <param name="index"></param>
-        /// <returns></returns>
-        public (Vector, int, Vector) getMemoryItem(int time, int index)
-        {
-            time -= this.memoryBeginTime;
-            return this.memories[index, time];
-        }
-        /// <summary>
-        /// 记录数据到短时记忆
-        /// </summary>
-        /// <param name="time"></param>
-        /// <param name="index"></param>
-        /// <param name="value"></param>
-        public void setMemoryItem(int time, int index, (Vector, int, Vector) value)
-        {
-            time -= this.memoryBeginTime;
-            if (time >= this.MemoryCapcaity)
-            {
-                for (int i = 1; i < this.MemoryCapcaity; i++)
-                {
-                    for (int j = 0; j < this.nodes.Count; j++)
-                    {
-                        this.memories[j, i - 1] = this.memories[j, i];
-                    }
-                }
-                this.memoryBeginTime += 1;
-            }
-            this.memories[index, this.MemoryCapcaity - 1] = value;
-        }
-
-
-        #endregion
+        
+        
 
         /// <summary>
         /// 激活
@@ -231,17 +175,25 @@ namespace NWSELib.net
             }
 
             //反复执行直到都激活
-            while (!this.Handlers.TrueForAll(n => n.IsActivate()))
+            while (!this.Handlers.TrueForAll(n => n.IsActivate(time)))
             {
                 this.Handlers.ForEach(n => n.activate(this, time, null));
             }
-            //写入短时记忆
+            //进行评判
             int col = time;
 
 
             //取出输出节点
             return this.Effectors.ConvertAll<double>(n => (double)n.Value);
 
+        }
+        /// <summary>
+        /// 评判
+        /// </summary>
+        private void judge()
+        {
+            //对每一个评判项
+            ////找到所有与其直接
         }
     }
 }
