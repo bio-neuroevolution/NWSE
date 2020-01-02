@@ -3,6 +3,7 @@ using System.Linq;
 using NWSELib.common;
 using NWSELib.genome;
 using System.Collections.Generic;
+using Microsoft.ML.Probabilistic.Distributions;
 
 namespace NWSELib.net
 {
@@ -17,13 +18,26 @@ namespace NWSELib.net
         /// </summary>
         public List<Vector> means = new List<Vector>();
         /// <summary>
+        /// 权重
+        /// </summary>
+        public double weight;
+        /// <summary>
         /// 所有维构成的协方差矩阵
         /// </summary>
         public double[][] covariance;
+        /// <summary>
+        /// 密度值
+        /// </summary>
+        public double density;
+        /// <summary>
+        /// 高斯分布
+        /// </summary>
+        public VectorGaussian gaussian;
+
 
         public List<List<Vector>> sample(int count)
         {
-
+            
         }
 
     }
@@ -70,6 +84,16 @@ namespace NWSELib.net
         /// 推理节点存储的记录
         /// </summary>
         protected List<InferenceRecord> records = new List<InferenceRecord>();
+
+        /// <summary>
+        /// 新样本
+        /// </summary>
+        public List<List<Vector>> newsamples = new List<List<Vector>>();
+        /// <summary>
+        /// 新样本的密度值
+        /// </summary>
+        public List<double> density = new List<double>();
+
         /// <summary>
         /// 构造函数
         /// </summary>
@@ -89,11 +113,39 @@ namespace NWSELib.net
             List<Node> inputs = net.getInputNodes(this.Id);
             if (!inputs.All(n => n.IsActivate(time)))
                 return null;
-            
+
             //根据基因定义的顺序，将输入值组成List<Vector>
+            List<Vector> values = new List<Vector>();
+            for(int i=0;i<((InferenceGene)this.gene).dimensions.Count;i++)
+            {
+                (int id,int t) = ((InferenceGene)this.gene).dimensions[i];
+                Node input = inputs.FirstOrDefault(n => n.Id == id);
+                values.Add(input.Value);
+            }
+            //计算输入值的归属
+            List<double> probs = this.records.ConvertAll(r => r.prob(values));
+            double sumprobs = probs.Sum();
+            probs = probs.ConvertAll(p => p / sumprobs);
+            int pindex = argmax(probs);
+
+            //计算每个节点的密度值，以及样本的密度值
+            List<List<Vector>> allValues = new List<List<Vector>>();
+            this.records.ForEach(r => allValues.Add(r.means));
+            allValues.AddRange(this.newsamples);
+            List<double> distances = allValues.ConvertAll(v => v.distance(values));
+            double dissum = distances.Sum();
+            List<double> delta_diensity = distances.ConvertAll(d => (dissum - d) / dissum);
+            
+            //如果最大密度点不大于阈值，且原有高斯分量密度大于给定阈值，则调整该高斯分量的均值和协方差，结束
+            //否则对新样本根据密度进行聚类：将密度值由高到底排列，对密度值高于阈值的搜索某半径内的其他点作为一类
+            //根据聚类结果计算新高斯分量参数
+            //降低原有高斯分量的密度，如果密度低于阈值，则该执行分量撤销操作
+            //调整原有高斯分量的均值和协方差
 
 
         }
+
+        
 
         #region 推理
         /// <summary>

@@ -300,5 +300,15 @@ namespace NWSELib.net
 
             }
         }
+
+        /// <summary>
+        /// 处理接受到的奖励，相当于适应度（-1到1之间）
+        /// 根据适应度，设定推理路径上的各个推断节点和处理节点的可靠度
+        /// </summary>
+        /// <param name="reward"></param>
+        public void setReward(double reward)
+        {
+
+        }
     }
 }

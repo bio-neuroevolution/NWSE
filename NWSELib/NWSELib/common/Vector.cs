@@ -268,6 +268,62 @@ namespace NWSELib.common
             }
             return v;
         }
+
+        /// <summary>
+        /// 将向量集摊平成一个向量
+        /// </summary>
+        /// <param name="vs"></param>
+        /// <returns></returns>
+        public static (Vector,List<int>) flatten(this List<Vector> vs)
+        {
+            int size = vs.ConvertAll(v => v.Size).Sum();
+            Vector v = new Vector(true, size);
+            List<int> sizes = new List<int>();
+            int k = 0;
+            for(int i=0;i<vs.Count;i++)
+            {
+                for (int j = 0; j < vs[i].Size; j++)
+                    v[k++] = vs[i][j];
+                sizes.Add(vs[i].Size);
+            }
+            return (v, sizes);
+        }
+
+        /// <summary>
+        /// 将向量分割成向量集
+        /// </summary>
+        /// <param name="v"></param>
+        /// <param name="sizes"></param>
+        /// <returns></returns>
+        public static List<Vector> split(this Vector v,List<int> sizes)
+        {
+            List<Vector> r = new List<Vector>();
+            int k = 0;
+            for(int i=0;i<sizes.Count;i++)
+            {
+                Vector temp = new Vector(true, sizes[i]);
+                for(int j=0;j<sizes[i];j++)
+                {
+                    temp[j] = v[k++];
+                }
+                r.Add(temp);
+            }
+            return r;
+        }
+
+        /// <summary>
+        /// 距离:将向量集摊平成一个向量，然后计算两个向量集的距离
+        /// </summary>
+        /// <param name="v1"></param>
+        /// <param name="v2"></param>
+        /// <returns></returns>
+        public static double distance(this List<Vector> v1,List<Vector> v2)
+        {
+            (Vector vv1,List<int> size1) = v1.flatten();
+            (Vector vv2, List<int> size2) = v2.flatten();
+            return vv1.distance(vv2);
+
+        }
         #endregion
 
 
