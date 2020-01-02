@@ -15,16 +15,26 @@ namespace NWSELib.genome
         /// </summary>
         public List<(int, int)> dimensions = new List<(int, int)>();
 
-        public int getVariableIndex(int varId)
+        /// <summary>
+        /// 得到推理变量Id对应的索引
+        /// </summary>
+        /// <param name="varId"></param>
+        /// <returns></returns>
+        public int getVariableIndex(int varId=-1)
         {
             (int t1, int t2) = this.getTimeDiff();
             for (int i = 0; i < dimensions.Count; i++)
             {
-                if (dimensions[i].Item1 == varId && dimensions[i].Item2 == t2)
+                if ((varId == -1 || dimensions[i].Item1 == varId) && dimensions[i].Item2 == t2)
                     return i;
             }
             return -1;
         }
+        /// <summary>
+        /// 得到条件Id对应的索引
+        /// </summary>
+        /// <param name="condId"></param>
+        /// <returns></returns>
         public int getConditionIndex(int condId)
         {
             (int t1, int t2) = this.getTimeDiff();
@@ -35,7 +45,10 @@ namespace NWSELib.genome
             }
             return -1;
         }
-
+        /// <summary>
+        /// 取得条件和后置变量的时间差
+        /// </summary>
+        /// <returns></returns>
         public (int, int) getTimeDiff()
         {
             (int t1, int t2) = (
@@ -44,24 +57,31 @@ namespace NWSELib.genome
                 );
             return (t1, t2);
         }
-
+        /// <summary>
+        /// 得到所有的条件，包括Id和相对时间
+        /// </summary>
+        /// <returns></returns>
         public List<(int, int)> getConditions()
         {
             (int t1, int t2) = this.getTimeDiff();
             return dimensions.FindAll(d => d.Item2 == t1);
         }
-
-        public List<(int, int)> getVariables()
-        {
-            (int t1, int t2) = this.getTimeDiff();
-            return dimensions.FindAll(d => d.Item2 == t2);
-        }
+        /// <summary>
+        /// 得到后置变量Id和相对时间
+        /// </summary>
+        /// <returns></returns>
         public (int, int) getVariable()
         {
             (int t1, int t2) = this.getTimeDiff();
-            return dimensions.FindAll(d => d.Item2 == t2)[0];
+            return dimensions.FirstOrDefault<(int,int)>(d => d.Item2 == t2);
         }
-
+        
+        /// <summary>
+        /// 条件是否匹配
+        /// </summary>
+        /// <param name="allmatched">要求全部匹配</param>
+        /// <param name="conditions">条件Id</param>
+        /// <returns></returns>
         public bool matchCondition(bool allmatched, params int[] conditions)
         {
             (int t1, int t2) = this.getTimeDiff();
@@ -74,48 +94,25 @@ namespace NWSELib.genome
             }
             return allmatched ? conds.Count <= 0 : conds.Count < conditions.Length;
         }
-
-        public bool matchVariables(bool allmatch, params int[] variables)
+        /// <summary>
+        /// 变量是否匹配
+        /// </summary>
+        /// <param name="allmatch">全部匹配</param>
+        /// <param name="variables"></param>
+        /// <returns></returns>
+        public bool matchVariable(int variableId)
         {
             (int t1, int t2) = this.getTimeDiff();
-            List<int> vars = variables.ToList();
+         
             for (int i = 0; i < dimensions.Count; i++)
             {
-                if (!vars.Contains(dimensions[i].Item1)) continue;
-                if (dimensions[i].Item2 != t2) return false;
-                vars.Remove(dimensions[i].Item1);
+                if (variableId != dimensions[i].Item1) continue;
+                if (dimensions[i].Item2 != t2) continue;
+                return true;
             }
-            return allmatch ? vars.Count <= 0 : vars.Count < variables.Length;
+            return false;
         }
-        public bool match(int variable, params int[] conditions)
-        {
-
-            int variabletime = -1;
-            for (int i = 0; i < dimensions.Count; i++)
-            {
-                if (dimensions[i].Item1 == variable)
-                {
-                    if (conditions == null || conditions.Length <= 0)
-                    {
-                        variabletime = dimensions[i].Item2; break;
-                    }
-                    else if (dimensions[i].Item2 == 0)
-                    {
-                        variabletime = dimensions[i].Item2; break;
-                    }
-                }
-            }
-            if (variabletime < 0) return false;
-
-            List<int> conds = conditions.ToList();
-            for (int i = 0; i < dimensions.Count; i++)
-            {
-                if (!conds.Contains(dimensions[i].Item1)) continue;
-                if (dimensions[i].Item2 > variabletime) return false;
-                conds.Remove(dimensions[i].Item1);
-            }
-            return variabletime >= 0 && conds.Count <= 0;
-        }
+        
 
 
     }

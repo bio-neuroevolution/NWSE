@@ -138,6 +138,18 @@ namespace NWSELib.common
             return this.values.Average();
         }
 
+        public double distance(Vector v)
+        {
+            int size = VectorExtender.maxSize(this,v);
+            double dis = 0;
+            for(int i=0;i<size;i++)
+            {
+                double d1 = this.Size <= i ? 0 : this[i];
+                double d2 = v.Size <= i ? 0 : v[i];
+                dis += (d1-d2) * (d1 - d2);
+            }
+            return System.Math.Sqrt(dis);
+        }
         public double length()
         {
             return System.Math.Sqrt(this.values.ToList().ConvertAll(v => v * v).Aggregate((x, y) => x + y));

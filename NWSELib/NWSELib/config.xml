@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <configuration>
-  <agent shorttermcapacity="10">
+  <agent shorttermcapacity="10" inferencesamples="100">
     <receptors>
       <env>
         <sensor name="d1" cataory="distance" group="env.distance" range="[0.0 - 10.0]" levels="[3-6]">

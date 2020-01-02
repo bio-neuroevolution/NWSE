@@ -1,4 +1,6 @@
-﻿using NWSELib.common;
+﻿using System;
+using System.Linq;
+using NWSELib.common;
 using NWSELib.genome;
 using System.Collections.Generic;
 
@@ -47,7 +49,7 @@ namespace NWSELib.net
             /// <summary>
             /// 推理结果：对变量的取值
             /// </summary>
-            public List<(int, Vector)> variables = new List<(int, Vector)>();
+            public (int, Vector) variable;
             /// <summary>
             /// 推理结果：对条件的取值
             /// </summary>
@@ -76,32 +78,98 @@ namespace NWSELib.net
         {
         }
 
-        public InferenceChain inference(InferenceChain chain)
+        /// <summary>
+        /// 设置当前值
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="time"></param>
+        /// <returns></returns>
+        public override Object activate(Network net, int time, Object value = null)
         {
+            List<Node> inputs = net.getInputNodes(this.Id);
+            if (!inputs.All(n => n.IsActivate(time)))
+                return null;
             
-            
+            //根据基因定义的顺序，将输入值组成List<Vector>
+
+
         }
 
-        public InferenceRecord getRecord(int min_or_max, int id)
+        #region 推理
+        /// <summary>
+        /// 给定后置变量的值，推理条件部分的值
+        /// </summary>
+        /// <param name="varValue"></param>
+        /// <returns></returns>
+        public (List<Vector>, int) postinference(Vector varValue)
         {
-            int index = ((InferenceGene)this.gene).getVariableIndex(id);
-            if (index == -1) return null;
-
-            InferenceRecord r = null;
-            double min = double.MaxValue - 1, max = double.MinValue + 1;
-            for (int i = 0; i < this.records.Count; i++)
+            //按照混合高斯分布进行采样
+            List<List<Vector>> samples = this.samples(Session.GetConfiguration().agent.inferencesamples);
+            int varindex = ((InferenceGene)this.gene).getVariableIndex();
+            //在采样中寻找与varValue最接近的值
+            double dis = double.MaxValue - 1;
+            List<Vector> vs = null;
+            for(int i=0;i<samples.Count;i++)
             {
-                double len = this.records[i].means[index].length();
-                if (min_or_max == 1 && len < min)
+                Vector v = samples[i][varindex];
+                double d = v.distance(varValue);
+                if(d < dis)
                 {
-                    min = len; r = this.records[i];
-                }
-                else if (min_or_max == 2 && len > max)
-                {
-                    max = len; r = this.records[i];
+                    d = dis;
+                    vs = samples[i];
                 }
             }
-            return r;
+            //返回该采样
+            return (vs, varindex);
         }
+        /// <summary>
+        /// 求变量最大或者最小推理
+        /// </summary>
+        /// <param name="arg">argmin还是argmax</param>
+        /// <returns></returns>
+        public (List<Vector>, int,double) arginference(string arg)
+        {
+            //根据arg选择varId最大或者最小的那个节点
+            InferenceRecord argRecord = null;
+            double value = arg == "argmin" ? double.MaxValue - 1 : double.MinValue + 1;
+            int varindex = ((InferenceGene)this.gene).getVariableIndex();
+            for(int i=0;i<this.records.Count;i++)
+            {
+                double len = this.records[i].means[varindex].length();
+                if(arg == "argmin" && len < value)
+                {
+                    argRecord = this.records[i];
+                    value = len;
+                }else if(arg == "argmax" && len > value)
+                {
+                    argRecord = this.records[i];
+                    value = len;
+                }
+            }
+            //对这个节点根据分布进行采样
+            List<List<Vector>> samples = argRecord.sample(Session.GetConfiguration().agent.inferencesamples);
+            //选择采样中使得varId最大或者最小的那个节点
+            List<Vector> values = null;
+            value = arg == "argmin" ? double.MaxValue - 1 : double.MinValue + 1;
+            for (int i=0;i<samples.Count;i++)
+            {
+                double len = samples[i][varindex].length();
+                if (arg == "argmin" && len < value)
+                {
+                    values = samples[i];
+                    value = len;
+                }
+                else if (arg == "argmax" && len > value)
+                {
+                    values = samples[i];
+                    value = len;
+                }
+            }
+            //返回该节点的条件和变量的值
+            return (values, varindex, value);
+            
+        }
+
+        #endregion
     }
 }

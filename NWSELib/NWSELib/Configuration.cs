@@ -16,6 +16,8 @@ namespace NWSELib
         {
             [XmlAttribute]
             public int shorttermcapacity;
+            [XmlAttribute]
+            public int inferencesamples;
             [XmlElement]
             public Receptors receptors = new Receptors();
         }
