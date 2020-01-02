@@ -14,7 +14,7 @@ namespace NWSELib.net.handler
         public override Object activate(Network net, int time, Object value = null)
         {
             List<Node> inputs = net.getInputNodes(this.Id);
-            if (!inputs.All(n => n.IsActivate()))
+            if (!inputs.All(n => n.IsActivate(time)))
                 return null;
 
             int[] t = new int[inputs.Count];

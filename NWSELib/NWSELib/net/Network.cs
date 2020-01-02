@@ -31,7 +31,7 @@ namespace NWSELib.net
         {
             public int timeScale = 1;
             public int beginTime = -1;
-            public readonly Queue<Vector> records = new Queue<Vector>();
+            public Queue<Vector> records = new Queue<Vector>();
             public MemoryItem() { }
             public MemoryItem(int timeScale) { this.timeScale = timeScale; }
         }
@@ -56,6 +56,10 @@ namespace NWSELib.net
         {
             return new List<Vector>(memories[nodeIndex].records.ToArray());
         }
+        #endregion
+
+        #region 推理链
+        private (JudgeItem judge,(string,Vector))
         #endregion
 
         #region 节点查询
@@ -224,6 +228,15 @@ namespace NWSELib.net
                 this.adjMatrix[srcIndex, destIndex] = 1;
             }
 
+            //初始化短时记忆
+            int memoryCapacity = Session.GetConfiguration().agent.shorttermcapacity;
+            memories = new MemoryItem[this.nodes.Count];
+            for(int i = 0; i < this.nodes.Count; i++)
+            {
+                memories[i] = new MemoryItem();
+                memories[i].records = new Queue<Vector>(memoryCapacity);
+            }
+
 
         }
 
@@ -271,19 +284,18 @@ namespace NWSELib.net
             {
                 JudgeItem judgeItem = this.genome.judgeGene.items[i];
                 List<int> variables = judgeItem.variables;
+                List<int> conditions = judgeItem.conditions;
+                
 
                 List<Node> inferences = this.Inferences;
                 //找到所有包含推理变量（后置）的推理项
                 List<Inference> varInferences = this.GetInferences(2, false, variables.ToArray());
                 if (varInferences == null || varInferences.Count <= 0) continue;
 
-                for (int i = 0; i < inferences.Count; i++)
+                //沿着推理项向上回溯，直到所有推理节点都经过，或者推理条件都已经有结果为止
+                for(int j=0;j<varInferences.Count;j++)
                 {
-                    foreach (int var in variables)
-                    {
-                        if (((InferenceGene)inferences[i].Gene).matchVariables(var))
-                            varInferences.Add((Inference)inferences[i]);
-                    }
+                    (List<int> condId,List<Vector> conditionValues,List<int> varId,List<double> variableValues) = varInferences[i].inference(variables);
                 }
 
             }
