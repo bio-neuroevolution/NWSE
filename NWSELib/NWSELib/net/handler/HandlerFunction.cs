@@ -15,7 +15,7 @@ namespace NWSELib.net.handler
         public readonly List<(double, double)> ParamRange;
         public readonly Type handlerType;
 
-        public HandlerFunction(String name, int paramCount, Type handlerType,params (double, double)[] range)
+        public HandlerFunction(String name, int paramCount, Type handlerType, params (double, double)[] range)
         {
             this.Name = name;
             this.ParamCount = paramCount;

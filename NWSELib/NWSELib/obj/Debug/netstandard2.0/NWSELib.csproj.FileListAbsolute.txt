@@ -1,3 +1,7 @@
 E:\gitlib\annunakichb\NWSE\NWSELib\NWSELib\obj\Debug\netstandard2.0\NWSELib.csprojAssemblyReference.cache
 E:\gitlib\annunakichb\NWSE\NWSELib\NWSELib\obj\Debug\netstandard2.0\NWSELib.AssemblyInfoInputs.cache
 E:\gitlib\annunakichb\NWSE\NWSELib\NWSELib\obj\Debug\netstandard2.0\NWSELib.AssemblyInfo.cs
+D:\gitlib\NWSE\NWSELib\NWSELib\bin\Debug\netstandard2.0\NWSELib.dll.config
+D:\gitlib\NWSE\NWSELib\NWSELib\obj\Debug\netstandard2.0\NWSELib.AssemblyInfoInputs.cache
+D:\gitlib\NWSE\NWSELib\NWSELib\obj\Debug\netstandard2.0\NWSELib.AssemblyInfo.cs
+D:\gitlib\NWSE\NWSELib\NWSELib\obj\Debug\netstandard2.0\NWSELib.csprojAssemblyReference.cache

@@ -1,5 +1,5 @@
-﻿using System;
-using NWSELib.genome;
+﻿using NWSELib.genome;
+using System;
 
 namespace NWSELib.net
 {

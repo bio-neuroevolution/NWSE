@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
-using NWSELib.common;
+﻿using NWSELib.common;
 using NWSELib.genome;
+using System.Collections.Generic;
 
 namespace NWSELib.net
 {
@@ -23,7 +23,39 @@ namespace NWSELib.net
         /// </summary>
         private double[,] adjMatrix;
 
-        
+
+        #endregion
+
+        #region 记忆信息
+        private class MemoryItem
+        {
+            public int timeScale = 1;
+            public int beginTime = -1;
+            public readonly Queue<Vector> records = new Queue<Vector>();
+            public MemoryItem() { }
+            public MemoryItem(int timeScale) { this.timeScale = timeScale; }
+        }
+        private MemoryItem[] memories;
+
+        public void putMemoryItem(int nodeIndex, int time, Vector value)
+        {
+
+            if (memories[nodeIndex].beginTime < 0)
+                memories[nodeIndex].beginTime = time;
+            memories[nodeIndex].records.Enqueue(value);
+        }
+        public Vector getMemoryItem(int nodeIndex, int time)
+        {
+            if (memories[nodeIndex].beginTime < 0)
+                return null;
+            int index = (time - memories[nodeIndex].beginTime) / memories[nodeIndex].timeScale;
+            Vector[] vs = memories[nodeIndex].records.ToArray();
+            return index < vs.Length ? vs[index] : null;
+        }
+        public List<Vector> getNodeMemory(int nodeIndex)
+        {
+            return new List<Vector>(memories[nodeIndex].records.ToArray());
+        }
         #endregion
 
         #region 节点查询
@@ -65,12 +97,54 @@ namespace NWSELib.net
             get => nodes.FindAll(n => n is Handler);
         }
 
+        public List<Node> Inferences
+        {
+            get => nodes.FindAll(n => n is Inference);
+        }
+
         /// <summary>
         /// 效应器
         /// </summary>
         public List<Node> Effectors
         {
             get => nodes.FindAll(n => n is Effector);
+        }
+
+        /// <summary>
+        /// 
+        /// 寻找满足条件的推理项
+        /// </summary>
+        /// <param name="condition_or_variable">根据条件查找，还是根据后置变量查找</param>
+        /// <param name="allmatch">是否要求全部匹配</param>
+        /// <param name="ids">待匹配ID</param>
+        /// <returns></returns>
+        public List<Inference> GetInferences(int condition_or_variable, bool allmatch, params int[] ids)
+        {
+            List<Node> inferences = this.Inferences;
+            List<Inference> results = new List<Inference>();
+            const int CONDITION = 1;
+            const int VARIABLE = 2;
+
+            for (int i = 0; i < inferences.Count; i++)
+            {
+                if (condition_or_variable == VARIABLE)
+                {
+                    if (((InferenceGene)inferences[i].Gene).matchVariables(allmatch, ids))
+                        results.Add((Inference)inferences[i]);
+                }
+                else if (condition_or_variable == CONDITION)
+                {
+                    if (((InferenceGene)inferences[i].Gene).matchCondition(allmatch, ids))
+                        results.Add((Inference)inferences[i]);
+                }
+
+
+
+            }
+            return results;
+
+
+
         }
 
         /// <summary>
@@ -150,14 +224,14 @@ namespace NWSELib.net
                 this.adjMatrix[srcIndex, destIndex] = 1;
             }
 
-            
+
         }
 
         #endregion
 
 
-        
-        
+
+
 
         /// <summary>
         /// 激活
@@ -190,10 +264,29 @@ namespace NWSELib.net
         /// <summary>
         /// 评判
         /// </summary>
-        private void judge()
+        private void judge(Network net)
         {
-            //对每一个评判项
-            ////找到所有与其直接
+            //对每一个评判项，选择合适的动作
+            for (int i = 0; i < this.genome.judgeGene.items.Count; i++)
+            {
+                JudgeItem judgeItem = this.genome.judgeGene.items[i];
+                List<int> variables = judgeItem.variables;
+
+                List<Node> inferences = this.Inferences;
+                //找到所有包含推理变量（后置）的推理项
+                List<Inference> varInferences = this.GetInferences(2, false, variables.ToArray());
+                if (varInferences == null || varInferences.Count <= 0) continue;
+
+                for (int i = 0; i < inferences.Count; i++)
+                {
+                    foreach (int var in variables)
+                    {
+                        if (((InferenceGene)inferences[i].Gene).matchVariables(var))
+                            varInferences.Add((Inference)inferences[i]);
+                    }
+                }
+
+            }
         }
     }
 }

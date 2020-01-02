@@ -147,7 +147,7 @@ namespace NWSELib.common
         {
             Vector v = this.clone();
             double len = this.length();
-            for(int i = 0; i < this.Size; i++)
+            for (int i = 0; i < this.Size; i++)
             {
                 v[i] = this[i] / len;
             }
@@ -158,13 +158,14 @@ namespace NWSELib.common
         {
             int size = VectorExtender.maxSize();
             Vector v = new Vector(true, size);
-            for(int i = 0; i < size; i++)
+            for (int i = 0; i < size; i++)
             {
                 if (v1.Size <= i)
                 {
                     v[i] = -v2[i];
                     break;
-                }else if(v2.Size <= i)
+                }
+                else if (v2.Size <= i)
                 {
                     v[i] = v1[i];
                 }
@@ -187,32 +188,32 @@ namespace NWSELib.common
             int size = VectorExtender.maxSize(vs);
             List<Vector> cv = new List<Vector>();
             List<double> avg = new List<double>();
-            
-            for(int i = 0; i < size; i++)
+
+            for (int i = 0; i < size; i++)
             {
                 cv.Add(VectorExtender.column(vs.ToList(), i));
                 avg.Add(cv[i].average());
             }
             int dim = avg.Count;
             int n = cv[0].Size;
-            Vector r = new Vector(true,dim*(dim+1)/2);
+            Vector r = new Vector(true, dim * (dim + 1) / 2);
             int index = 0;
             for (int i = 0; i < size; i++)
             {
-                for(int j = 0; j < size; j++)
+                for (int j = 0; j < size; j++)
                 {
                     if (i > j) continue;
                     double sum = 0.0;
-                    for(int k = 0; k < n; k++)
+                    for (int k = 0; k < n; k++)
                     {
-                        sum += (cv[i][k] - avg[i])*(cv[j][k] - avg[j]);
+                        sum += (cv[i][k] - avg[i]) * (cv[j][k] - avg[j]);
                     }
                     sum /= (n - 1);
                     r[index++] = sum;
                 }
             }
             return r;
-        } 
+        }
         #endregion
     }
     public static class VectorExtender

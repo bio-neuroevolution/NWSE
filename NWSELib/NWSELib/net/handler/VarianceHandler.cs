@@ -1,9 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using NWSELib.common;
 using NWSELib.genome;
+using System;
+using System.Collections.Generic;
 using System.Linq;
-using NWSELib.common;
 
 namespace NWSELib.net.handler
 {

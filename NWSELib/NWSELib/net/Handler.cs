@@ -1,7 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using NWSELib.genome;
+﻿using NWSELib.genome;
 using NWSELib.net.handler;
+using System;
 
 namespace NWSELib.net
 {
@@ -11,7 +10,7 @@ namespace NWSELib.net
         {
 
         }
-        
+
         public static Handler create(HandlerGene gene)
         {
             string funcName = gene.function;

@@ -1,8 +1,8 @@
-﻿using System;
+﻿using NWSELib.common;
+using NWSELib.genome;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using NWSELib.common;
-using NWSELib.genome;
 
 namespace NWSELib.net
 {
@@ -37,7 +37,7 @@ namespace NWSELib.net
         #endregion
 
         #region 状态信息
-        
+
         protected readonly Queue<Vector> values;
         protected readonly Queue<int> times;
         public int BeginTime
@@ -59,7 +59,7 @@ namespace NWSELib.net
 
         public Vector Value
         {
-            get { return values.ToArray()[values.Count-1]; }
+            get { return values.ToArray()[values.Count - 1]; }
         }
 
         public int Dimension
@@ -72,16 +72,16 @@ namespace NWSELib.net
             get => this.values.ToList();
         }
 
-        public List<Vector> GetValues(int new_time,int count)
+        public List<Vector> GetValues(int new_time, int count)
         {
-            List<int> ts= this.times.ToList();
+            List<int> ts = this.times.ToList();
             int tindex = ts.IndexOf(new_time);
             if (tindex < 0) return null;
             if (tindex < count - 1) return null;
             return this.ValueList.GetRange(tindex - count + 1, count);
         }
 
-        public Vector GetValue(int time,int backIndex)
+        public Vector GetValue(int time, int backIndex)
         {
             List<int> ts = this.times.ToList();
             int tindex = ts.IndexOf(time);
@@ -98,7 +98,7 @@ namespace NWSELib.net
         }
 
 
-        
+
 
         public Node(NodeGene gene)
         {
@@ -107,7 +107,7 @@ namespace NWSELib.net
             int memoryCapacity = Session.GetConfiguration().agent.shorttermcapacity;
             values = new Queue<Vector>(memoryCapacity);
             times = new Queue<int>(memoryCapacity);
-    }
+        }
         #endregion
 
         #region 评价信息
@@ -124,12 +124,12 @@ namespace NWSELib.net
         /// <returns></returns>
         public virtual Object activate(Network net, int time, Object value = null)
         {
-            if(CurTime == time)return this.Value;
+            if (CurTime == time) return this.Value;
             Object prev = this.Value;
 
             this.values.Enqueue((Vector)value);
             this.times.Enqueue(time);
-            
+
             return prev;
         }
         /// <summary>
@@ -137,7 +137,7 @@ namespace NWSELib.net
         /// </summary>
         public void Reset()
         {
-            
+
         }
         /// <summary>
         /// 是否已经完成过计算
