@@ -1,5 +1,6 @@
 ﻿using NWSELib.common;
 using NWSELib.genome;
+using System;
 using System.Collections.Generic;
 
 namespace NWSELib.net
@@ -35,6 +36,9 @@ namespace NWSELib.net
             public MemoryItem() { }
             public MemoryItem(int timeScale) { this.timeScale = timeScale; }
         }
+
+        
+
         private MemoryItem[] memories;
 
         public void putMemoryItem(int nodeIndex, int time, Vector value)
@@ -52,6 +56,9 @@ namespace NWSELib.net
             Vector[] vs = memories[nodeIndex].records.ToArray();
             return index < vs.Length ? vs[index] : null;
         }
+
+        
+
         public List<Vector> getNodeMemory(int nodeIndex)
         {
             return new List<Vector>(memories[nodeIndex].records.ToArray());
@@ -242,7 +249,43 @@ namespace NWSELib.net
 
         #endregion
 
+        #region 评价信息
+        /// <summary>
+        /// 可靠度
+        /// </summary>
+        protected double reability;
+        /// <summary>
+        /// 取得所有节点可靠度之和
+        /// </summary>
+        /// <returns></returns>
+        public double getNodeAverageReability()
+        {
+            double r = 0.0;
+            this.Handlers.ForEach(h => r += h.Reability);
+            this.Inferences.ForEach(i => r += i.Reability);
+            return r / (this.Handlers.Count+this.Inferences.Count);
+        }
+        /// <summary>
+        /// 网络可靠度
+        /// </summary>
+        public double Reability
+        {
+            get => this.reability;
+            set => this.reability = value;
+        }
 
+        public List<NodeGene> getVaildInferenceGene()
+        {
+            double highlimit = Session.GetConfiguration().evolution.Inference_reability_range.Max;
+            return this.Inferences.FindAll(n => n.Reability > highlimit).ConvertAll(n => n.Gene);
+        }
+
+        public List<NodeGene> getInvaildInferenceGene()
+        {
+            double lowlimit = Session.GetConfiguration().evolution.Inference_reability_range.Min;
+            return this.Inferences.FindAll(n => n.Reability < lowlimit).ConvertAll(n=>n.Gene);
+        }
+        #endregion
 
 
 

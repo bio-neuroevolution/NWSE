@@ -41,7 +41,8 @@
     
   </agent>
 
-  <evolution>
+  <evolution propagate_base_count="100" inference_reability_range="[0.01,10.0]">
+    
     
   </evolution>
 </configuration>

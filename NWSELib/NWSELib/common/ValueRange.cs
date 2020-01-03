@@ -59,6 +59,8 @@ namespace NWSELib.common
         {
             get => throw new NotImplementedException();
         }
+        public double Min { get => this.values[0]; }
+        public double Max { get => this.values[1]; }
 
         public ValueRange(String value)
         {

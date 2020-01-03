@@ -112,7 +112,16 @@ namespace NWSELib.net
 
         #region 评价信息
         /** 可靠度 */
-        protected double realiability;
+        protected double reability;
+        /// <summary>
+        /// 可靠度
+        /// </summary>
+        public double Reability
+        {
+            get => this.reability;
+            set => this.reability = value;
+        }
+        
         #endregion
 
         #region 激活与重置
