@@ -35,5 +35,24 @@ namespace NWSELib.genome
         /// </summary>
         public JuegeGene judgeGene = new JuegeGene();
 
+        /// <summary>
+        /// 无效推理基因
+        /// </summary>
+        public List<NodeGene> invaildInferenceNodes = new List<NodeGene>();
+
+        /// <summary>
+        /// 基因漂移处理
+        /// </summary>
+        /// <param name="invaildInferenceNodes"></param>
+        /// <param name="vaildInferenceNodes"></param>
+        public void gene_drift(List<NodeGene> invaildInferenceNodes, List<NodeGene> vaildInferenceNodes)
+        {
+
+        }
+
+
+
+
+
     }
 }

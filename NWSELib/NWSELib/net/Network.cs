@@ -23,8 +23,15 @@ namespace NWSELib.net
         /// 邻接矩阵
         /// </summary>
         private double[,] adjMatrix;
-
-
+        /// <summary>
+        /// 染色体
+        /// </summary>
+        public NWSEGenome Genome { get => genome; }
+        /// <summary>
+        /// 节点集
+        /// </summary>
+        public List<Node> Nodes { get => nodes; }
+        
         #endregion
 
         #region 记忆信息
@@ -282,6 +289,7 @@ namespace NWSELib.net
 
         public List<NodeGene> getInvaildInferenceGene()
         {
+
             double lowlimit = Session.GetConfiguration().evolution.Inference_reability_range.Min;
             return this.Inferences.FindAll(n => n.Reability < lowlimit).ConvertAll(n=>n.Gene);
         }

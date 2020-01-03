@@ -63,5 +63,7 @@ namespace NWSELib.genome
         /// </summary>
         public int SectionCount { get => sectionCount; set => sectionCount = value; }
 
+        
+
     }
 }
