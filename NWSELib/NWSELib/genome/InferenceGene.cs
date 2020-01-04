@@ -15,6 +15,29 @@ namespace NWSELib.genome
         /// </summary>
         public List<(int, int)> dimensions = new List<(int, int)>();
 
+        public override T clone<T>()
+        {
+            InferenceGene gene = new InferenceGene().copy<InferenceGene>(this);
+            gene.dimensions.AddRange(this.dimensions);
+            return (T)(Object)gene;
+        }
+
+        private int comp_dimension((int,int) t1,(int,int) t2)
+        {
+            if (t1.Item2 > t2.Item2) return 1;
+            else if (t1.Item2 < t2.Item2) return -1;
+            else
+            {
+                if (t1.Item1 > t2.Item1) return 1;
+                else if (t1.Item1 < t2.Item1) return -1;
+                return 0;
+            }
+        }
+        public void sort_dimension()
+        {
+            this.dimensions.Sort(comp_dimension);
+        }
+
         /// <summary>
         /// 两个推理基因的关系
         /// </summary>
@@ -55,15 +78,17 @@ namespace NWSELib.genome
             }
             for (int i = 0; i < rs.Length; i++)
                 if (rs[i] != 0) return r[i];
+            throw new ExecutionEngineException();
 
         }
         public override string ToString()
         {
+            this.sort_dimension();
             return base.ToString() + ",dimensions=" +
                 dimensions.ConvertAll(d=>d.Item1.ToString()+"-"+d.Item2.ToString())
                 .Aggregate((x,y)=>x+","+y);
         }
-        public static InferenceGene parse(String str)
+        public static new InferenceGene parse(String str)
         {
             InferenceGene gene = new InferenceGene();
             ((NodeGene)gene).parse(str);

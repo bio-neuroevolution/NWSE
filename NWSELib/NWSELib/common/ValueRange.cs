@@ -9,6 +9,9 @@ namespace NWSELib.common
 
     /// <summary>
     /// 特定取值范围
+    /// Range of values
+    /// Different from range in python, it can be divided into three types: 
+    /// value enumeration, arithmetic sequences and  geometrical sequences
     /// </summary>
     public class ValueRange : IEnumerable<double>,IEnumerator<double>
     {
@@ -201,14 +204,24 @@ namespace NWSELib.common
         {
             this.state_next = new ThreadLocal<object>();
         }
-
+        /// <summary>
+        /// 有效范围
+        /// </summary>
         public double Distance
         {
             get => this.values[1] - this.values[0];
         }
+        /// <summary>
+        /// 最小值
+        /// </summary>
         public double Min { get => this.values[0]; }
+        /// <summary>
+        /// 最大值
+        /// </summary>
         public double Max { get => this.values[1]; }
-
+        /// <summary>
+        /// 当前值
+        /// </summary>
         double IEnumerator<double>.Current
         {
             get
@@ -219,6 +232,18 @@ namespace NWSELib.common
             }
         }
 
+        object IEnumerator.Current
+        {
+            get
+            {
+                if (state_next.Value == null) return double.NaN;
+                if (state_next.Value is double) return (double)state_next.Value;
+                return ((Queue<double>)state_next.Value).ToList().Last();
+            }
+        }
+        #endregion
+
+        #region 初始化
         /// <summary>
         /// 构造函数
         /// </summary>
@@ -259,13 +284,14 @@ namespace NWSELib.common
             this.values[1] = double.Parse(end);
             if (j > value.Length)
             {
-                this.distance = (this.values[1] - this.values[0]) / 100;
+                if (this.values[0] == (int)this.values[0]) this.distance = 1;
+                else this.distance = (this.values[1] - this.values[0]) / 100;
             }else if(this.cataory == Cataory.EdiffSeries)
             {
                 this.distance = value.Substring(j + 1, value.Length - j - 1);
             }else if(this.cataory == Cataory.EratioSeries)
             {
-                this.distance = value.Substring(j + 1, value.Length - j - 1)
+                this.distance = value.Substring(j + 1, value.Length - j - 1);
             }
         }
         /// <summary>
@@ -300,5 +326,6 @@ namespace NWSELib.common
             this.recursiveFunc = recursiveFunc;
             this.recursiveFuncMaxHistory = recursiveFuncMaxHistory;
         }
+        #endregion
     }
 }

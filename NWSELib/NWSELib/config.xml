@@ -1,24 +1,24 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <configuration>
-  <agent shorttermcapacity="10" inferencesamples="100">
+  <agent shorttermcapacity="10" inferencesamples="3">
     <receptors>
       <env>
-        <sensor name="d1" cataory="distance" group="env.distance" range="[0.0 - 10.0]" levels="[3-6]">
+        <sensor name="d1" cataory="distance" group="env.distance" range="[0.0 - 10.0]" levels="[3-8]">
           <property name="direction" type="float" value="-1.07"></property>
         </sensor>
-        <sensor name="d2" cataory="distance" group="env.distance" range="[0.0 - 10.0]" levels="[3-6]">
+        <sensor name="d2" cataory="distance" group="env.distance" range="[0.0 - 10.0]" levels="[3-8]">
           <property name="direction" type="float" value="-0.78"></property>
         </sensor>
-        <sensor name="d3" cataory="distance" group="env.distance" range="[0.0 - 10.0]" levels="[3-6]">
+        <sensor name="d3" cataory="distance" group="env.distance" range="[0.0 - 10.0]" levels="[3-8]">
           <property name="direction" type="float" value="0"></property>
         </sensor>
-        <sensor name="d4" cataory="distance" group="env.distance" range="[0.0 - 10.0]" levels="[3-6]">
+        <sensor name="d4" cataory="distance" group="env.distance" range="[0.0 - 10.0]" levels="[3-8]">
           <property name="direction" type="float" value="0.78"></property>
         </sensor>
-        <sensor name="d5" cataory="distance" group="env.distance" range="[0.0 - 10.0]" levels="[3-6]">
+        <sensor name="d5" cataory="distance" group="env.distance" range="[0.0 - 10.0]" levels="[3-8]">
           <property name="direction" type="float" value="1.07"></property>
         </sensor>
-        <sensor name="d6" cataory="distance" group="env.distance" range="[0.0 - 10.0]" levels="[3-6]">
+        <sensor name="d6" cataory="distance" group="env.distance" range="[0.0 - 10.0]" levels="[3-8]">
           <property name="direction" type="float" value="3.14"></property>
         </sensor>
       </env>
@@ -41,8 +41,15 @@
     
   </agent>
 
+  <handlers>
+    <handler name="avg" paramcount="1" ParamRange="[1,10]" typename="NWSELib.net.handler.AverageHandler" selection_prob_range="[0-1+0.01]"></handler>
+    <handler name="variance" paramcount="1" ParamRange="[1,10]" typename="NWSELib.net.handler.VarianceHandler" selection_prob_range="[0-1+0.01]"></handler>
+    <handler name="diff" paramcount="2" ParamRange="[1,10];[1,10]" typename="NWSELib.net.handler.DiffHandler" selection_prob_range="[0-1+0.01]"></handler>
+    <handler name="direction" paramcount="0" ParamRange="" typename="NWSELib.net.handler.DirectionHandler" selection_prob_range="[0-1+0.01]"></handler>
+  </handlers>
+  
   <evolution propagate_base_count="3" max_ind_count="500" inference_reability_range="[0.01,10.0]">
-    
+    <mutate handlerprob="0.25,0.25,0.25,0.25"></mutate>
     
   </evolution>
 </configuration>

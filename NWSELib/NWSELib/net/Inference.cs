@@ -37,7 +37,7 @@ namespace NWSELib.net
 
         public List<List<Vector>> sample(int count)
         {
-            
+            throw new NotImplementedException();
         }
 
     }
@@ -126,7 +126,7 @@ namespace NWSELib.net
             List<double> probs = this.records.ConvertAll(r => r.prob(values));
             double sumprobs = probs.Sum();
             probs = probs.ConvertAll(p => p / sumprobs);
-            int pindex = argmax(probs);
+            int pindex = probs.argmax();
 
             //计算每个节点的密度值，以及样本的密度值
             List<List<Vector>> allValues = new List<List<Vector>>();
@@ -135,13 +135,13 @@ namespace NWSELib.net
             List<double> distances = allValues.ConvertAll(v => v.distance(values));
             double dissum = distances.Sum();
             List<double> delta_diensity = distances.ConvertAll(d => (dissum - d) / dissum);
-            
+
             //如果最大密度点不大于阈值，且原有高斯分量密度大于给定阈值，则调整该高斯分量的均值和协方差，结束
             //否则对新样本根据密度进行聚类：将密度值由高到底排列，对密度值高于阈值的搜索某半径内的其他点作为一类
             //根据聚类结果计算新高斯分量参数
             //降低原有高斯分量的密度，如果密度低于阈值，则该执行分量撤销操作
             //调整原有高斯分量的均值和协方差
-
+            throw new NotImplementedException();
 
         }
 

@@ -289,7 +289,7 @@ namespace NWSELib.common
         /// <returns></returns>
         public static (Vector,List<int>) flatten(this List<Vector> vs)
         {
-            int size = vs.ConvertAll(v => v.Size).Sum();
+            int size = vs.ConvertAll(v1 => v1.Size).Sum();
             Vector v = new Vector(true, size);
             List<int> sizes = new List<int>();
             int k = 0;

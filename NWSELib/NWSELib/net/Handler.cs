@@ -14,8 +14,8 @@ namespace NWSELib.net
         public static Handler create(HandlerGene gene)
         {
             string funcName = gene.function;
-            HandlerFunction hf = HandlerFunction.Find(funcName);
-            return (Handler)hf.handlerType.GetConstructor(new Type[] { typeof(NodeGene) }).Invoke(new object[] { gene });
+            Configuration.Handler hf = Session.GetConfiguration().Find(gene.function);
+            return (Handler)hf.HandlerType.GetConstructor(new Type[] { typeof(NodeGene) }).Invoke(new object[] { gene });
         }
     }
 }

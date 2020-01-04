@@ -72,9 +72,7 @@ namespace NWSELib.net
         }
         #endregion
 
-        #region 推理链
-        private (JudgeItem judge,(string,Vector))
-        #endregion
+        
 
         #region 节点查询
         /// <summary>
@@ -147,7 +145,7 @@ namespace NWSELib.net
             {
                 if (condition_or_variable == VARIABLE)
                 {
-                    if (((InferenceGene)inferences[i].Gene).matchVariables(allmatch, ids))
+                    if (((InferenceGene)inferences[i].Gene).matchVariable(ids[0]))
                         results.Add((Inference)inferences[i]);
                 }
                 else if (condition_or_variable == CONDITION)
@@ -334,19 +332,18 @@ namespace NWSELib.net
             for (int i = 0; i < this.genome.judgeGene.items.Count; i++)
             {
                 JudgeItem judgeItem = this.genome.judgeGene.items[i];
-                List<int> variables = judgeItem.variables;
                 List<int> conditions = judgeItem.conditions;
                 
 
                 List<Node> inferences = this.Inferences;
                 //找到所有包含推理变量（后置）的推理项
-                List<Inference> varInferences = this.GetInferences(2, false, variables.ToArray());
+                List<Inference> varInferences = this.GetInferences(2, false, judgeItem.variable);
                 if (varInferences == null || varInferences.Count <= 0) continue;
 
                 //沿着推理项向上回溯，直到所有推理节点都经过，或者推理条件都已经有结果为止
                 for(int j=0;j<varInferences.Count;j++)
                 {
-                    (List<int> condId,List<Vector> conditionValues,List<int> varId,List<double> variableValues) = varInferences[i].inference(variables);
+                    (List<Vector> conditionValues,int varId,double variableValues) = varInferences[i].arginference(judgeItem.expression);
                 }
 
             }

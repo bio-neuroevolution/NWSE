@@ -7,11 +7,13 @@ namespace NWSELib.common
 {
     /// <summary>
     /// 工具类
+    /// Utility
     /// </summary>
     public static class Utility
     {
         /// <summary>
         /// 字符串转double集合
+        /// str to List<double>
         /// </summary>
         /// <param name="s"></param>
         /// <returns></returns>
@@ -21,6 +23,7 @@ namespace NWSELib.common
         }
         /// <summary>
         /// 判断两个集合是否完全想等
+        /// Wether two sets are equal.
         /// </summary>
         /// <param name="v1"></param>
         /// <param name="v2"></param>
@@ -37,5 +40,35 @@ namespace NWSELib.common
             }
             return true;
         }
+
+        /// <summary>
+        /// argmax
+        /// </summary>
+        /// <param name="values"></param>
+        /// <returns></returns>
+        public static int argmax(this List<double> values)
+        {
+            double max = values.Max();
+            for(int i=0;i<values.Count;i++)
+            {
+                if (max == values[i]) return i;
+            }
+            return 0;
+        }
+        /// <summary>
+        /// argmin
+        /// </summary>
+        /// <param name="values"></param>
+        /// <returns></returns>
+        public static int argmin(this List<double> values)
+        {
+            double max = values.Min();
+            for (int i = 0; i < values.Count; i++)
+            {
+                if (max == values[i]) return i;
+            }
+            return 0;
+        }
+
     }
 }

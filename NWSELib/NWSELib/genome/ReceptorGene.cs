@@ -46,5 +46,9 @@ namespace NWSELib.genome
 
         }
 
+        public override T clone<T>()
+        {
+            return (T)(Object)new ReceptorGene().copy<ReceptorGene>(this);
+        }
     }
 }

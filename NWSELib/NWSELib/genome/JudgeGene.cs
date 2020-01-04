@@ -25,12 +25,24 @@ namespace NWSELib.genome
         /// </summary>
         public int variable;
 
+        public JudgeItem clone()
+        {
+            JudgeItem item = new JudgeItem()
+            {
+                expression = this.expression,
+                variable = this.variable
+            };
+            item.conditions.AddRange(this.conditions);
+            return item;
+        }
+
         /// <summary>
         /// 转换字符串
         /// </summary>
         /// <returns></returns>
         public override string ToString()
         {
+            conditions.Sort();
             return expression + "(" + variable.ToString() + " | " +
                 conditions.ConvertAll(x => x.ToString()).Aggregate<String>((x, y) => x + "," + y);
         }
@@ -55,7 +67,7 @@ namespace NWSELib.genome
     /// <summary>
     /// 评判基因
     /// </summary>
-    public class JuegeGene : NodeGene
+    public class JudgeGene : NodeGene
     {
         /// <summary>
         /// 评判项
@@ -66,15 +78,24 @@ namespace NWSELib.genome
         /// </summary>
         public List<double> weights = new List<double>();
 
+
+        public override T clone<T>()
+        {
+            JudgeGene gene = new JudgeGene().copy<JudgeGene>(this);
+            gene.items = this.items.ConvertAll(x => x.clone()).ToList();
+            gene.weights.AddRange(this.weights);
+            return (T)(Object)gene;
+        }
+
         public override string ToString()
         {
             return base.ToString() + ",weights="+
                 weights.ConvertAll(w=>w.ToString()).Aggregate((x,y)=>x+","+y)+
                 ",items="+items.ConvertAll(i=>i.ToString()).Aggregate((x,y)=>x+":"+y);
         }
-        public static JuegeGene parse(String str)
+        public static new JudgeGene parse(String str)
         {
-            JuegeGene gene = new JuegeGene();
+            JudgeGene gene = new JudgeGene();
             ((NodeGene)gene).parse(str);
 
             int i1 = str.IndexOf("weights");

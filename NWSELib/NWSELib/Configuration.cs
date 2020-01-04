@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Serialization;
+using System.Reflection;
 
 namespace NWSELib
 {
@@ -15,6 +16,27 @@ namespace NWSELib
         [XmlElement(ElementName = "evolution")]
         public Evolution evolution = new Evolution();
 
+        [XmlArray(ElementName ="handlers")]
+        [XmlArrayItem(ElementName ="handler",Type =typeof(Handler))]
+        public List<Handler> handlers = new List<Handler>();
+
+        public Handler Find(String name)
+        {
+            return handlers.FirstOrDefault<Handler>(h => h.name == name);
+        }
+
+        public Handler random_handler(double[] distribution = null)
+        {
+            if (distribution == null)
+            {
+                distribution = new double[handlers.Count];
+                for (int i = 0; i < distribution.Length; i++) distribution[i] = 1.0 / handlers.Count;
+            }
+            int index = new Random().Next(0, handlers.Count);
+            return handlers[index];
+        }
+
+        
 
         public class Agent
         {
@@ -70,9 +92,21 @@ namespace NWSELib
             public String group;
             [XmlAttribute]
             public String range;
+            [XmlAttribute]
+            public String level;
 
-            public ValueRange Range { get => null; }
+            [XmlIgnore]
+            private ValueRange _range;
+            [XmlIgnore]
+            private ValueRange _level;
+
+            [XmlIgnore]
+            public ValueRange Range { get => _range==null?_range=new ValueRange(range):_range; }
+            [XmlIgnore]
+            public ValueRange Level { get => _level==null?_level=new ValueRange(level):_level; }
         }
+
+        
     
         public class Evolution
         {
@@ -80,10 +114,70 @@ namespace NWSELib
             public int propagate_base_count;
             [XmlAttribute(AttributeName = "inference_reability_range")]
             public String inference_reability_range_str;
+            [XmlIgnore]
             public ValueRange Inference_reability_range
             {
                 get => new ValueRange(inference_reability_range_str);
             }
+
+            [XmlElement]
+            public EvolutionMutate mutate = new EvolutionMutate();
+
         }
-    }
+
+        public class EvolutionMutate
+        {
+            [XmlAttribute]
+            public String handlerprob;
+            [XmlIgnore]
+            private List<double> _handlerprob;
+            [XmlIgnore]
+            public List<double> Handlerprob 
+            {
+                get => _handlerprob == null ? _handlerprob = Utility.parse(handlerprob) : _handlerprob;
+            }
+        }
+
+        public class Handler
+        {
+            [XmlAttribute]
+            public String name;
+            [XmlAttribute]
+            public int paramCount;
+            [XmlAttribute]
+            public String paramRange;
+            [XmlIgnore]
+            private List<ValueRange> _paramRange;
+            [XmlIgnore]
+            public List<ValueRange> ParamRange
+            {
+                get
+                {
+                    if (_paramRange != null) return _paramRange;
+                    if (paramRange == null || paramRange.Trim() == "") return _paramRange;
+                    String[] s1 = paramRange.Trim().Split(';');
+                    if (s1 == null || s1.Length <= 0) return null;
+                    _paramRange = new List<ValueRange>();
+                    for (int i=0;i<s1.Length;i++)
+                    {
+                        _paramRange.Add(new ValueRange(s1[i].Trim()));
+                    }
+                    return _paramRange;
+                }
+            }
+            [XmlAttribute]
+            public String typename;
+            public Type HandlerType { get => Type.GetType(typename); }
+            [XmlAttribute]
+            public String selection_prob_range;
+
+            public ValueRange Selection_prob_range
+            {
+                get => new ValueRange(selection_prob_range);
+            }
+
+
+
+        }
+        }
 }

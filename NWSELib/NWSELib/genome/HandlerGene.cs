@@ -11,6 +11,11 @@ namespace NWSELib.genome
         public readonly String function;
         public readonly List<double> param = new List<double>();
 
+        public override T clone<T>()
+        {
+            return new HandlerGene(this.function,this.param.ToArray()).copy<T>(this);
+        }
+
         public HandlerGene(String function,params double[] ps)
         {
             this.function = function;
@@ -21,6 +26,7 @@ namespace NWSELib.genome
             return base.ToString()+",function="+function+",param="+
                 (param.Count<=0?"":param.ConvertAll(p=>p.ToString()).Aggregate<String>((x,y)=>x.ToString()+","+y.ToString()));
         }
+        
 
         public static HandlerGene parse(String str)
         {

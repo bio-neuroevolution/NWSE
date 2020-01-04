@@ -5,21 +5,45 @@ using System.Text;
 
 namespace NWSELib.evolution
 {
+    /// <summary>
+    /// 进化树
+    /// </summary>
     public class EvolutionTreeNode
     {
+        /// <summary>
+        /// 父节点
+        /// </summary>
         public EvolutionTreeNode parent = null;
+        /// <summary>
+        /// 是否被淘汰
+        /// </summary>
         public bool extinct = false;
+        /// <summary>
+        /// 子节点
+        /// </summary>
         public readonly List<EvolutionTreeNode> childs = new List<EvolutionTreeNode>();
-
+        /// <summary>
+        /// 网络
+        /// </summary>
         public Network network;
-
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="network"></param>
+        /// <param name="parent"></param>
+        /// <param name="childs"></param>
         public EvolutionTreeNode(Network network, EvolutionTreeNode parent=null, List<EvolutionTreeNode> childs=null)
         {
             this.network = network;
             this.parent = parent;
             if (childs != null) this.childs.AddRange(childs);
         }
-
+        /// <summary>
+        /// 查找特定网络所在节点
+        /// </summary>
+        /// <param name="node"></param>
+        /// <param name="network"></param>
+        /// <returns></returns>
         public static EvolutionTreeNode search(EvolutionTreeNode node, Network network)
         {
             if (node == null) return null;

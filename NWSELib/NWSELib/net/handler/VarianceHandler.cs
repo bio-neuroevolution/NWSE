@@ -29,6 +29,7 @@ namespace NWSELib.net.handler
             }
             Vector r = Vector.variance(vs);
             base.activate(net, time, r);
+            return r;
         }
     }
 }

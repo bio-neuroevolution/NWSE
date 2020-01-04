@@ -29,13 +29,6 @@ namespace NWSELib.genome
         /// </summary>
         protected string group;
 
-
-        /// <summary>
-        /// 分段数
-        /// </summary>
-        protected int sectionCount;
-
-
         public int Id { get => id; set => id = value; }
         /// <summary>
         /// 对应感受器名称
@@ -58,23 +51,74 @@ namespace NWSELib.genome
         {
             get => this.group;
         }
+        #endregion
+
+        #region 变异信息
+        /// <summary>
+        /// 分段数
+        /// </summary>
+        protected int sectionCount;
 
         /// <summary>
         /// 每层的分段数
         /// </summary>
         public int SectionCount { get => sectionCount; set => sectionCount = value; }
 
-        
-
         #endregion
 
-        #region 字符串转换
+        #region 统计信息       
+        /// <summary>
+        /// 使用次数
+        /// </summary>
+        protected int usedCount;
+        /// <summary>
+        /// 使用次数
+        /// </summary>
+        public int UsedCount
+        {
+            get => usedCount; set => usedCount = value;
+        }
+        
+        #endregion
+
+        #region 初始化
+        /// <summary>
+        /// 克隆
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public abstract T clone<T>() where T : NodeGene;
+        /// <summary>
+        /// 克隆
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="gene"></param>
+        /// <returns></returns>
+        public T copy<T>(NodeGene gene) where T : NodeGene
+        {
+            this.id = gene.id;
+            this.name = gene.name;
+            this.cataory = gene.cataory;
+            this.generation = gene.generation;
+            this.group = gene.group;
+            this.sectionCount = gene.sectionCount;
+            return (T)this;
+
+        }
+        /// <summary>
+        /// 转字符串
+        /// </summary>
+        /// <returns></returns>
         public override string ToString()
         {
             return this.GetType().Name + ": id=" + this.id.ToString() + ",name=" + this.name +
                 ",generation=" + this.generation + ",cataory=" + this.cataory + ",group=" + this.group +
                 ",sectionCount=" + this.sectionCount.ToString();
         }
+        /// <summary>
+        /// 字符串转
+        /// </summary>
+        /// <param name="str"></param>
         public void parse(String str)
         {
             int i1 = str.IndexOf("id");
