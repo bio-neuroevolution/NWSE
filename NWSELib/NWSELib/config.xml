@@ -47,8 +47,13 @@
     <handler name="diff" paramcount="2" ParamRange="[1,10];[1,10]" typename="NWSELib.net.handler.DiffHandler" selection_prob_range="[0-1+0.01]"></handler>
     <handler name="direction" paramcount="0" ParamRange="" typename="NWSELib.net.handler.DirectionHandler" selection_prob_range="[0-1+0.01]"></handler>
   </handlers>
+
+  <evaluation gene_reability_range="[-1.0,10.0+0.1]">
+    
+  </evaluation>
   
-  <evolution propagate_base_count="3" max_ind_count="500" inference_reability_range="[0.01,10.0]">
+  <evolution propagate_base_count="3">
+    <selection reability_lowlimit="0.25"></selection>
     <mutate handlerprob="0.25,0.25,0.25,0.25"></mutate>
     
   </evolution>

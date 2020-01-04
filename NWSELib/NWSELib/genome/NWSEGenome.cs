@@ -58,6 +58,9 @@ namespace NWSELib.genome
         /// </summary>
         public List<NodeGene> vaildInferenceNodes = new List<NodeGene>();
 
+        #endregion
+
+        #region 克隆、编码和等价性
         /// <summary>
         /// 克隆
         /// </summary>
@@ -75,6 +78,64 @@ namespace NWSELib.genome
             return genome;
         }
 
+        /// <summary>
+        /// 判断两个染色体是否等价：如果处理器基因和推理基因完全一样的话（不包括可变异参数在内）
+        /// </summary>
+        /// <param name="genome"></param>
+        /// <returns></returns>
+        public bool equiv(NWSEGenome genome)
+        {
+            for (int i = 0; i < handlerGenes.Count; i++)
+            {
+                for (int j = 0; j < genome.handlerGenes.Count; j++)
+                {
+                    if (!equiv(handlerGenes[i], genome.handlerGenes[j])) return false;
+                }
+            }
+            for (int i = 0; i < genome.handlerGenes.Count; i++)
+            {
+                if (handlerGenes.Exists(g => g.Id == genome.handlerGenes[i].Id))
+                    continue;
+                for (int j = 0; j < handlerGenes.Count; j++)
+                {
+                    if (!equiv(genome.handlerGenes[i], handlerGenes[j])) return false;
+                }
+            }
+
+            for (int i = 0; i < infrernceGenes.Count; i++)
+            {
+                for (int j = 0; j < genome.infrernceGenes.Count; j++)
+                {
+                    if (!equiv(infrernceGenes[i], genome.infrernceGenes[j])) return false;
+                }
+            }
+            for (int i = 0; i < genome.infrernceGenes.Count; i++)
+            {
+                if (infrernceGenes.Exists(g => g.Id == genome.infrernceGenes[i].Id))
+                    continue;
+                for (int j = 0; j < infrernceGenes.Count; j++)
+                {
+                    if (!equiv(genome.infrernceGenes[i], infrernceGenes[j])) return false;
+                }
+            }
+            return true;
+        }
+
+
+        /// <summary>
+        /// 是否等价
+        /// </summary>
+        /// <param name="gene"></param>
+        /// <returns></returns>
+        public bool equiv(NodeGene g1, NodeGene g2)
+        {
+            return this.encodeNodeGene(g1) == this.encodeNodeGene(g2);
+        }
+        /// <summary>
+        /// 对基因做编码，该编码可以作为等价类的编码
+        /// </summary>
+        /// <param name="gene"></param>
+        /// <returns></returns>
         public String encodeNodeGene(NodeGene gene)
         {
             if (gene.GetType() == typeof(EffectorGene))
@@ -137,82 +198,7 @@ namespace NWSELib.genome
 
         
 
-        /// <summary>
-        /// 判断两个染色体是否等价：如果处理器基因和推理基因完全一样的话
-        /// </summary>
-        /// <param name="genome"></param>
-        /// <returns></returns>
-        public bool equiv(NWSEGenome genome)
-        {
-            for(int i = 0; i < handlerGenes.Count; i++)
-            {
-                for(int j=0;j<genome.handlerGenes.Count;j++)
-                {
-                    if (!equiv(handlerGenes[i], genome.handlerGenes[j])) return false;
-                }
-            }
-            for (int i = 0; i < genome.handlerGenes.Count; i++)
-            {
-                if (handlerGenes.Exists(g => g.Id == genome.handlerGenes[i].Id))
-                    continue;
-                for (int j = 0; j < handlerGenes.Count; j++)
-                {
-                    if (!equiv(genome.handlerGenes[i], handlerGenes[j])) return false;
-                }
-            }
-
-            for (int i = 0; i < infrernceGenes.Count; i++)
-            {
-                for (int j = 0; j < genome.infrernceGenes.Count; j++)
-                {
-                    if (!equiv(infrernceGenes[i], genome.infrernceGenes[j])) return false;
-                }
-            }
-            for (int i = 0; i < genome.infrernceGenes.Count; i++)
-            {
-                if (infrernceGenes.Exists(g => g.Id == genome.infrernceGenes[i].Id))
-                    continue;
-                for (int j = 0; j < infrernceGenes.Count; j++)
-                {
-                    if (!equiv(genome.infrernceGenes[i], infrernceGenes[j])) return false;
-                }
-            }
-            return true;
-        }
-
         
-        /// <summary>
-        /// 是否等价
-        /// </summary>
-        /// <param name="gene"></param>
-        /// <returns></returns>
-        public bool equiv(NodeGene g1, NodeGene g2)
-        {
-            if (g1 == null || g2 == null) return false;
-            if (g1.GetType() != g2.GetType()) return false;
-
-            if(g1.GetType() == typeof(EffectorGene))
-            {
-                return g1.Name == g2.Name;
-            }else if(g1.GetType() == typeof(HandlerGene))
-            {
-                HandlerGene h1 = (HandlerGene)g1;
-                HandlerGene h2 = (HandlerGene)g2;
-                if (h1.function != h2.function) return false;
-                List<int> h1_inputs = this.getInputs(h1).ConvertAll(n=>n.Id);
-                List<int> h2_inputs = this.getInputs(h2).ConvertAll(n => n.Id);
-                return Utility.equals(h1_inputs, h2_inputs);
-
-            }else if(g1.GetType() == typeof(InferenceGene))
-            {
-                InferenceGene i1 = (InferenceGene)g1;
-                InferenceGene i2 = (InferenceGene)g2;
-                int r = i1.relation(i2);
-                return r == 0;
-            }
-
-            return false;
-        }
 
         public bool isVaildGene(NodeGene gene)
         {

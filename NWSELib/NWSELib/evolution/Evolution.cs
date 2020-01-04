@@ -9,7 +9,7 @@ using Microsoft.ML.Probabilistic.Distributions;
 
 namespace NWSELib.evolution
 {
-    public class Selection
+    public class Evolution
     {
         /// <summary>
         /// 执行
@@ -24,6 +24,8 @@ namespace NWSELib.evolution
                 List<NodeGene> invaildInference = inds[i].getInvaildInferenceGene();
                 List<NodeGene> vaildInference = inds[i].getVaildInferenceGene();
 
+
+
                 List<EvolutionTreeNode> nearest = EvolutionTreeNode.search(Session.getEvolutionRootNode(), inds[i]).getNearestNode();
                 nearest.ForEach(node => node.network.Genome.gene_drift(invaildInference, vaildInference));
             }
@@ -31,12 +33,12 @@ namespace NWSELib.evolution
             //2.计算每个个体所有节点平均可靠度的总和、均值和方差
             List<double> reability = inds.ConvertAll(ind => ind.GetNodeAverageReability());
             double sum_reability = reability.Sum();
-            (double avg_reability,double variance_reability) = new Vector(reability).avg_variance();
             reability = reability.ConvertAll(r => r / sum_reability);
+            (double avg_reability, double variance_reability) = new Vector(reability).avg_variance();
             
             //3.根据所有个体可靠度的均值和方差， 确定淘汰个体的可靠度下限：以可靠度均值和方差构成的高斯分布最大值的
-            Gaussian gaussian = Gaussian.FromMeanAndPrecision(avg_reability, variance_reability);
-            double lowlimit_rebility = gaussian.GetQuantile(gaussian.GetMode() * 1 / 2);
+            Gaussian gaussian = Gaussian.FromMeanAndVariance(avg_reability, variance_reability);
+            double lowlimit_rebility = gaussian.GetQuantile(gaussian.GetMode() * Session.GetConfiguration().evolution.selection.reability_lowlimit);
             for(int i=0;i<inds.Count;i++)
             {
                 if (inds[i].Reability <= lowlimit_rebility)

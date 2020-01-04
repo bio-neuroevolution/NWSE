@@ -1,6 +1,7 @@
 ﻿using System;
 
 using NWSELib.evolution;
+using NWSELib.genome;
 
 namespace NWSELib
 {
@@ -9,6 +10,7 @@ namespace NWSELib
         public readonly Configuration config;
 
         public EvolutionTreeNode root;
+        public IdGenerator idGenerator = new IdGenerator();
 
         public static Configuration GetConfiguration()
         {
@@ -20,7 +22,10 @@ namespace NWSELib
             throw new NotImplementedException();
         }
 
-
+        public static IdGenerator GetIdGenerator()
+        {
+            throw new NotImplementedException();
+        }
 
     }
 }

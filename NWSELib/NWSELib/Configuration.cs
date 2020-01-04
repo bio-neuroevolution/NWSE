@@ -13,6 +13,9 @@ namespace NWSELib
         [XmlElement(ElementName = "agent")]
         public Agent agent = new Agent();
 
+        [XmlElement(ElementName = "evaluation")]
+        public Evaluation evaluation = new Evaluation();
+
         [XmlElement(ElementName = "evolution")]
         public Evolution evolution = new Evolution();
 
@@ -107,24 +110,34 @@ namespace NWSELib
         }
 
         
-    
+        public class Evaluation
+        {
+            [XmlAttribute(AttributeName = "gene_reability_range")]
+            public String gene_reability_range_str;
+            [XmlIgnore]
+            public ValueRange gene_reability_range
+            {
+                get => new ValueRange(gene_reability_range_str);
+            }
+        }
         public class Evolution
         {
             [XmlAttribute]
             public int propagate_base_count;
-            [XmlAttribute(AttributeName = "inference_reability_range")]
-            public String inference_reability_range_str;
-            [XmlIgnore]
-            public ValueRange Inference_reability_range
-            {
-                get => new ValueRange(inference_reability_range_str);
-            }
+
+            [XmlElement]
+            public EvolutionSelection selection = new EvolutionSelection();
 
             [XmlElement]
             public EvolutionMutate mutate = new EvolutionMutate();
 
         }
-
+        public class EvolutionSelection
+        {
+            [XmlAttribute]
+            public double reability_lowlimit;
+        }
+     
         public class EvolutionMutate
         {
             [XmlAttribute]

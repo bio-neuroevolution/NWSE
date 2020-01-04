@@ -79,6 +79,7 @@ namespace NWSELib.genome
             get => usedCount; set => usedCount = value;
         }
         
+        
         #endregion
 
         #region 初始化

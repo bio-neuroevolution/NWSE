@@ -281,14 +281,14 @@ namespace NWSELib.net
 
         public List<NodeGene> getVaildInferenceGene()
         {
-            double highlimit = Session.GetConfiguration().evolution.Inference_reability_range.Max;
+            double highlimit = Session.GetConfiguration().evaluation.gene_reability_range.Max;
             return this.Inferences.FindAll(n => n.Reability > highlimit).ConvertAll(n => n.Gene);
         }
 
         public List<NodeGene> getInvaildInferenceGene()
         {
 
-            double lowlimit = Session.GetConfiguration().evolution.Inference_reability_range.Min;
+            double lowlimit = Session.GetConfiguration().evaluation.gene_reability_range.Min;
             return this.Inferences.FindAll(n => n.Reability < lowlimit).ConvertAll(n=>n.Gene);
         }
         #endregion

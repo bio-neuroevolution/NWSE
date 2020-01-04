@@ -211,6 +211,11 @@ namespace NWSELib.common
         {
             get => this.values[1] - this.values[0];
         }
+
+        public double Step
+        {
+            get => (double)this.distance;
+        }
         /// <summary>
         /// 最小值
         /// </summary>
