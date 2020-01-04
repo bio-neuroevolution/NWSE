@@ -15,6 +15,37 @@ namespace NWSELib.genome
         /// </summary>
         public List<(int, int)> dimensions = new List<(int, int)>();
 
+        public bool equiv(InferenceGene gene)
+        {
+
+        }
+        public override string ToString()
+        {
+            return base.ToString() + ",dimensions=" +
+                dimensions.ConvertAll(d=>d.Item1.ToString()+"-"+d.Item2.ToString())
+                .Aggregate((x,y)=>x+","+y);
+        }
+        public static InferenceGene parse(String str)
+        {
+            InferenceGene gene = new InferenceGene();
+            ((NodeGene)gene).parse(str);
+
+            int i1 = str.IndexOf("dimensions");
+            int i2 = str.IndexOf("=", i1 + 1);
+            String s = str.Substring(i2+1);
+            String[] ss = s.Split(',');
+            for(int i = 0; i < ss.Length; i++)
+            {
+                if (ss[i] == null || ss[i].Trim() == "") continue;
+                String[] s2 = ss[i].Trim().Split('-');
+                if (s2 == null || s2.Length < 2) continue;
+                int t1 = int.Parse(s2[0]);
+                int t2 = int.Parse(s2[1]);
+                gene.dimensions.Add((t1,t2));
+            }
+            return gene;
+        } 
+
         /// <summary>
         /// 得到推理变量Id对应的索引
         /// </summary>

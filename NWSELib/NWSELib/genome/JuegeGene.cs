@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using NWSELib.common;
 namespace NWSELib.genome
 {
     /// <summary>
@@ -54,7 +55,7 @@ namespace NWSELib.genome
     /// <summary>
     /// 评判基因
     /// </summary>
-    public class JuegeGene
+    public class JuegeGene : NodeGene
     {
         /// <summary>
         /// 评判项
@@ -64,5 +65,31 @@ namespace NWSELib.genome
         /// 每项的权重
         /// </summary>
         public List<double> weights = new List<double>();
+
+        public override string ToString()
+        {
+            return base.ToString() + ",weights="+
+                weights.ConvertAll(w=>w.ToString()).Aggregate((x,y)=>x+","+y)+
+                ",items="+items.ConvertAll(i=>i.ToString()).Aggregate((x,y)=>x+":"+y);
+        }
+        public static JuegeGene parse(String str)
+        {
+            JuegeGene gene = new JuegeGene();
+            ((NodeGene)gene).parse(str);
+
+            int i1 = str.IndexOf("weights");
+            int i2 = str.IndexOf("=", i1 + 1);
+            int i3 = str.IndexOf(",",i2+1);
+
+            gene.weights = Utility.parse(str.Substring(i2 + 1, i3 - i2 - 1));
+
+            i1 = str.IndexOf("items");
+            i2 = str.IndexOf("=", i1 + 1);
+            str = str.Substring(i2+1);
+
+            gene.items = str.Split(':').ToList().ConvertAll(s=>JudgeItem.Parse(s));
+            return gene;
+
+        }
     }
 }

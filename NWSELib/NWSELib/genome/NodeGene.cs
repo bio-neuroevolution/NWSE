@@ -2,8 +2,9 @@
 
 namespace NWSELib.genome
 {
-    public class NodeGene
+    public abstract class NodeGene
     {
+        #region 基本信息
         /// <summary>
         /// id
         /// </summary>
@@ -64,6 +65,56 @@ namespace NWSELib.genome
         public int SectionCount { get => sectionCount; set => sectionCount = value; }
 
         
+
+        #endregion
+
+        #region 字符串转换
+        public override string ToString()
+        {
+            return this.GetType().Name + ": id=" + this.id.ToString() + ",name=" + this.name +
+                ",generation=" + this.generation + ",cataory=" + this.cataory + ",group=" + this.group +
+                ",sectionCount=" + this.sectionCount.ToString();
+        }
+        public void parse(String str)
+        {
+            int i1 = str.IndexOf("id");
+            int i2 = str.IndexOf("=", i1 + 1);
+            int i3 = str.IndexOf(",", i2 + 1);
+            String s = str.Substring(i2 + 1, i3 - i2 - 1);
+            id = int.Parse(s);
+
+            i1 = str.IndexOf("name");
+            i2 = str.IndexOf("=", i1 + 1);
+            i3 = str.IndexOf(",", i2 + 1);
+            s = str.Substring(i2 + 1, i3 - i2 - 1);
+            name = s;
+
+            i1 = str.IndexOf("generation");
+            i2 = str.IndexOf("=", i1 + 1);
+            i3 = str.IndexOf(",", i2 + 1);
+            s = str.Substring(i2 + 1, i3 - i2 - 1);
+            generation = int.Parse(s);
+
+            i1 = str.IndexOf("cataory");
+            i2 = str.IndexOf("=", i1 + 1);
+            i3 = str.IndexOf(",", i2 + 1);
+            s = str.Substring(i2 + 1, i3 - i2 - 1);
+            cataory = s;
+
+            i1 = str.IndexOf("group");
+            i2 = str.IndexOf("=", i1 + 1);
+            i3 = str.IndexOf(",", i2 + 1);
+            s = str.Substring(i2 + 1, i3 - i2 - 1);
+            group = s;
+
+            i1 = str.IndexOf("sectionCount");
+            i2 = str.IndexOf("=", i1 + 1);
+            i3 = str.IndexOf(",", i2 + 1);
+            s = str.Substring(i2 + 1, i3 - i2 - 1);
+            sectionCount = int.Parse(s);
+        }
+        #endregion
+
 
     }
 }
