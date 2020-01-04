@@ -19,6 +19,8 @@ namespace NWSELib.genome
         /// 感受器基因
         /// </summary>
         public readonly List<ReceptorGene> receptorGenes = new List<ReceptorGene>();
+
+        
         /// <summary>
         /// 不同处理器的选择概率
         /// </summary>
@@ -28,6 +30,7 @@ namespace NWSELib.genome
         /// </summary>
         public readonly List<HandlerGene> handlerGenes = new List<HandlerGene>();
 
+        
         /// <summary>
         /// 推理器基因
         /// </summary>
@@ -38,15 +41,31 @@ namespace NWSELib.genome
         /// </summary>
         public readonly List<(int, int)> connectionGene = new List<(int, int)>();
 
+        
         /// <summary>
         /// 评判基因
         /// </summary>
         public JuegeGene judgeGene = new JuegeGene();
 
+
         /// <summary>
         /// 无效推理基因
         /// </summary>
         public List<NodeGene> invaildInferenceNodes = new List<NodeGene>();
+
+        public NWSEGenome clone()
+        {
+            NWSEGenome genome = new NWSEGenome();
+            receptorGenes.ForEach(r => genome.receptorGenes.Add(r.clone()));
+            genome.handlerSelectionProb.AddRange(handlerSelectionProb);
+            handlerGenes.ForEach(h => genome.handlerGenes.Add(h.clone()));
+            infrernceGenes.ForEach(i => genome.infrernceGenes.Add(i.clone()));
+            genome.connectionGene.AddRange(connectionGene);
+            genome.judgeGene = this.judgeGene.clone();
+            invaildInferenceNodes.ForEach(inf => genome.invaildInferenceNodes.Add(inf.clone()));
+            return genome;
+        }
+        
 
         #endregion
 
@@ -80,26 +99,50 @@ namespace NWSELib.genome
         }
         #endregion
 
-        /// <summary>
-        /// 基因漂移处理
-        /// </summary>
-        /// <param name="invaildInferenceNodes"></param>
-        /// <param name="vaildInferenceNodes"></param>
-        public void gene_drift(List<NodeGene> invaildInferenceNodes, List<NodeGene> vaildInferenceNodes)
-        {
-            for(int i=0;i< invaildInferenceNodes.Count; i++)
-            {
-                NodeGene g1 = invaildInferenceNodes[i];
-                bool exist = false;
-                for(int j=0;j<this.invaildInferenceNodes.Count;j++)
-                {
-                    NodeGene g2 = this.invaildInferenceNodes[j];
-                    if (g1.equiv(g2)) { exist = true;break; }
-                }
-                if (!exist) this.invaildInferenceNodes.Add(g1);
-            }
-        }
+        
 
+        /// <summary>
+        /// 判断两个染色体是否等价：如果处理器基因和推理基因完全一样的话
+        /// </summary>
+        /// <param name="genome"></param>
+        /// <returns></returns>
+        public bool equiv(NWSEGenome genome)
+        {
+            for(int i = 0; i < handlerGenes.Count; i++)
+            {
+                for(int j=0;j<genome.handlerGenes.Count;j++)
+                {
+                    if (!equiv(handlerGenes[i], genome.handlerGenes[j])) return false;
+                }
+            }
+            for (int i = 0; i < genome.handlerGenes.Count; i++)
+            {
+                if (handlerGenes.Exists(g => g.Id == genome.handlerGenes[i].Id))
+                    continue;
+                for (int j = 0; j < handlerGenes.Count; j++)
+                {
+                    if (!equiv(genome.handlerGenes[i], handlerGenes[j])) return false;
+                }
+            }
+
+            for (int i = 0; i < infrernceGenes.Count; i++)
+            {
+                for (int j = 0; j < genome.infrernceGenes.Count; j++)
+                {
+                    if (!equiv(infrernceGenes[i], genome.infrernceGenes[j])) return false;
+                }
+            }
+            for (int i = 0; i < genome.infrernceGenes.Count; i++)
+            {
+                if (infrernceGenes.Exists(g => g.Id == genome.infrernceGenes[i].Id))
+                    continue;
+                for (int j = 0; j < infrernceGenes.Count; j++)
+                {
+                    if (!equiv(genome.infrernceGenes[i], infrernceGenes[j])) return false;
+                }
+            }
+            return true;
+        }
 
         
         /// <summary>
@@ -126,9 +169,43 @@ namespace NWSELib.genome
 
             }else if(g1.GetType() == typeof(InferenceGene))
             {
+                InferenceGene i1 = (InferenceGene)g1;
+                InferenceGene i2 = (InferenceGene)g2;
+                int r = i1.relation(i2);
+                return r == 0;
+            }
 
+            return false;
+        }
+
+        #region 漂移和变异
+        /// <summary>
+        /// 基因漂移处理
+        /// </summary>
+        /// <param name="invaildInferenceNodes"></param>
+        /// <param name="vaildInferenceNodes"></param>
+        public void gene_drift(List<NodeGene> invaildInferenceNodes, List<NodeGene> vaildInferenceNodes)
+        {
+            for (int i = 0; i < invaildInferenceNodes.Count; i++)
+            {
+                NodeGene g1 = invaildInferenceNodes[i];
+                bool exist = false;
+                for (int j = 0; j < this.invaildInferenceNodes.Count; j++)
+                {
+                    NodeGene g2 = this.invaildInferenceNodes[j];
+                    if (this.equiv(g1, g2)) { exist = true; break; }
+                }
+                if (!exist) this.invaildInferenceNodes.Add(g1);
             }
         }
+
+        public NWSEGenome mutate()
+        {
+            NWSEGenome genome = this.clone();
+
+        }
+
+        #endregion
 
 
     }

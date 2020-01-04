@@ -227,6 +227,19 @@ namespace NWSELib.common
             return r;
         }
         #endregion
+
+        #region Í³¼Æ
+        public (double,double) avg_variance()
+        {
+            double avg = this.values.Average();
+            double s = 0.0;
+            for(int i=0;i<this.values.Count;i++)
+            {
+                s += (this.values[i] - avg) * (this.values[i] - avg);
+            }
+            return (avg, System.Math.Sqrt(s));
+        }
+        #endregion
     }
     public static class VectorExtender
     {

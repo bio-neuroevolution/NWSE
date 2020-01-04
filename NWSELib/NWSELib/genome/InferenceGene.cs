@@ -15,8 +15,46 @@ namespace NWSELib.genome
         /// </summary>
         public List<(int, int)> dimensions = new List<(int, int)>();
 
-        public bool equiv(InferenceGene gene)
+        /// <summary>
+        /// 两个推理基因的关系
+        /// </summary>
+        /// <param name="gene">基因</param>
+        /// <returns>0表示一致；1表示this包含另外一个；-1表示this被包含；2表示交叉；-2表示没有交叉</returns>
+        public int relation(InferenceGene gene)
         {
+            int[] rs = { 1, 1, 1, 1, 1 };
+            int[] r = { 0, 1, -1, 2, -2 };
+            for(int i=0;i<dimensions.Count;i++)
+            {
+                if (!gene.dimensions.Exists(d => d.Item1 == this.dimensions[i].Item1))
+                {
+                    rs[0] = rs[2] = 0;
+                    continue;
+                }
+                if (!gene.dimensions.Exists(d => d.Item1 == this.dimensions[i].Item1 && d.Item2 == this.dimensions[i].Item2))
+                {
+                    rs[0] = 0;
+                }
+                else rs[4] = 0;
+
+            }
+
+            for (int i = 0; i < gene.dimensions.Count; i++)
+            {
+                if (!dimensions.Exists(d => d.Item1 == gene.dimensions[i].Item1))
+                {
+                    rs[0] = rs[1] = 0;
+                    continue;
+                }
+                if (!dimensions.Exists(d => d.Item1 == gene.dimensions[i].Item1 && d.Item2 == gene.dimensions[i].Item2))
+                {
+                    rs[0] = 0;
+                }
+                else rs[4] = 0;
+
+            }
+            for (int i = 0; i < rs.Length; i++)
+                if (rs[i] != 0) return r[i];
 
         }
         public override string ToString()
