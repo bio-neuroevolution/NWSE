@@ -34,12 +34,30 @@
         </sensor>
       </gestures>
       <actions>
-        <sensor name="a1" cataory="omege" group="action"  range="[0 - 3.14]" />
-        <sensor name="a2" cataory="speed" group="action"  range="[0 - 10]" />
+        <sensor name="_a1" cataory="omege" group="action"  range="[0 - 3.14]" />
+        <sensor name="_a2" cataory="speed" group="action"  range="[0 - 10]" />
       </actions>
     </receptors>
+
+    
     
   </agent>
+
+  <learning>
+    <inference accept_prob="0.7" accept_max_count="10"></inference>
+  </learning>
+
+  
+
+  <evaluation run_count="20" max_reward="100" gene_reability_range="[-1.0,10.0+0.1]">
+    
+  </evaluation>
+  
+  <evolution propagate_base_count="3" iter_count="500">
+    <selection reability_lowlimit="0.25"></selection>
+    <mutate handlerprob="0.25,0.25,0.25,0.25"></mutate>
+    
+  </evolution>
 
   <handlers>
     <handler name="avg" paramcount="1" ParamRange="[1,10]" typename="NWSELib.net.handler.AverageHandler" selection_prob_range="[0-1+0.01]"></handler>
@@ -47,14 +65,4 @@
     <handler name="diff" paramcount="2" ParamRange="[1,10];[1,10]" typename="NWSELib.net.handler.DiffHandler" selection_prob_range="[0-1+0.01]"></handler>
     <handler name="direction" paramcount="0" ParamRange="" typename="NWSELib.net.handler.DirectionHandler" selection_prob_range="[0-1+0.01]"></handler>
   </handlers>
-
-  <evaluation gene_reability_range="[-1.0,10.0+0.1]">
-    
-  </evaluation>
-  
-  <evolution propagate_base_count="3">
-    <selection reability_lowlimit="0.25"></selection>
-    <mutate handlerprob="0.25,0.25,0.25,0.25"></mutate>
-    
-  </evolution>
 </configuration>

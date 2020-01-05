@@ -13,6 +13,9 @@ namespace NWSELib
         [XmlElement(ElementName = "agent")]
         public Agent agent = new Agent();
 
+        [XmlElement(ElementName ="learning")]
+        public Learning learning = new Learning();
+
         [XmlElement(ElementName = "evaluation")]
         public Evaluation evaluation = new Evaluation();
 
@@ -49,6 +52,7 @@ namespace NWSELib
             public int inferencesamples;
             [XmlElement]
             public Receptors receptors = new Receptors();
+            
         }
         public class Receptors
         {
@@ -109,6 +113,19 @@ namespace NWSELib
             public ValueRange Level { get => _level==null?_level=new ValueRange(level):_level; }
         }
 
+        public class Learning
+        {
+            [XmlElement]
+            public LearningInfernece inference = new LearningInfernece();
+        }
+        public class LearningInfernece
+        {
+            [XmlAttribute]
+            public double accept_prob;
+            [XmlAttribute]
+            public int accept_max_count;
+        }
+
         
         public class Evaluation
         {
@@ -119,11 +136,17 @@ namespace NWSELib
             {
                 get => new ValueRange(gene_reability_range_str);
             }
+            [XmlAttribute]
+            public int run_count;
+            [XmlAttribute]
+            public int max_reward;
         }
         public class Evolution
         {
             [XmlAttribute]
             public int propagate_base_count;
+            [XmlAttribute]
+            public int iter_count;
 
             [XmlElement]
             public EvolutionSelection selection = new EvolutionSelection();

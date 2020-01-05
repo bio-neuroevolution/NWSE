@@ -301,7 +301,7 @@ namespace NWSELib.common
             }
             return (v, sizes);
         }
-
+        
         /// <summary>
         /// 将向量分割成向量集
         /// </summary>
