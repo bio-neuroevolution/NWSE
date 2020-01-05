@@ -5,6 +5,9 @@ using NWSELib.genome;
 
 namespace NWSELib
 {
+    /// <summary>
+    /// 执行任务
+    /// </summary>
     public class Session
     {
         public readonly Configuration config;
@@ -26,6 +29,7 @@ namespace NWSELib
         {
             throw new NotImplementedException();
         }
+        public int Generation { get => throw new NotImplementedException(); }
 
     }
 }

@@ -339,6 +339,39 @@ namespace NWSELib.common
         }
         #endregion
 
+        #region ×ª»»
+
+        public static double[] toDoubleArray(this List<Vector> vs)
+        {
+            List<double> r = new List<double>();
+            vs.ForEach(v => r.AddRange(v.ToArray()));
+            return r.ToArray();
+        }
+        public static List<double> trim(List<double> vs,int begin,int count)
+        {
+            List<double> r = new List<double>();
+            for (int i = 0; i < count; i++)
+                r.Add(vs[begin+i]);
+            return r;
+        }
+        public static Microsoft.ML.Probabilistic.Math.Vector toMathVector(this List<Vector> vs)
+        {
+            return Microsoft.ML.Probabilistic.Math.Vector.FromArray(vs.toDoubleArray());
+        }
+        public static List<Vector> fromMathVector(Microsoft.ML.Probabilistic.Math.Vector v,List<int> dimension)
+        {
+            Vector[] vs = new Vector[dimension.Count];
+            int pos = 0;
+            List<double> values = v.ToList();
+            for(int i=0;i<dimension.Count;i++)
+            {
+                vs[i] = new Vector(trim(values,pos,dimension[i]));
+                pos += dimension[i];
+            }
+            return new List<Vector>(vs);
+        }
+        #endregion
+
 
     }
 }

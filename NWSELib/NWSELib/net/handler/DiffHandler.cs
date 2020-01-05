@@ -17,6 +17,7 @@ namespace NWSELib.net.handler
             if (!inputs.All(n => n.IsActivate(time)))
                 return null;
             int t = (int)((HandlerGene)this.gene).param[0];
+            if (inputs[0] == inputs[1] && t == 0) t = 1;
 
             Vector fv1 = inputs[0].Value;
             Vector fv2 = inputs[1].GetValue(time - t);
@@ -25,5 +26,7 @@ namespace NWSELib.net.handler
             return r;
 
         }
+
+        
     }
 }

@@ -20,7 +20,7 @@ namespace NWSELib.genome
         /// </summary>
         protected Dictionary<String, int> ids = new Dictionary<string, int>();
         /// <summary>
-        /// 每个基因的可靠度
+        /// 每个基因的可靠度(这里只放可靠度过大或者过小的基因)
         /// </summary>
         protected Dictionary<int, double> reability = new Dictionary<int, double>();
 

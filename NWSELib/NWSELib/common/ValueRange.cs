@@ -246,6 +246,19 @@ namespace NWSELib.common
                 return ((Queue<double>)state_next.Value).ToList().Last();
             }
         }
+
+        public double random()
+        {
+            if(cataory == Cataory.Enum)
+            {
+                int index = new Random().Next(0, this.values.Count);
+                return this.values[index];
+            }
+            else
+            {
+                return new Random().NextDouble() * (Max - Min) + Min;
+            }
+        }
         #endregion
 
         #region 初始化

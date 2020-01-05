@@ -188,7 +188,15 @@ namespace NWSELib
             {
                 get => new ValueRange(selection_prob_range);
             }
-
+            public double[] randomParam()
+            {
+                double[] r = new double[this.paramCount];
+                for(int i=0;i<r.Length;i++)
+                {
+                    r[i] = ParamRange[i].random();
+                }
+                return r;
+            }
 
 
         }

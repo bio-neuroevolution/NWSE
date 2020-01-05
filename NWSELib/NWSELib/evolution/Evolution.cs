@@ -15,7 +15,7 @@ namespace NWSELib.evolution
         /// 执行
         /// </summary>
         /// <param name="inds"></param>
-        public void execute(List<Network> inds)
+        public void execute(List<Network> inds,Session session)
         {
             //1.将无效推理（可靠度小于阈值）的推理节点和有效推理节点向周边传播 
             //  使得周围个体的下一代不会产生无效推理节点，并必然产生有效推理节点
@@ -23,8 +23,6 @@ namespace NWSELib.evolution
             {
                 List<NodeGene> invaildInference = inds[i].getInvaildInferenceGene();
                 List<NodeGene> vaildInference = inds[i].getVaildInferenceGene();
-
-
 
                 List<EvolutionTreeNode> nearest = EvolutionTreeNode.search(Session.getEvolutionRootNode(), inds[i]).getNearestNode();
                 nearest.ForEach(node => node.network.Genome.gene_drift(invaildInference, vaildInference));
@@ -63,9 +61,9 @@ namespace NWSELib.evolution
                 int childcount = planPropagateCount[i];
                 for(int j=0;j<childcount;j++)
                 {
-                    NWSEGenome mutateGenome = inds[i].Genome.mutate();
+                    NWSEGenome mutateGenome = inds[i].Genome.mutate(session);
                     while (inds.Exists(ind => ind.Genome.equiv(mutateGenome)))
-                        mutateGenome = inds[i].Genome.mutate();
+                        mutateGenome = inds[i].Genome.mutate(session);
                     Network mutateNet = new Network(mutateGenome);
                     newinds.Add(mutateNet);
                     EvolutionTreeNode cnode = new EvolutionTreeNode(mutateNet, node);

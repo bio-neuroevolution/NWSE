@@ -24,7 +24,7 @@ namespace NWSELib.net
         /// <summary>
         /// 所有维构成的协方差矩阵
         /// </summary>
-        public double[][] covariance;
+        public double[,] covariance;
         /// <summary>
         /// 密度值
         /// </summary>
@@ -40,44 +40,22 @@ namespace NWSELib.net
             throw new NotImplementedException();
         }
 
-    }
-    /// <summary>
-    /// 推理链
-    /// </summary>
-    public class InferenceChain
-    {
-        /// <summary>评判项</summary>
-        public JudgeItem juegeItem;
-        /// <summary>链头</summary>
-        public Item head;
-        /// <summary>链尾</summary>
-        public Item tail;
-        /// <summary>当前</summary>
-        public Item current;
-        public class Item
+        private void initGaussian()
         {
-            /// <summary>
-            /// 推理节点Id
-            /// </summary>
-            public int referenceNode;
-            /// <summary>
-            /// 推理结果：对变量的取值
-            /// </summary>
-            public (int, Vector) variable;
-            /// <summary>
-            /// 推理结果：对条件的取值
-            /// </summary>
-            public List<(int, Vector)> conditions = new List<(int, Vector)>();
-            /// <summary>
-            /// 前一个推理项
-            /// </summary>
-            public Item prev;
-            /// <summary>
-            /// 后一个推理项
-            /// </summary>
-            public Item next;
+            if (gaussian != null) return;
+            Microsoft.ML.Probabilistic.Math.Vector mean = this.means.toMathVector();
+            Microsoft.ML.Probabilistic.Math.PositiveDefiniteMatrix covar = new Microsoft.ML.Probabilistic.Math.PositiveDefiniteMatrix(covariance);
+            gaussian = VectorGaussian.FromMeanAndVariance(mean, covar);
+        }
+        
+        internal double prob(List<Vector> values)
+        {
+            this.initGaussian();
+            Microsoft.ML.Probabilistic.Math.Vector v = values.toMathVector();
+            return gaussian.GetLogProb(v);
         }
     }
+    
     public class Inference : Node
     {
         /// <summary>
@@ -174,6 +152,12 @@ namespace NWSELib.net
             //返回该采样
             return (vs, varindex);
         }
+
+        private List<List<Vector>> samples(int inferencesamples)
+        {
+            Microsoft.ML.Probabilistic.Distributions.SparseGaussianList.FromMeanAndVariance()
+        }
+
         /// <summary>
         /// 求变量最大或者最小推理
         /// </summary>
