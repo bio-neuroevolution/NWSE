@@ -358,7 +358,7 @@ namespace NWSELib.common
         {
             return Microsoft.ML.Probabilistic.Math.Vector.FromArray(vs.toDoubleArray());
         }
-        public static List<Vector> fromMathVector(Microsoft.ML.Probabilistic.Math.Vector v,List<int> dimension)
+        public static List<Vector> fromMathVector(this Microsoft.ML.Probabilistic.Math.Vector v,List<int> dimension)
         {
             Vector[] vs = new Vector[dimension.Count];
             int pos = 0;

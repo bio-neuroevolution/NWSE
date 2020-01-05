@@ -4,6 +4,7 @@ using NWSELib.common;
 using NWSELib.genome;
 using System.Collections.Generic;
 using Microsoft.ML.Probabilistic.Distributions;
+using Microsoft.ML.Probabilistic.Models;
 
 namespace NWSELib.net
 {
@@ -40,7 +41,7 @@ namespace NWSELib.net
             throw new NotImplementedException();
         }
 
-        private void initGaussian()
+        public void initGaussian()
         {
             if (gaussian != null) return;
             Microsoft.ML.Probabilistic.Math.Vector mean = this.means.toMathVector();
@@ -155,7 +156,30 @@ namespace NWSELib.net
 
         private List<List<Vector>> samples(int inferencesamples)
         {
-            Microsoft.ML.Probabilistic.Distributions.SparseGaussianList.FromMeanAndVariance()
+            this.records.ForEach(r => r.initGaussian());
+            Range k = new Range(this.records.Count);
+            VariableArray<Microsoft.ML.Probabilistic.Math.Vector> means = Variable.Array<Microsoft.ML.Probabilistic.Math.Vector>(k);
+            means.ObservedValue = this.records.ConvertAll(r => r.gaussian.GetMean()).ToArray();
+
+            
+            VariableArray<Microsoft.ML.Probabilistic.Math.PositiveDefiniteMatrix> variances = Variable.Array<Microsoft.ML.Probabilistic.Math.PositiveDefiniteMatrix>(k);
+            variances.ObservedValue = this.records.ConvertAll(r => r.gaussian.GetVariance()).ToArray();
+
+            Range n = new Range(inferencesamples);
+            VariableArray<Microsoft.ML.Probabilistic.Math.Vector> data = Variable.Array<Microsoft.ML.Probabilistic.Math.Vector>(n);
+            VariableArray<int> z = Variable.Array<int>(n);
+            double[] weights = this.records.ConvertAll(r => r.weight).ToArray();
+            using (Variable.ForEach(n))
+            {
+                z[n] = Variable.Discrete(weights);
+                using (Variable.Switch(z[n]))
+                {
+                    data[n] = Variable.VectorGaussianFromMeanAndVariance(
+                      means[z[n]], variances[z[n]]);
+                }
+            }
+            List<int> dimension = this.records[0].means.ConvertAll(v => v.Size);
+            return data.ObservedValue.ToList().ConvertAll(v => v.fromMathVector(dimension));
         }
 
         /// <summary>
