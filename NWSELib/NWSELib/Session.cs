@@ -112,7 +112,7 @@ namespace NWSELib
             this.generation = 1;
 
             //初始化初代个体
-            orginGenome = NWSEGenome.create();
+            orginGenome = NWSEGenome.create(this);
             orginNet = new Network(orginGenome);
             inds.Clear();
             inds.Add(orginNet);

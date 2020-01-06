@@ -195,6 +195,18 @@ namespace NWSELib.genome
                 return gene;
             }
         }
+        public NodeGene this[String name]
+        {
+            get
+            {
+                NodeGene gene = receptorGenes.FirstOrDefault(g => g.Name == name);
+                if (gene != null) return gene;
+                gene = handlerGenes.FirstOrDefault(g => g.Name == name);
+                if (gene != null) return gene;
+                gene = infrernceGenes.FirstOrDefault(g => g.Name == name);
+                return gene;
+            }
+        }
         /// <summary>
         /// 查找某节点的传入节点
         /// </summary>
@@ -266,6 +278,65 @@ namespace NWSELib.genome
             return 0;
         }
 
+        public static NWSEGenome create(Session session)
+        {
+            NWSEGenome genome = new NWSEGenome();
+            //生成感受器
+            List<Configuration.Sensor> sensors = Session.GetConfiguration().agent.receptors.GetAllSensor();
+            for(int i=0;i< sensors.Count;i++)
+            {
+                ReceptorGene receptorGene = new ReceptorGene();
+                receptorGene.Cataory = sensors[i].cataory;
+                receptorGene.Generation = session.Generation;
+                receptorGene.Group = sensors[i].group;
+                receptorGene.Name = sensors[i].name;
+                receptorGene.Id = session.GetIdGenerator().getGeneId(genome,receptorGene);
+                genome.receptorGenes.Add(receptorGene);
+            }
+            //生成感受器的分段数
+            for (int i = 0; i < genome.receptorGenes.Count; i++)
+            {
+                if (genome.isVaildGene(genome.receptorGenes[i])) continue;
+                Configuration.Sensor sensor = Session.GetConfiguration().agent.receptors.GetSensor(genome.receptorGenes[i].Name);
+                int min1 = (int)sensor.Level.Min;
+                int max1 = (int)sensor.Level.Max;
+                if (new Random().NextDouble() <= 0.5)
+                    genome.receptorGenes[i].SectionCount = new Random().Next(min1, max1 + 1);
+            }
+
+            //生成一个缺省推理节点
+            InferenceGene inferenceGene = new InferenceGene();
+            inferenceGene.Generation = session.Generation;
+            inferenceGene.dimensions = new List<(int, int)>();
+            for(int i=0;i<genome.receptorGenes.Count;i++)
+            {
+                inferenceGene.dimensions.Add((genome.receptorGenes[i].Id,1));
+                if (genome.receptorGenes[i].Cataory == "action") continue;
+                inferenceGene.dimensions.Add((genome.receptorGenes[i].Id, 0));
+            }
+            inferenceGene.Id = session.idGenerator.getGeneId(genome, inferenceGene);
+            genome.infrernceGenes.Add(inferenceGene);
+
+            //生成判定基因
+            JudgeGene judgeGene = new JudgeGene();
+            judgeGene.Generation = session.Generation;
+            JudgeItem judgeItem = new JudgeItem();
+            judgeItem.conditions.Add(genome["a2"].Id);
+            judgeItem.variable = genome["d3"].Id;
+            judgeItem.expression = JudgeItem.ARGMAX;
+            judgeGene.items.Add(judgeItem);
+            judgeGene.weights.AddRange(new double[]{0.5,0.5 });
+            judgeGene.Id = session.idGenerator.getGeneId(genome, judgeGene);
+            genome.judgeGene = judgeGene;
+            
+            genome.id = session.idGenerator.getGenomeId();
+            return genome;
+        }
+        /// <summary>
+        /// 变异
+        /// </summary>
+        /// <param name="session"></param>
+        /// <returns></returns>
         public NWSEGenome mutate(Session session)
         {
             NWSEGenome genome = this.clone();
@@ -323,7 +394,7 @@ namespace NWSELib.genome
 
                 double[] ps = cHandler.randomParam();
                 newGene = new HandlerGene(cHandler.name, ps);
-                newGene.Id = Session.GetIdGenerator().getGeneId(this, newGene);
+                newGene.Id = session.GetIdGenerator().getGeneId(this, newGene);
                 newGene.Generation = session.Generation;
                 newGene.Cataory = inputs[index[0]].Cataory;
                 genome.handlerGenes.Add(newGene);

@@ -24,7 +24,7 @@ namespace NWSELib.evolution
                 List<NodeGene> invaildInference = inds[i].getInvaildInferenceGene();
                 List<NodeGene> vaildInference = inds[i].getVaildInferenceGene();
 
-                List<EvolutionTreeNode> nearest = EvolutionTreeNode.search(Session.getEvolutionRootNode(), inds[i]).getNearestNode();
+                List<EvolutionTreeNode> nearest = EvolutionTreeNode.search(session.getEvolutionRootNode(), inds[i]).getNearestNode();
                 nearest.ForEach(node => node.network.Genome.gene_drift(invaildInference, vaildInference));
             }
 
@@ -57,7 +57,7 @@ namespace NWSELib.evolution
             List<Network> newinds = new List<Network>();
             for (int i = 0; i < inds.Count; i++)
             {
-                EvolutionTreeNode node = EvolutionTreeNode.search(Session.getEvolutionRootNode(), inds[i]);
+                EvolutionTreeNode node = EvolutionTreeNode.search(session.getEvolutionRootNode(), inds[i]);
                 int childcount = planPropagateCount[i];
                 for(int j=0;j<childcount;j++)
                 {

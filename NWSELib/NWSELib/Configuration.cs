@@ -68,6 +68,14 @@ namespace NWSELib
             [XmlArrayItem(Type = typeof(Sensor), ElementName = "sensor")]
             public List<Sensor> actions = new List<Sensor>();
 
+            public List<Sensor> GetAllSensor()
+            {
+                List<Sensor> r = new List<Sensor>();
+                r.AddRange(env);
+                r.AddRange(gestures);
+                r.AddRange(actions);
+                return r;
+            }
             public Sensor GetEnvSensor(String name)
             {
                 return env.FirstOrDefault<Sensor>(s => s.name == name);

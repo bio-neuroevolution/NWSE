@@ -70,5 +70,28 @@ namespace NWSELib.common
             return 0;
         }
 
+        public static List<int> argsort(this List<double> values)
+        {
+            List<int> index = new List<int>();
+            for (int i = 0; i < values.Count; i++)
+                index.Add(i);
+            for(int i=0;i<values.Count;i++)
+            {
+                for(int j=i+1;j<values.Count;j++)
+                {
+                    if(values[i] > values[j])
+                    {
+                        double t = values[i];
+                        values[i] = values[j];
+                        values[j] = t;
+
+                        int k = index[i];
+                        index[i] = index[j];
+                        index[j] = k;
+                    }
+                }
+            }
+            return index;
+        }
     }
 }

@@ -1,0 +1,8 @@
+D:\gitlib\NWSE\NWSEExperiment\bin\Debug\NWSEExperiment.exe.config
+D:\gitlib\NWSE\NWSEExperiment\bin\Debug\NWSEExperiment.exe
+D:\gitlib\NWSE\NWSEExperiment\bin\Debug\NWSEExperiment.pdb
+D:\gitlib\NWSE\NWSEExperiment\obj\Debug\NWSEExperiment.csprojAssemblyReference.cache
+D:\gitlib\NWSE\NWSEExperiment\obj\Debug\NWSEExperiment.Properties.Resources.resources
+D:\gitlib\NWSE\NWSEExperiment\obj\Debug\NWSEExperiment.csproj.GenerateResource.cache
+D:\gitlib\NWSE\NWSEExperiment\obj\Debug\NWSEExperiment.exe
+D:\gitlib\NWSE\NWSEExperiment\obj\Debug\NWSEExperiment.pdb

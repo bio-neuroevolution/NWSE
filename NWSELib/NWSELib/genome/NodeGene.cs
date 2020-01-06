@@ -50,6 +50,7 @@ namespace NWSELib.genome
         public String Group
         {
             get => this.group;
+            set => this.group = value;
         }
         #endregion
 

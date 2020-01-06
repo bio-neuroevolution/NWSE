@@ -232,56 +232,60 @@ namespace NWSELib.net
             //重新调整权重
             adjust_weights();
 
+            return null;
+
         }
 
         private List<List<List<Vector>>> do_newsamples_cluster()
         {
-            int i = 0;
-            //    int clusters_count = 0;
-            //    List<point> center = new List<point>();
-
-            //    for (i = 0; i < setOfPoints.Count;i++ )
-            //    {
-            //       if (setOfPoints[i].is_core == true && setOfPoints[i].is_clusterID == false)//
-            //        {//选择一个尚未分类的核心点作为种子开始聚类
-            //            clusters_count++;
-            //            if (clusters_count % 10 == 0)
-            //            {
-            //                //Console.WriteLine(clusters_count + " clusters generated!!");
-            //                int clustered = checkClustered();
-            //                Console.WriteLine(clustered+" points has been clustered!");
-            //            }
-            //            expand_Cluster((point)setOfPoints[i],clusters_count);//给所以与此点density-connect的点标记聚类ID
-            //        }
-            //        Console.WriteLine(i+"  points finished!!");
-
-            //    }
             List<List<List<Vector>>> r = new List<List<List<Vector>>>();
-            List<Vector> centers = new List<Vector>();
-            
-            while(this.newsamples.Count>0)
+            while (this.newsamples.Count > 0)
             {
+                //取最大密度点，作为一个新分类
                 int maxindex = this.density.argmax();
-                List<List<Vector>> iis = new List<List<Vector>>();
-                iis.Add(this.newsamples[maxindex]);
-                Vector center = this.newsamples[maxindex].flatten().Item1;
-                centers.Add(center);
-                r.Add(iis);
-
+                List<Vector> sample = this.newsamples[maxindex];
+                List<List<Vector>> classes = new List<List<Vector>>();
+                classes.Add(sample);
+                //从样本集中移除该点
                 this.newsamples.RemoveAt(maxindex);
                 this.density.RemoveAt(maxindex);
-
-                for(int i=0;i<centers.Count;i++)
+                //计算样本集中所有点与该点的剧烈
+                List<double> ds = this.newsamples.ConvertAll(s => s.distance(sample));
+                //对距离从小到大排序
+                List<int> sortedindex = ds.argsort();
+                //对排列后的距离寻找最小方差分裂点
+                List<double> disvar = new List<double>();
+                for(int i=2;i<ds.Count;i++)
                 {
-                    List<double> dis = this.newsamples.ConvertAll(s => s.flatten().Item1.distance(centers[i]));
-                    dis = dis.ConvertAll(d => d / dis.Max());
-                    int t = dis.argmin();
-                    if()
+                    List<double> temp = new List<double>();
+                    for (int j = 0; j < i; j++)
+                        temp.Add(ds[sortedindex[j]]);
+
+                    (double t1, double t2) = new Vector(temp.ToArray()).avg_variance();
+                    disvar.Add(t2);
                 }
+                int argminvar = disvar.argmin()+2;
+                //将能够使方差最小的样本归属同一类
+                for(int i=0;i<argminvar;i++)
+                {
+                    classes.Add(this.newsamples[sortedindex[i]]);
+                }
+                //移除已经归类的样本
+                for(int i=0;i<classes.Count;i++)
+                {
+                    int t3 = this.newsamples.IndexOf(classes[i]);
+                    this.newsamples.Remove(classes[i]);
+                    this.density.RemoveAt(t3);
+                }
+
+                
+
                 
             }
 
-                
+            return r;
+
+
         }
         /// <summary>
         /// 

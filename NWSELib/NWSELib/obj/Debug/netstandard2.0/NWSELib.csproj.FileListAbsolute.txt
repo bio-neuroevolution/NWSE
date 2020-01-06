@@ -7,3 +7,6 @@ D:\gitlib\NWSE\NWSELib\NWSELib\obj\Debug\netstandard2.0\NWSELib.AssemblyInfo.cs
 D:\gitlib\NWSE\NWSELib\NWSELib\obj\Debug\netstandard2.0\NWSELib.csprojAssemblyReference.cache
 D:\gitlib\NWSE\NWSELib\NWSELib\bin\Debug\netstandard2.0\NWSELib.deps.json
 D:\gitlib\NWSE\NWSELib\NWSELib\bin\Debug\netstandard2.0\NWSELib.dll
+D:\gitlib\NWSE\NWSELib\NWSELib\bin\Debug\netstandard2.0\NWSELib.pdb
+D:\gitlib\NWSE\NWSELib\NWSELib\obj\Debug\netstandard2.0\NWSELib.dll
+D:\gitlib\NWSE\NWSELib\NWSELib\obj\Debug\netstandard2.0\NWSELib.pdb
