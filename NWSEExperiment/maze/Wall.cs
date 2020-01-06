@@ -7,6 +7,9 @@ using NWSELib.common;
 
 namespace NWSEExperiment.maze
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class Wall
     {
         #region Instance variables
