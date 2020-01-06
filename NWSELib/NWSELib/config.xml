@@ -39,7 +39,7 @@
       </actions>
     </receptors>
 
-    
+    <noise sensorNoise="0" effectorNoise="0" headingNoise="0"></noise>
     
   </agent>
 
@@ -49,7 +49,7 @@
 
   
 
-  <evaluation run_count="20" max_reward="100" gene_reability_range="[-1.0,10.0+0.1]">
+  <evaluation timeStep="1.0" run_count="20" max_reward="100" gene_reability_range="[-1.0,10.0+0.1]">
     
   </evaluation>
   

@@ -6,3 +6,9 @@ D:\gitlib\NWSE\NWSEExperiment\obj\Debug\NWSEExperiment.Properties.Resources.reso
 D:\gitlib\NWSE\NWSEExperiment\obj\Debug\NWSEExperiment.csproj.GenerateResource.cache
 D:\gitlib\NWSE\NWSEExperiment\obj\Debug\NWSEExperiment.exe
 D:\gitlib\NWSE\NWSEExperiment\obj\Debug\NWSEExperiment.pdb
+D:\gitlib\NWSE\NWSEExperiment\bin\Debug\NWSELib.dll
+D:\gitlib\NWSE\NWSEExperiment\bin\Debug\NWSELib.pdb
+D:\gitlib\NWSE\NWSEExperiment\bin\Debug\NWSELib.dll.config
+D:\gitlib\NWSE\NWSEExperiment\obj\Debug\NWSEExperiment.MainForm.resources
+D:\gitlib\NWSE\NWSEExperiment\obj\Debug\NWSEExperiment.csproj.CopyComplete
+D:\gitlib\NWSE\NWSEExperiment\bin\Debug\QDMaze.xml

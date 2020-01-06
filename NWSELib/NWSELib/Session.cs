@@ -8,7 +8,6 @@ using log4net;
 using NWSELib.evolution;
 using NWSELib.genome;
 using NWSELib.net;
-using NWSELib.env.maze;
 using NWSELib.env;
 
 namespace NWSELib
@@ -92,6 +91,15 @@ namespace NWSELib
         /// 事件处理
         /// </summary>
         private EventHandler handler;
+        /// <summary>
+        /// 交互环境
+        /// </summary>
+        private IEnv env;
+        /// <summary>
+        /// 交互环境
+        /// </summary>
+        public IEnv Env { get=> env; }
+        
 
         /// <summary>
         /// 事件触发函数
@@ -104,12 +112,18 @@ namespace NWSELib
             if (handler == null) return;
             handler(eventName,values);
         }
-        public void run(EventHandler handler)
+
+        #endregion
+
+        #region 执行
+        public void run(IEnv env,EventHandler handler)
         {
             //初始化
             this.handler = handler;
             logger = LogManager.GetLogger("","session");
             this.generation = 1;
+            
+
 
             //初始化初代个体
             orginGenome = NWSEGenome.create(this);
@@ -126,15 +140,15 @@ namespace NWSELib
                 foreach(Network net in inds)
                 {
                     logger.Info("gamebegin ind=" + net.Genome.id);
-                    IEnv env = new HardMaze();
-                    List<double> initobs = env.reset();
+                    List<double> initobs = env.reset(net);
+
                     List<(List<double>, List<double>,double)> traces = new List<(List<double>, List<double>,double)>();
                     traces.Add((null,initobs,0));
                     logger.Info("gamereset ind=" + net.Genome.id + ",obs="+initobs);
                     for (int time = 0; time <= Session.GetConfiguration().evaluation.run_count; time++) 
                     {
                         List<double> actions = net.activate(initobs, time);
-                        (List<double> obs,double reward) = env.action(actions);
+                        (List<double> obs,double reward) = env.action(net,actions);
                         traces.Add((actions,obs, reward));
                         logger.Info("gamerun ind=" + net.Genome.id +",time="+time+ ",action"+actions+ ",obs=" + initobs+",reward="+reward);
                         if (reward >= Session.GetConfiguration().evaluation.max_reward)

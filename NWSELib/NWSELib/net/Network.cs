@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using NWSELib.common;
+using NWSELib.env;
 using NWSELib.genome;
 namespace NWSELib.net
 {
@@ -33,7 +34,15 @@ namespace NWSELib.net
         /// 节点集
         /// </summary>
         public List<Node> Nodes { get => nodes; }
-        
+        /// <summary>
+        /// Id
+        /// </summary>
+        /// <returns></returns>
+        public int getId() { return this.genome.id; } 
+        /// <summary>
+        /// Id
+        /// </summary>
+        public int Id { get => this.genome.id; }
         #endregion
 
         #region 记忆信息

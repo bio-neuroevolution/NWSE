@@ -52,7 +52,19 @@ namespace NWSELib
             public int inferencesamples;
             [XmlElement]
             public Receptors receptors = new Receptors();
+            [XmlElement]
+            public Noise noise;
             
+        }
+
+        public class Noise
+        {
+            [XmlAttribute]
+            public double sensorNoise;
+            [XmlAttribute]
+            public double effectorNoise;
+            [XmlAttribute]
+            public double headingNoise;
         }
         public class Receptors
         {
@@ -137,6 +149,9 @@ namespace NWSELib
         
         public class Evaluation
         {
+            [XmlAttribute]
+            public double timeStep;
+
             [XmlAttribute(AttributeName = "gene_reability_range")]
             public String gene_reability_range_str;
             [XmlIgnore]
