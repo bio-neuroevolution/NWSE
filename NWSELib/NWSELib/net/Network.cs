@@ -290,6 +290,11 @@ namespace NWSELib.net
         /// 动作输出和推理迹
         /// </summary>
         private Dictionary<int, (double, int[])> currentActionTraces = new Dictionary<int, (double, int[])>();
+
+        /// <summary>
+        /// 推理发生时间
+        /// </summary>
+        private int judgeTime;
         #endregion
 
         #region 评价信息
@@ -379,11 +384,23 @@ namespace NWSELib.net
                 JudgeItem judgeItem = judges[judgeIndex];
                 double juegeItemWeight = ws[judgeIndex];
 
-                judgeResultList.Add(doJudge(judgeItem));
-                ws.RemoveAt(judgeIndex);
-                judges.RemoveAt(judgeIndex);
+                (var var1, var var2) = doJudge(judgeItem);
+                if (var1 != null)
+                {
+                    judgeResultList.Add((var1, var2));
+                    ws.RemoveAt(judgeIndex);
+                    judges.RemoveAt(judgeIndex);
+                }
             }
-
+            //没有得到有效评判结果（初始的时候所有节点都没有值）
+            if(judgeResultList.Count<=0)
+            {
+                this.Effectors.ForEach(e => e.randomValue(this,time));
+                this.currentActionTraces = null;
+                this.currentInferenceChain = null;
+                this.judgeTime = time;
+                return;
+            }
             //对每一个评判的结果一个评分：进行正向推断，选择距离容忍界限最近的
             List<double> errors = new List<double>();
             for(int i=0;i<judgeResultList.Count;i++)
@@ -451,13 +468,10 @@ namespace NWSELib.net
                 effector.activate(this, time, new Vector(value));
 
             }
-
-
-
+            this.judgeTime = time;
         }
         private (InferenceChain chain, Dictionary<int, (double, int[])> actionValues) doJudge(JudgeItem judgeItem)
         { 
-
             List<int> conditions = judgeItem.conditions;
             double variableValue = judgeItem.expression == "argmax" ? double.MinValue : double.MaxValue;
 
@@ -472,6 +486,7 @@ namespace NWSELib.net
             for (int j = 0; j < varInferences.Count; j++)
             {
                 (List<Vector> condition, int varId, double value) = varInferences[j].arginference(judgeItem.expression);
+                if (condition == null) continue;
                 if (judgeItem.expression == "argmax" && value > variableValue)
                 {
                     variableValue = value;
@@ -486,6 +501,8 @@ namespace NWSELib.net
                     conditionValues = condition;
                 }
             }
+            if (selectedInference == null)
+                return (null, null);
 
             //在选择的根推理上逐级回溯构造推理链
             InferenceChain chain = new InferenceChain()

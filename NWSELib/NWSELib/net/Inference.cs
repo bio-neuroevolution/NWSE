@@ -415,6 +415,11 @@ namespace NWSELib.net
             InferenceRecord argRecord = null;
             double value = arg == "argmin" ? double.MaxValue - 1 : double.MinValue + 1;
             int varindex = ((InferenceGene)this.gene).getVariableIndex();
+
+            if(this.records.Count<=0)
+            {
+                return (null,-1,double.NaN);
+            }
             for(int i=0;i<this.records.Count;i++)
             {
                 double len = this.records[i].means[varindex].length();

@@ -157,6 +157,12 @@ namespace NWSELib.net
         {
             return this.CurTime == time;
         }
+
+        internal void randomValue(Network net,int time)
+        {
+            double value = Session.GetConfiguration().agent.receptors.GetSensor(this.Name).Range.random();
+            this.activate(net, time, value);
+        }
         #endregion
     }
 }

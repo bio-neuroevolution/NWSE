@@ -382,20 +382,24 @@ namespace NWSELib.genome
                     genome.receptorGenes[i].SectionCount = new Random().Next(min1, max1 + 1);
             }
 
-            //生成一个缺省推理节点
-            InferenceGene inferenceGene = new InferenceGene();
-            inferenceGene.Generation = session.Generation;
-            inferenceGene.dimensions = new List<(int, int)>();
-            for(int i=0;i<genome.receptorGenes.Count;i++)
+            //生成缺省推理节点
+            for (int i = 0; i < genome.receptorGenes.Count; i++)
             {
-                inferenceGene.dimensions.Add((genome.receptorGenes[i].Id,1));
                 if (genome.receptorGenes[i].Cataory == "action") continue;
-                
+
+                InferenceGene inferenceGene = new InferenceGene();
+                inferenceGene.Generation = session.Generation;
+                inferenceGene.dimensions = new List<(int, int)>();
+                for (int j = 0; j < genome.receptorGenes.Count; j++)
+                {
+                    inferenceGene.dimensions.Add((genome.receptorGenes[j].Id, 1));
+                }
+                inferenceGene.dimensions.Add((genome.receptorGenes[i].Id, 0));
+                inferenceGene.Id = session.idGenerator.getGeneId(genome, inferenceGene);
+                genome.infrernceGenes.Add(inferenceGene);
             }
-            int varId = new Random().Next(0, genome.getEnvSensorGenes().Count);
-            inferenceGene.dimensions.Add((varId, 0));
-            inferenceGene.Id = session.idGenerator.getGeneId(genome, inferenceGene);
-            genome.infrernceGenes.Add(inferenceGene);
+                
+            
 
             //生成判定基因
             JudgeGene judgeGene = new JudgeGene();
