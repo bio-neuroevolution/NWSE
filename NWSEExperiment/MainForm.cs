@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using log4net;
 
 using NWSELib.net;
 
@@ -19,6 +20,9 @@ namespace NWSEExperiment
         public HardMaze maze;
         private CoordinateFrame frame;
         public Session evolutionSession;
+        private ILog logger = LogManager.GetLogger(typeof(MainForm));
+
+        
 
         public MainForm()
         {
@@ -67,7 +71,7 @@ namespace NWSEExperiment
             }
             catch(Exception ex)
             {
-
+                logger.Error(ex.StackTrace);
             }
             finally
             {

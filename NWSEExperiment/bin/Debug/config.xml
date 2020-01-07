@@ -23,16 +23,16 @@
         </sensor>
       </env>
       <gestures>
-        <sensor name="g1" desc="front radar" cataory="direction" group="body.objdirection"  range="[-3.14 - 3.14]">
+        <sensor name="g1" desc="front radar" cataory="direction" group="body.objdirection"  range="[0 - 1]">
           <property name="direction" type="float" value="0"></property>
         </sensor>
-        <sensor name="g2" desc="right radar" cataory="direction" group="body.objdirection"  range="[-3.14 - 3.14]">
+        <sensor name="g2" desc="right radar" cataory="direction" group="body.objdirection"  range="[0 - 1]">
           <property name="direction" type="float" value="90"></property>
         </sensor>
-        <sensor name="g3" desc="rear radar" cataory="direction" group="body.objdirection"  range="[-3.14 - 3.14]">
+        <sensor name="g3" desc="rear radar" cataory="direction" group="body.objdirection"  range="[0 - 1]">
           <property name="direction" type="float" value="180"></property>
         </sensor>
-        <sensor name="g4" desc="left radar" cataory="direction" group="body.objdirection"  range="[-3.14 - 3.14]">
+        <sensor name="g4" desc="left radar" cataory="direction" group="body.objdirection"  range="[0 - 1]">
           <property name="direction" type="float" value="-90"></property>
         </sensor>
       </gestures>

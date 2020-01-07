@@ -349,7 +349,7 @@ namespace NWSELib.net
             }
 
             //反复执行直到都激活
-            while (!this.Handlers.TrueForAll(n => n.IsActivate(time)))
+            while (!this.Handlers.All(n => n.IsActivate(time)))
             {
                 this.Handlers.ForEach(n => n.activate(this, time, null));
             }
@@ -388,7 +388,13 @@ namespace NWSELib.net
             List<double> errors = new List<double>();
             for(int i=0;i<judgeResultList.Count;i++)
             {
+
                 double error = 0;
+                if(judgeResultList[i].chain == null)
+                {
+                    errors.Add(1000);
+                    continue;
+                }
                 for(int j=0;j< judgeResultList.Count;j++)
                 {
                     Inference inf = (Inference)this.getNode(judgeResultList[j].chain.head.referenceNode);
@@ -422,6 +428,7 @@ namespace NWSELib.net
                     }
                     int judgeIndex = this.genome.judgeGene.items.IndexOf(judgeResultList[i].chain.juegeItem);
                     error *= this.genome.judgeGene.weights[judgeIndex];
+                    errors.Add(error);
                 }
                 
                 
@@ -432,9 +439,12 @@ namespace NWSELib.net
             this.currentInferenceChain = judgeResultList[minerrorIndex].chain;
             this.currentActionTraces = judgeResultList[minerrorIndex].Item2;
 
-
+            if (currentActionTraces == null || currentActionTraces.Count <= 0)
+            {
+                this.Effectors.ForEach(e => e.activate(this, time, 0));
+            }
             //计算效应器输出
-            foreach(int key in this.currentActionTraces.Keys)
+            foreach (int key in this.currentActionTraces.Keys)
             {
                 double value = this.currentActionTraces[key].Item1;
                 Effector effector = getEffectorByActionSensorId(key);
@@ -458,6 +468,7 @@ namespace NWSELib.net
             //选择一个最合适的根推理
             Inference selectedInference = null;
             List<Vector> conditionValues = null;
+            
             for (int j = 0; j < varInferences.Count; j++)
             {
                 (List<Vector> condition, int varId, double value) = varInferences[j].arginference(judgeItem.expression);
@@ -525,12 +536,15 @@ namespace NWSELib.net
             for(int i=0;i<infs.Count;i++)
             {
                 Inference inf = (Inference)infs[i];
+                if (chain.contains(inf, chain.current))
+                    continue;
                 List<(int,int)> conds = ((InferenceGene)inf.Gene).getConditions();
                 int varindex = condids.IndexOf(((InferenceGene)inf.Gene).getVariable().Item1);
                 Vector varvalue = conditionValues[varindex];
                 (List<Vector> condValue,int vindex) = inf.backinference(varvalue);
                 List<(int, Vector)> condValues = new List<(int, Vector)>();
                 for (int k = 0; k < condValue.Count; k++) condValues.Add((conds[k].Item1, condValue[k]));
+                
                 InferenceChain.Item item = chain.addItem(inf.Id, (((InferenceGene)inf.Gene).getVariable().Item1, varvalue), condValues);
                 items.Add(item);
 

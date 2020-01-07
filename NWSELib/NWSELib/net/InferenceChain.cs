@@ -137,5 +137,14 @@ namespace NWSELib.net
             }
             return items;
         }
+
+        internal bool contains(Inference inf, Item cur=null)
+        {
+            if (cur == null) cur = this.current;
+            if (cur.referenceNode == inf.Id) return true;
+            if (cur.prev == null) return false;
+            return contains(inf, cur.prev);
+        }
+        
     }
 }

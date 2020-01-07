@@ -217,14 +217,92 @@ namespace NWSELib.genome
             List<int> ids = this.connectionGene.FindAll(c => c.Item2 == gene.Id).ConvertAll(c => c.Item1);
             return ids.ConvertAll(id => this[id]);
         }
+
+        public List<ReceptorGene> getEnvSensorGenes()
+        {
+            return this.receptorGenes.FindAll(r => r.Group.StartsWith("env"));
+        }
+        public List<ReceptorGene> getNonActionSensorGenes()
+        {
+            return this.receptorGenes.FindAll(r => r.Group.StartsWith("env") || r.Group.StartsWith("body"));
+        }
+
+        public int getHandlerMaxDepth()
+        {
+            if(this.handlerGenes.Count<=0)
+            {
+                return this.receptorGenes.ConvertAll(r => r.Depth).Max();
+            }
+            return this.handlerGenes.ConvertAll(h => h.Depth).Max();
+        }
+        public int getInferenceMaxDepth()
+        {
+            int d1 = this.infrernceGenes.ConvertAll(i => i.Depth).Max();
+            int d2 = this.getHandlerMaxDepth();
+            return System.Math.Max(d1,d2);
+
+        }
+        public int computeNodeDepth(NodeGene gene)
+        {
+            List<NodeGene> inputs = this.getInputs(gene);
+            if(inputs == null || inputs.Count <= 0)
+            {
+                gene.Depth = 0;return 0;
+            }
+            gene.Depth = inputs.ConvertAll(i => i.Depth).Max() + 1;
+            return gene.Depth;
+        }
+        public void computeNodeDepth()
+        {
+            this.receptorGenes.ForEach(r => r.Depth = 0);
+            this.handlerGenes.ForEach(h => this.computeNodeDepth(h));
+            int d = this.getHandlerMaxDepth();
+            this.infrernceGenes.ForEach(i =>
+            {
+                int t = this.computeNodeDepth(i);
+                if (t < d + 1) i.Depth = d + 1;
+            });
+            d = this.infrernceGenes.ConvertAll(i => i.Depth).Max();
+            this.judgeGene.Depth = d + 1;
+        }
+        public void computeGeneText()
+        {
+            this.receptorGenes.ForEach(r => r.Text = r.Name);
+            this.handlerGenes.ForEach(h =>
+            {
+                List<NodeGene> inputs = this.getInputs(h);
+                inputs.Sort();
+                h.Text = h.function+"("+inputs.ConvertAll(x => x.Text).Aggregate((m, n) => m + "," + n)+")";
+            });
+            for(int i=0;i<this.infrernceGenes.Count;i++)
+            {
+                (int t1, int t2) = this.infrernceGenes[i].getTimeDiff();
+                this.infrernceGenes[i].Text = 
+                this.infrernceGenes[i].getConditions()
+                    .ConvertAll(c => c.Item1)
+                    .ConvertAll(id => this[id])
+                    .ConvertAll(g => g.Text)
+                    .Aggregate((x, y) => x + "," + y) +
+                (t1 == t2 ? "<=>" : "=>") +
+                this[this.infrernceGenes[i].getVariable().Item1].Text;
+
+            }
+            for(int i=0;i<this.judgeGene.items.Count;i++)
+            {
+                this.judgeGene.items[i].Text =
+                    this.judgeGene.items[i].expression + "(" +
+                    this[this.judgeGene.items[i].variable].Text +
+                    "|env,action)";
+            }
+        }
         #endregion
 
-        
 
-        
 
-        
-        
+
+
+
+
         #region 漂移和变异
         /// <summary>
         /// 基因漂移处理
@@ -312,8 +390,10 @@ namespace NWSELib.genome
             {
                 inferenceGene.dimensions.Add((genome.receptorGenes[i].Id,1));
                 if (genome.receptorGenes[i].Cataory == "action") continue;
-                inferenceGene.dimensions.Add((genome.receptorGenes[i].Id, 0));
+                
             }
+            int varId = new Random().Next(0, genome.getEnvSensorGenes().Count);
+            inferenceGene.dimensions.Add((varId, 0));
             inferenceGene.Id = session.idGenerator.getGeneId(genome, inferenceGene);
             genome.infrernceGenes.Add(inferenceGene);
 
@@ -330,6 +410,8 @@ namespace NWSELib.genome
             genome.judgeGene = judgeGene;
             
             genome.id = session.idGenerator.getGenomeId();
+            genome.computeNodeDepth();
+            genome.computeGeneText();
             return genome;
         }
         /// <summary>
@@ -460,10 +542,11 @@ namespace NWSELib.genome
                 inferenceGene.Id = session.idGenerator.getGeneId(genome, inferenceGene);
                 genome.infrernceGenes.Add(inferenceGene);
             }
-            
+
 
             //对判定节点权重进行变异
-
+            genome.computeNodeDepth();
+            genome.computeGeneText();
             return genome;
         }
 

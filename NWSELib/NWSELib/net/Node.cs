@@ -133,6 +133,7 @@ namespace NWSELib.net
         /// <returns></returns>
         public virtual Object activate(Network net, int time, Object value = null)
         {
+            if (value != null && value is double) value = new Vector(new double[] { (double)value });
             if (CurTime == time) return this.Value;
             Object prev = this.Value;
 

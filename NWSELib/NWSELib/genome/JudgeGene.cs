@@ -25,6 +25,8 @@ namespace NWSELib.genome
         /// </summary>
         public int variable;
 
+        public string Text { get; internal set; }
+
         public JudgeItem clone()
         {
             JudgeItem item = new JudgeItem()

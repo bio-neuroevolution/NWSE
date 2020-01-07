@@ -29,6 +29,15 @@ namespace NWSELib.genome
         /// </summary>
         protected string group;
 
+        /// <summary>
+        /// 深度
+        /// </summary>
+        protected int depth;
+        /// <summary>
+        /// 显示文本
+        /// </summary>
+        protected String text="";
+
         public int Id { get => id; set => id = value; }
         /// <summary>
         /// 对应感受器名称
@@ -52,6 +61,15 @@ namespace NWSELib.genome
             get => this.group;
             set => this.group = value;
         }
+        /// <summary>
+        /// 深度
+        /// </summary>
+        public int Depth { get => depth; set => depth = value; }
+        /// <summary>
+        /// 显示文本
+        /// </summary>
+        public String Text { get => text; set => text = value; } 
+            
         #endregion
 
         #region 变异信息
