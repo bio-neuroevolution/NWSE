@@ -1,4 +1,5 @@
-﻿using NWSELib.genome;
+﻿using System;
+using NWSELib.genome;
 
 namespace NWSELib.net
 {
@@ -8,5 +9,6 @@ namespace NWSELib.net
         {
 
         }
+        
     }
 }

@@ -321,7 +321,7 @@ namespace NWSELib.genome
             JudgeGene judgeGene = new JudgeGene();
             judgeGene.Generation = session.Generation;
             JudgeItem judgeItem = new JudgeItem();
-            judgeItem.conditions.Add(genome["a2"].Id);
+            judgeItem.conditions.Add(genome["_a2"].Id);
             judgeItem.variable = genome["d3"].Id;
             judgeItem.expression = JudgeItem.ARGMAX;
             judgeGene.items.Add(judgeItem);

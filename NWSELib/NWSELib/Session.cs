@@ -120,7 +120,7 @@ namespace NWSELib
         {
             //初始化
             this.handler = handler;
-            logger = LogManager.GetLogger("","session");
+            logger = LogManager.GetLogger(typeof(Session));
             this.generation = 1;
             
 
@@ -149,6 +149,7 @@ namespace NWSELib
                     {
                         List<double> actions = net.activate(initobs, time);
                         (List<double> obs,double reward) = env.action(net,actions);
+                        this.triggerEvent("do_action", net);
                         traces.Add((actions,obs, reward));
                         logger.Info("gamerun ind=" + net.Genome.id +",time="+time+ ",action"+actions+ ",obs=" + initobs+",reward="+reward);
                         if (reward >= Session.GetConfiguration().evaluation.max_reward)
@@ -158,8 +159,10 @@ namespace NWSELib
                             return;
                         }
                     }
+                    this.triggerEvent(Session.EVT_NAME_END_ACTION, net);
 
                 }
+                this.triggerEvent(Session.EVT_NAME_CLEAR_AGENT);
 
                 //进化过程
                 Evolution evolution = new Evolution();
@@ -176,6 +179,10 @@ namespace NWSELib
             }
 
         }
+
+        public const String EVT_NAME_DO_ACTION = "do_action";
+        public const String EVT_NAME_END_ACTION = "end_action";
+        public const String EVT_NAME_CLEAR_AGENT = "clear_agent";
 
     }
     #endregion

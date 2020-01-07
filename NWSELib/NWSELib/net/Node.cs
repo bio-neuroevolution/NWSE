@@ -46,7 +46,7 @@ namespace NWSELib.net
         }
         public int CurTime
         {
-            get { return times.ToArray()[times.Count - 1]; }
+            get { return times.Count<=0?-1:times.ToArray()[times.Count - 1]; }
         }
         public int TimeCapacity
         {
@@ -59,7 +59,7 @@ namespace NWSELib.net
 
         public Vector Value
         {
-            get { return values.ToArray()[values.Count - 1]; }
+            get { return values.Count<=0?null:values.ToArray()[values.Count - 1]; }
         }
 
         public int Dimension

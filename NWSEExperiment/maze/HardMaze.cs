@@ -2,6 +2,7 @@
 using NWSELib.env;
 using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Drawing;
 using System.IO;
 using System.Text;
@@ -42,8 +43,9 @@ namespace NWSEExperiment.maze
         #endregion
 
         #region 增加的内容
-        private List<RobotAgent> agents = new List<RobotAgent>();
+        private ConcurrentDictionary<int, RobotAgent> agents = new ConcurrentDictionary<int, RobotAgent>();
         List<List<Point2D>> optimaTraces = new List<List<Point2D>>();
+        public bool AgentVisible { get; set; }
         #endregion
 
         #region Constructors
@@ -54,6 +56,7 @@ namespace NWSEExperiment.maze
         public HardMaze()
         {
             //reset();
+            AgentVisible = true;
         }
 
         #endregion
@@ -172,21 +175,32 @@ namespace NWSEExperiment.maze
             {
                 wall.draw(g, frame);
             }
+
+            if (!this.AgentVisible) return;
+
+            List<RobotAgent> agents = this.agents.Values.ToList();
+            foreach(RobotAgent agent in agents)
+            {
+                agent.draw(g, frame);
+            }
         }
 
         List<double> IEnv.reset(Network net)
         {
-            IAgent agent = this.agents.FirstOrDefault(a => a.getId() == net.Id);
+            IAgent agent = this.agents.Values.ToList().FirstOrDefault(a => a.getId() == net.Id);
             if (agent == null)
                 agent = new RobotAgent(net, this);
-            return agent.getObserve();
+            List<double> obs =agent.getObserve();
+            obs.Add(0.0);obs.Add(0.0);
+            return obs;
         }
 
         (List<double>, double) IEnv.action(Network net, List<double> actions)
         {
-            IAgent agent = this.agents.FirstOrDefault(a => a.getId() == net.Id);
+            IAgent agent = this.agents.Values.ToList().FirstOrDefault(a => a.getId() == net.Id);
             agent.doAction(actions.ToArray());
             List<double> obs = agent.getObserve();
+            obs.AddRange(actions);
             double reward = this.compute_reward(agent);
             return (obs, reward);
         }
@@ -239,6 +253,40 @@ namespace NWSEExperiment.maze
 
         }
 
+        #endregion
+
+        #region 管理Agent
+        /// <summary>
+        /// 添加新的Agent
+        /// </summary>
+        /// <param name="net"></param>
+        public void updateAgent(Network net)
+        {
+            if(!this.agents.ContainsKey(net.Id))
+            {
+                RobotAgent agent = new RobotAgent(net,this);
+                this.agents.TryAdd(net.Id, agent);
+            }
+        }
+        /// <summary>
+        /// 删除Agent
+        /// </summary>
+        /// <param name="net"></param>
+        /// <returns></returns>
+        public RobotAgent removeAgent(Network net)
+        {
+            RobotAgent agent = null;
+            if (this.agents.ContainsKey(net.Id))
+                this.agents.TryRemove(net.Id, out agent);
+            return agent;
+        }
+        /// <summary>
+        /// 清空agent
+        /// </summary>
+        public void clearAgent()
+        {
+            this.agents.Clear();
+        }
         #endregion
     }
 }

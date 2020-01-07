@@ -26,6 +26,9 @@ namespace NWSELib
         [XmlArrayItem(ElementName ="handler",Type =typeof(Handler))]
         public List<Handler> handlers = new List<Handler>();
 
+        [XmlElement(ElementName ="view")]
+        public View view = new View();
+
         public Handler Find(String name)
         {
             return handlers.FirstOrDefault<Handler>(h => h.name == name);
@@ -54,6 +57,7 @@ namespace NWSELib
             public Receptors receptors = new Receptors();
             [XmlElement]
             public Noise noise;
+            
             
         }
 
@@ -113,6 +117,8 @@ namespace NWSELib
         {
             [XmlAttribute]
             public String name;
+            [XmlAttribute]
+            public String desc;
             [XmlAttribute]
             public String cataory;
             [XmlAttribute]
@@ -226,6 +232,7 @@ namespace NWSELib
             }
             [XmlAttribute]
             public String typename;
+            [XmlIgnore]
             public Type HandlerType { get => Type.GetType(typename); }
             [XmlAttribute]
             public String selection_prob_range;
@@ -246,5 +253,14 @@ namespace NWSELib
 
 
         }
+
+        public class View
+        {
+            [XmlAttribute]
+            public int width;
+            [XmlAttribute]
+            public int height;
         }
+
+    }
 }

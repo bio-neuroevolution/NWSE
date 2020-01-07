@@ -204,6 +204,7 @@ namespace NWSELib.common
         {
             this.state_next = new ThreadLocal<object>();
         }
+        public void Add(Object obj) { }
         /// <summary>
         /// 有效范围
         /// </summary>
@@ -279,7 +280,7 @@ namespace NWSELib.common
             this.includeMin = value.StartsWith("(") ? false : true;
             this.includeMax = value.EndsWith(")") ? false : true;
 
-            value = value.Substring(1, value.Length - 1);
+            value = value.Substring(1, value.Length - 2);
             int i1 = value.IndexOf(",");
             if (i1 >= 0)
             {
@@ -289,18 +290,19 @@ namespace NWSELib.common
             }
 
             i1 = value.IndexOf("-");
-            String begin = value.Substring(0, i1);
+            String begin = value.Substring(0, i1).Trim();
             int j = i1 + 1;
             this.cataory = Cataory.EdiffSeries;
             for (; j < value.Length; j++)
             {
                 if (value[j] == '+') { this.cataory = Cataory.EdiffSeries; break; }
-                else if (value[j] == '*') { this.cataory = Cataory.EratioSeries;break; }
+                else if (value[j] == '*') { this.cataory = Cataory.EratioSeries; break; }
             }
-            String end = value.Substring(i1 + 1, j - i1 - 1).Trim();
+            String end = value.Substring(i1 + 1, j - i1-1).Trim();
+            this.values = new List<double>(new double[] { double.NaN,double.NaN});
             this.values[0] = double.Parse(begin);
             this.values[1] = double.Parse(end);
-            if (j > value.Length)
+            if (j >= value.Length)
             {
                 if (this.values[0] == (int)this.values[0]) this.distance = 1;
                 else this.distance = (this.values[1] - this.values[0]) / 100;

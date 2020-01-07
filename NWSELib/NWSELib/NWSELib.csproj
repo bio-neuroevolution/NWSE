@@ -6,9 +6,14 @@
 
   <ItemGroup>
     <PackageReference Include="log4net" Version="2.0.8" />
-    <PackageReference Include="Microsoft.ML" Version="1.4.0" />
     <PackageReference Include="Microsoft.ML.Probabilistic" Version="0.3.1912.403" />
     <PackageReference Include="Microsoft.ML.Probabilistic.Compiler" Version="0.3.1912.403" />
     <PackageReference Include="Microsoft.ML.Probabilistic.Learners" Version="0.3.1912.403" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="config.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>

@@ -201,6 +201,22 @@ namespace NWSELib.net
             return r;
         }
 
+        public Node getNode(int id)
+        {
+            return this.nodes.FirstOrDefault(n => n.Id == id);
+        }
+        public int getActionIdByName(String name)
+        {
+            Node n = this.Effectors.FirstOrDefault(e => e.Name == name || e.Name == name.Substring(1));
+            return n == null ? 0 : n.Id;
+        }
+
+        public Effector getEffectorByActionSensorId(int id)
+        {
+            String name = this.getNode(id).Name;
+            return (Effector)this.Effectors.FirstOrDefault(e => e.Name == name || e.Name == name.Substring(1));
+
+        }
         #endregion
 
         #region 初始化
@@ -329,7 +345,7 @@ namespace NWSELib.net
             //初始化所有感知节点
             for (int i = 0; i < this.Receptors.Count; i++)
             {
-                this.Receptors[i].activate(this, 0, obs[i]);
+                this.Receptors[i].activate(this, time, obs[i]);
             }
 
             //反复执行直到都激活
@@ -338,7 +354,7 @@ namespace NWSELib.net
                 this.Handlers.ForEach(n => n.activate(this, time, null));
             }
             //进行评判
-            int col = time;
+            judge(time);
 
 
             //取出输出节点
@@ -348,79 +364,158 @@ namespace NWSELib.net
         /// <summary>
         /// 评判
         /// </summary>
-        private void judge()
+        private void judge(int time)
         {
-            //对每一个评判项，选择合适的动作
-            for (int i = 0; i < this.genome.judgeGene.items.Count; i++)
+            List<(InferenceChain chain, Dictionary<int, (double, int[])>)> judgeResultList = new List<(InferenceChain chain, Dictionary<int, (double, int[])>)>();
+
+            
+            //拷贝评判项和权重，做好一项就删除一项
+            List<JudgeItem> judges = new List<JudgeItem>(this.genome.judgeGene.items);
+            List<double> ws = new List<double>(this.genome.judgeGene.weights);
+            //对每项做评判
+            while (judges.Count > 0)
             {
-                //取出评判项和其条件部分
-                JudgeItem judgeItem = this.genome.judgeGene.items[i];
-                List<int> conditions = judgeItem.conditions;
-                double variableValue = judgeItem.expression == "argmax" ? double.MinValue : double.MaxValue;
+                int judgeIndex = ws.argmax();
+                JudgeItem judgeItem = judges[judgeIndex];
+                double juegeItemWeight = ws[judgeIndex];
 
-                //找到所有包含推理变量（后置）的推理项
-                List<Inference> varInferences = this.GetInferences(2, false, judgeItem.variable);
-                if (varInferences == null || varInferences.Count <= 0) continue;
+                judgeResultList.Add(doJudge(judgeItem));
+                ws.RemoveAt(judgeIndex);
+                judges.RemoveAt(judgeIndex);
+            }
 
-                //选择一个最合适的根推理
-                Inference selectedInference = null;
-                List<Vector> conditionValues = null;
-                for (int j = 0; j < varInferences.Count; j++)
+            //对每一个评判的结果一个评分：进行正向推断，选择距离容忍界限最近的
+            List<double> errors = new List<double>();
+            for(int i=0;i<judgeResultList.Count;i++)
+            {
+                double error = 0;
+                for(int j=0;j< judgeResultList.Count;j++)
                 {
-                    (List<Vector> condition, int varId, double value) = varInferences[i].arginference(judgeItem.expression);
-                    if (judgeItem.expression == "argmax" && value > variableValue)
+                    Inference inf = (Inference)this.getNode(judgeResultList[j].chain.head.referenceNode);
+                    List<int> condids = ((InferenceGene)inf.Gene).getConditions().ConvertAll(x => x.Item1);
+                    List<Vector> condValues = new List<Vector>();
+                    for (int k = 0; k < condids.Count; k++)
                     {
-                        variableValue = value;
-                        selectedInference = varInferences[j];
-                        conditionValues = condition;
-
+                        Node node = this.getNode(condids[k]);
+                        if (node.Cataory != "action")
+                            condValues.Add(node.Value);
+                        else
+                        {
+                            int actionId = this.getActionIdByName(node.Name.Substring(1));
+                            double val = judgeResultList[i].Item2[actionId].Item1;
+                            condValues.Add(new Vector(new double[] { val }));
+                        }
                     }
-                    else if (judgeItem.expression == "argmin" && value < variableValue)
+                    Vector varValue = inf.forwardinference(condValues);
+                    double varlen = varValue.length();
+                    double expectlen = judgeResultList[i].chain.varValue;
+                    if (judgeResultList[i].chain.juegeItem.expression == "argmax")
                     {
-                        variableValue = value;
-                        selectedInference = varInferences[j];
-                        conditionValues = condition;
-                    }
-                }
-
-                //在选择的根推理上逐级回溯构造推理链
-                InferenceChain chain = new InferenceChain()
-                {
-                    juegeItem = judgeItem,
-                    varValue = variableValue
-                };
-                List<(int, int)> conds = ((InferenceGene)selectedInference.Gene).getConditions();
-                List<(int, Vector)> condValues = new List<(int, Vector)>();
-                for (int k = 0; k < conditionValues.Count; k++) condValues.Add((conds[k].Item1, conditionValues[k]));
-                chain.addItem(selectedInference.Id, (((InferenceGene)selectedInference.Gene).getVariable().Item1, null), condValues);
-                chain = do_inference(selectedInference, conditionValues, variableValue, chain);
-                this.currentInferenceChain = chain;
-                //在推理链上选择要执行的动作
-                List<int> actionSensorIds = this.ActionReceptors.ConvertAll(r => r.Id);
-                Dictionary<int, (double,int[])> actionValues = new Dictionary<int, (double, int[])>();
-
-                for(int k=0;k<actionSensorIds.Count;k++)
-                {
-                    List<List<int>> traces = chain.findActionTrace(actionSensorIds[k]);
-                    if(traces == null) //没有推理到该动作，给一个随机值
-                    {
-                        double min = Session.GetConfiguration().agent.receptors.actions[k].Range.Min;
-                        double max = Session.GetConfiguration().agent.receptors.actions[k].Range.Max;
-                        double value = new Random().NextDouble() * (max - min) + min;
-                        actionValues.Add(actionSensorIds[k],(value,null));
+                        if (varlen >= expectlen) error += 0;
+                        else error += System.Math.Abs(varlen - expectlen);
                     }
                     else
                     {
-                        //随机选择一个推理迹
-                        int traceIndex = new Random().Next(0,traces.Count);
-                        double value = chain.getValueFromTrace(actionSensorIds[i], 0, traces[traceIndex]);
-                        actionValues.Add(actionSensorIds[k], (value, traces[traceIndex].ToArray()));
+                        if (varlen <= expectlen) error += 0;
+                        else error += System.Math.Abs(varlen - expectlen);
+
                     }
+                    int judgeIndex = this.genome.judgeGene.items.IndexOf(judgeResultList[i].chain.juegeItem);
+                    error *= this.genome.judgeGene.weights[judgeIndex];
+                }
+                
+                
+            }
+
+            //选择误差最小的推理
+            int minerrorIndex = errors.argmin();
+            this.currentInferenceChain = judgeResultList[minerrorIndex].chain;
+            this.currentActionTraces = judgeResultList[minerrorIndex].Item2;
+
+
+            //计算效应器输出
+            foreach(int key in this.currentActionTraces.Keys)
+            {
+                double value = this.currentActionTraces[key].Item1;
+                Effector effector = getEffectorByActionSensorId(key);
+                effector.activate(this, time, new Vector(value));
+
+            }
+
+
+
+        }
+        private (InferenceChain chain, Dictionary<int, (double, int[])> actionValues) doJudge(JudgeItem judgeItem)
+        { 
+
+            List<int> conditions = judgeItem.conditions;
+            double variableValue = judgeItem.expression == "argmax" ? double.MinValue : double.MaxValue;
+
+            //找到所有包含推理变量（后置）的推理项
+            List<Inference> varInferences = this.GetInferences(2, false, judgeItem.variable);
+            if (varInferences == null || varInferences.Count <= 0) return (null,null);
+
+            //选择一个最合适的根推理
+            Inference selectedInference = null;
+            List<Vector> conditionValues = null;
+            for (int j = 0; j < varInferences.Count; j++)
+            {
+                (List<Vector> condition, int varId, double value) = varInferences[j].arginference(judgeItem.expression);
+                if (judgeItem.expression == "argmax" && value > variableValue)
+                {
+                    variableValue = value;
+                    selectedInference = varInferences[j];
+                    conditionValues = condition;
+
+                }
+                else if (judgeItem.expression == "argmin" && value < variableValue)
+                {
+                    variableValue = value;
+                    selectedInference = varInferences[j];
+                    conditionValues = condition;
                 }
             }
+
+            //在选择的根推理上逐级回溯构造推理链
+            InferenceChain chain = new InferenceChain()
+            {
+                juegeItem = judgeItem,
+                varValue = variableValue
+            };
+            List<(int, int)> conds = ((InferenceGene)selectedInference.Gene).getConditions();
+            List<(int, Vector)> condValues = new List<(int, Vector)>();
+            for (int k = 0; k < conditionValues.Count; k++) condValues.Add((conds[k].Item1, conditionValues[k]));
+            chain.addItem(selectedInference.Id, (((InferenceGene)selectedInference.Gene).getVariable().Item1, null), condValues);
+            chain = do_reverse_inference(selectedInference, conditionValues, variableValue, chain);
+            this.currentInferenceChain = chain;
+
+            //在推理链上选择要执行的动作
+            List<int> actionSensorIds = this.ActionReceptors.ConvertAll(r => r.Id);
+            Dictionary<int, (double,int[])> actionValues = new Dictionary<int, (double, int[])>();
+
+            for(int k=0;k<actionSensorIds.Count;k++)
+            {
+                List<List<int>> traces = chain.findActionTrace(actionSensorIds[k]);
+                if(traces == null) //没有推理到该动作，给一个随机值
+                {
+                    double min = Session.GetConfiguration().agent.receptors.actions[k].Range.Min;
+                    double max = Session.GetConfiguration().agent.receptors.actions[k].Range.Max;
+                    double value = new Random().NextDouble() * (max - min) + min;
+                    actionValues.Add(actionSensorIds[k], (value, null));
+                }
+                else
+                {
+                    //随机选择一个推理迹
+                    int traceIndex = new Random().Next(0,traces.Count);
+                    double value = chain.getValueFromTrace(actionSensorIds[k], 0, traces[traceIndex]);
+                    actionValues.Add(actionSensorIds[k], (value, traces[traceIndex].ToArray()));
+                }
+            }
+            return (chain, actionValues);
         }
 
-        private InferenceChain do_inference(Inference inference, List<Vector> conditionValues,double varargValue, InferenceChain chain)
+        
+        private InferenceChain do_reverse_inference(Inference inference, List<Vector> conditionValues,double varargValue, InferenceChain chain)
         {
             List<int> condids = ((InferenceGene)inference.Gene).getConditions().ConvertAll(c => c.Item1);
             List<Node> infs = this.Inferences.FindAll(i => ((InferenceGene)i.Gene).matchCondition(false, condids.ToArray()));
@@ -433,14 +528,14 @@ namespace NWSELib.net
                 List<(int,int)> conds = ((InferenceGene)inf.Gene).getConditions();
                 int varindex = condids.IndexOf(((InferenceGene)inf.Gene).getVariable().Item1);
                 Vector varvalue = conditionValues[varindex];
-                (List<Vector> condValue,int vindex) = inf.postinference(varvalue);
+                (List<Vector> condValue,int vindex) = inf.backinference(varvalue);
                 List<(int, Vector)> condValues = new List<(int, Vector)>();
                 for (int k = 0; k < condValue.Count; k++) condValues.Add((conds[k].Item1, condValue[k]));
                 InferenceChain.Item item = chain.addItem(inf.Id, (((InferenceGene)inf.Gene).getVariable().Item1, varvalue), condValues);
                 items.Add(item);
 
                 chain.current = item;
-                chain = do_inference(inf, condValue, varargValue, chain);
+                chain = do_reverse_inference(inf, condValue, varargValue, chain);
             }
 
             return chain;

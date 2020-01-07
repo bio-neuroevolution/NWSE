@@ -12,3 +12,6 @@ D:\gitlib\NWSE\NWSEExperiment\bin\Debug\NWSELib.dll.config
 D:\gitlib\NWSE\NWSEExperiment\obj\Debug\NWSEExperiment.MainForm.resources
 D:\gitlib\NWSE\NWSEExperiment\obj\Debug\NWSEExperiment.csproj.CopyComplete
 D:\gitlib\NWSE\NWSEExperiment\bin\Debug\QDMaze.xml
+D:\gitlib\NWSE\NWSEExperiment\bin\Debug\log4net.dll
+D:\gitlib\NWSE\NWSEExperiment\bin\Debug\log4net.xml
+D:\gitlib\NWSE\NWSEExperiment\bin\Debug\config.xml

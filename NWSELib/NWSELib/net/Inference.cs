@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using Microsoft.ML.Probabilistic.Distributions;
 using Microsoft.ML.Probabilistic.Models;
 using Microsoft.ML;
-using Microsoft.ML.Trainers;
+
 
 namespace NWSELib.net
 {
@@ -327,11 +327,34 @@ namespace NWSELib.net
 
         #region 推理
         /// <summary>
+        /// 前向推理：给定条件，计算结论
+        /// </summary>
+        /// <param name="condvalues"></param>
+        /// <returns></returns>
+        public Vector forwardinference(List<Vector> condvalues)
+        {
+            //按照混合高斯分布进行采样
+            List<List<Vector>> samples = this.samples(Session.GetConfiguration().agent.inferencesamples);
+            //在采样中选择距离condValues最近的点
+            int varindex = ((InferenceGene)this.gene).getVariableIndex();
+            List<double> dis = new List<double>();
+            for(int i=0;i<samples.Count;i++)
+            {
+                samples[i].RemoveAt(varindex);
+                Vector d1 = new Vector(samples[i].toDoubleArray());
+                List<Vector> temp = new List<Vector>(condvalues);
+                Vector d2 = new Vector(temp.toDoubleArray());
+                dis.Add(d1.distance(d2));
+            }
+            int argminindex = dis.argmin();
+            return samples[argminindex][varindex];
+        }
+        /// <summary>
         /// 给定后置变量的值，推理条件部分的值
         /// </summary>
         /// <param name="varValue"></param>
         /// <returns></returns>
-        public (List<Vector>, int) postinference(Vector varValue)
+        public (List<Vector>, int) backinference(Vector varValue)
         {
             //按照混合高斯分布进行采样
             List<List<Vector>> samples = this.samples(Session.GetConfiguration().agent.inferencesamples);
