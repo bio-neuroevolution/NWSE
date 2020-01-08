@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using Microsoft.ML.Probabilistic.Distributions;
 using Microsoft.ML.Probabilistic.Models;
 using Microsoft.ML;
-
+using log4net;
 
 namespace NWSELib.net
 {
@@ -45,7 +45,7 @@ namespace NWSELib.net
         /// </summary>
         public VectorGaussian gaussian;
 
-
+        static ILog logger = LogManager.GetLogger(typeof(Inference));
         public List<List<Vector>> sample(int count)
         {
             this.initGaussian();
@@ -59,8 +59,26 @@ namespace NWSELib.net
         public void initGaussian()
         {
             if (gaussian != null) return;
-            Microsoft.ML.Probabilistic.Math.Vector mean = this.means.toMathVector();
-            Microsoft.ML.Probabilistic.Math.PositiveDefiniteMatrix covar = new Microsoft.ML.Probabilistic.Math.PositiveDefiniteMatrix(covariance);
+            Microsoft.ML.Probabilistic.Math.Vector mean = null;
+            Microsoft.ML.Probabilistic.Math.PositiveDefiniteMatrix covar = null;
+            try
+            {
+                mean = this.means.toMathVector();
+                covar = new Microsoft.ML.Probabilistic.Math.PositiveDefiniteMatrix(covariance);
+                gaussian = VectorGaussian.FromMeanAndVariance(mean, covar);
+            }catch(Exception e)
+            {
+                logger.Error(e.Message);
+                for(int i=0;i<covariance.GetLength(0); i++)
+                {
+                    for(int j=0;j<covariance.GetLength(1);j++)
+                    {
+                        if (i != j) covariance[i,j] = 0;
+                    }
+                }
+                covar = new Microsoft.ML.Probabilistic.Math.PositiveDefiniteMatrix(covariance);
+
+            }
             gaussian = VectorGaussian.FromMeanAndVariance(mean, covar);
         }
         
@@ -391,11 +409,27 @@ namespace NWSELib.net
             Range n = new Range(inferencesamples);
             VariableArray<Microsoft.ML.Probabilistic.Math.Vector> data = Variable.Array<Microsoft.ML.Probabilistic.Math.Vector>(n);
             VariableArray<int> z = Variable.Array<int>(n);
-            double[] weights = this.records.ConvertAll(r => r.weight).ToArray();
+            double[] ws = this.records.ConvertAll(r => r.weight).ToArray();
+            //Microsoft.ML.Probabilistic.Models.Math.Vector weights = Variable.Vector(ws);
+            //z[n].ObservedValue = ws;
+
+            Discrete zt = new Discrete(ws);
+            //Variable<int> zt = Variable.Discrete(new Range(ws.Length),ws);
+            List<List<Vector>> result = new List<List<Vector>>();
+            for (int i=0;i< inferencesamples;i++)
+            {
+                int index = zt.Sample();
+                result.Add(this.records[index].sample(1)[0]);
+            }
+            return result;
+
+            /*
             using (Variable.ForEach(n))
             {
-                z[n] = Variable.Discrete(weights);
-                z.SetValueRange(n);
+                z[n] = Variable.Discrete(ws);
+                //z.SetValueRange(n);
+                int index = Variable.Switch(z[n]).ConditionValue;
+
                 using (Variable.Switch(z[n]))
                 {
                     data[n] = Variable.VectorGaussianFromMeanAndVariance(
@@ -404,6 +438,7 @@ namespace NWSELib.net
             }
             List<int> dimension = this.records[0].means.ConvertAll(v => v.Size);
             return data.ObservedValue.ToList().ConvertAll(v => v.fromMathVector(dimension));
+            */
         }
 
         /// <summary>

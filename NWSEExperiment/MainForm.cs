@@ -22,11 +22,14 @@ namespace NWSEExperiment
         public Session evolutionSession;
         private ILog logger = LogManager.GetLogger(typeof(MainForm));
 
-        
+        private Network optima_net;
+        private int optima_generation;
 
         public MainForm()
         {
             InitializeComponent();
+
+            log4net.Config.XmlConfigurator.Configure();
             this.Width = Session.GetConfiguration().view.width;
             this.Height = Session.GetConfiguration().view.height;
 
@@ -35,6 +38,7 @@ namespace NWSEExperiment
             this.panel2.Width = Session.GetConfiguration().view.width - maze.AOIRectangle.Width - 10;
             //this.Refresh();
 
+            
         }
 
         private void toolStripButton1_Click(object sender, EventArgs e)
@@ -52,13 +56,21 @@ namespace NWSEExperiment
             maze.draw(e.Graphics, frame);
         }
 
+        private void showOptimaInd(Graphics g)
+        {
+            if (this.optima_net == null) return;
+            Network net = optima_net;
+            gbInd.Text = "generation=" + this.optima_generation + ",network=" + net.Id;
+
+            int hspace = 5, vspace = 10;
+        }
+
         private void panel_MouseMove(object sender, MouseEventArgs e)
         {
             if (maze == null || frame == null) return;
             float mazeX, mazeY;
             frame.convertFromDisplay(e.X, e.Y, out mazeX, out mazeY);
             this.statusXY.Text = String.Format("X={0:000.00},Y={1:000.00}", mazeX, mazeY);
-
         }
 
         private void toolStripButton2_Click(object sender, EventArgs e)
@@ -96,6 +108,12 @@ namespace NWSEExperiment
             {
                 maze.clearAgent();
                 this.Refresh();
+            }else if(eventName == Session.EVT_NAME_OPTIMA_IND)
+            {
+
+            }else if(eventName == Session.EVT_NAME_MESSAGE)
+            {
+                txtMsg.Text += states[0].ToString() + System.Environment.NewLine;
             }
         }
 

@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Xml.Serialization;
 using System.IO;
+using System.Linq;
 
 using log4net;
 
+using NWSELib.common;
 using NWSELib.evolution;
 using NWSELib.genome;
 using NWSELib.net;
@@ -140,6 +142,7 @@ namespace NWSELib
                 foreach(Network net in inds)
                 {
                     logger.Info("gamebegin ind=" + net.Genome.id);
+                    this.triggerEvent(Session.EVT_NAME_MESSAGE, "Network("+net.Id+") begin" );
                     List<double> curobs = env.reset(net);
 
                     List<(List<double>, List<double>,double)> traces = new List<(List<double>, List<double>,double)>();
@@ -149,9 +152,12 @@ namespace NWSELib
                     {
                         List<double> actions = net.activate(curobs, time);
                         (List<double> obs,double reward) = env.action(net,actions);
+                        
                         curobs = obs;
                         net.setReward(reward);
-                        this.triggerEvent("do_action", net);
+                        this.triggerEvent(Session.EVT_NAME_MESSAGE, "time="+time.ToString()+",action=" + actions.ConvertAll(x => x.ToString()).Aggregate((a, b) => String.Format("{0:##.###}", a) + "," + String.Format("{0:##.###}", b))
+                            + ",reward = " + reward.ToString());
+
                         traces.Add((actions,obs, reward));
                         logger.Info("gamerun ind=" + net.Genome.id +",time="+time+ ",action"+actions+ ",obs=" + curobs+",reward="+reward);
                         if (reward >= Session.GetConfiguration().evaluation.max_reward)
@@ -161,10 +167,14 @@ namespace NWSELib
                             return;
                         }
                     }
-                    this.triggerEvent(Session.EVT_NAME_END_ACTION, net);
+                    this.triggerEvent(Session.EVT_NAME_END_ACTION, net,this.generation);
 
                 }
                 this.triggerEvent(Session.EVT_NAME_CLEAR_AGENT);
+
+                //最优个体
+                int indIndex = this.inds.ConvertAll(ind => ind.Reability).argmax();
+                this.triggerEvent(Session.EVT_NAME_OPTIMA_IND, this.inds[indIndex]);
 
                 //进化过程
                 Evolution evolution = new Evolution();
@@ -185,7 +195,8 @@ namespace NWSELib
         public const String EVT_NAME_DO_ACTION = "do_action";
         public const String EVT_NAME_END_ACTION = "end_action";
         public const String EVT_NAME_CLEAR_AGENT = "clear_agent";
-
+        public const String EVT_NAME_OPTIMA_IND = "optima_ind";
+        public const String EVT_NAME_MESSAGE = "message";
     }
     #endregion
 }

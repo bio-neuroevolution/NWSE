@@ -38,15 +38,22 @@
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.panel = new System.Windows.Forms.Panel();
             this.panel2 = new System.Windows.Forms.Panel();
-            this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.pnlMaze = new System.Windows.Forms.Panel();
             this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.tabControl2 = new System.Windows.Forms.TabControl();
+            this.tabPage3 = new System.Windows.Forms.TabPage();
+            this.tabPage4 = new System.Windows.Forms.TabPage();
+            this.gbInd = new System.Windows.Forms.GroupBox();
+            this.txtMsg = new System.Windows.Forms.TextBox();
             this.toolStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.panel.SuspendLayout();
             this.panel2.SuspendLayout();
+            this.tabControl2.SuspendLayout();
+            this.tabPage3.SuspendLayout();
+            this.tabPage4.SuspendLayout();
             this.SuspendLayout();
             // 
             // toolStrip1
@@ -130,22 +137,12 @@
             // 
             // panel2
             // 
-            this.panel2.Controls.Add(this.groupBox1);
+            this.panel2.Controls.Add(this.tabControl2);
             this.panel2.Dock = System.Windows.Forms.DockStyle.Right;
             this.panel2.Location = new System.Drawing.Point(481, 0);
             this.panel2.Name = "panel2";
             this.panel2.Size = new System.Drawing.Size(305, 371);
             this.panel2.TabIndex = 1;
-            // 
-            // groupBox1
-            // 
-            this.groupBox1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.groupBox1.Location = new System.Drawing.Point(0, 0);
-            this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(305, 371);
-            this.groupBox1.TabIndex = 0;
-            this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "最优个体";
             // 
             // pnlMaze
             // 
@@ -167,6 +164,58 @@
             this.tabPage2.Text = "Mailstone";
             this.tabPage2.UseVisualStyleBackColor = true;
             // 
+            // tabControl2
+            // 
+            this.tabControl2.Controls.Add(this.tabPage3);
+            this.tabControl2.Controls.Add(this.tabPage4);
+            this.tabControl2.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tabControl2.Location = new System.Drawing.Point(0, 0);
+            this.tabControl2.Name = "tabControl2";
+            this.tabControl2.SelectedIndex = 0;
+            this.tabControl2.Size = new System.Drawing.Size(305, 371);
+            this.tabControl2.TabIndex = 0;
+            // 
+            // tabPage3
+            // 
+            this.tabPage3.Controls.Add(this.gbInd);
+            this.tabPage3.Location = new System.Drawing.Point(4, 22);
+            this.tabPage3.Name = "tabPage3";
+            this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage3.Size = new System.Drawing.Size(297, 345);
+            this.tabPage3.TabIndex = 0;
+            this.tabPage3.Text = "Network";
+            this.tabPage3.UseVisualStyleBackColor = true;
+            // 
+            // tabPage4
+            // 
+            this.tabPage4.Controls.Add(this.txtMsg);
+            this.tabPage4.Location = new System.Drawing.Point(4, 22);
+            this.tabPage4.Name = "tabPage4";
+            this.tabPage4.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage4.Size = new System.Drawing.Size(297, 345);
+            this.tabPage4.TabIndex = 1;
+            this.tabPage4.Text = "Message";
+            this.tabPage4.UseVisualStyleBackColor = true;
+            // 
+            // gbInd
+            // 
+            this.gbInd.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.gbInd.Location = new System.Drawing.Point(3, 3);
+            this.gbInd.Name = "gbInd";
+            this.gbInd.Size = new System.Drawing.Size(291, 339);
+            this.gbInd.TabIndex = 1;
+            this.gbInd.TabStop = false;
+            this.gbInd.Text = "最优个体";
+            // 
+            // txtMsg
+            // 
+            this.txtMsg.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.txtMsg.Location = new System.Drawing.Point(3, 3);
+            this.txtMsg.Multiline = true;
+            this.txtMsg.Name = "txtMsg";
+            this.txtMsg.Size = new System.Drawing.Size(291, 339);
+            this.txtMsg.TabIndex = 0;
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -187,6 +236,10 @@
             this.tabPage1.ResumeLayout(false);
             this.panel.ResumeLayout(false);
             this.panel2.ResumeLayout(false);
+            this.tabControl2.ResumeLayout(false);
+            this.tabPage3.ResumeLayout(false);
+            this.tabPage4.ResumeLayout(false);
+            this.tabPage4.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -204,8 +257,12 @@
         private System.Windows.Forms.ToolStripStatusLabel statusXY;
         private System.Windows.Forms.Panel panel2;
         private System.Windows.Forms.Panel pnlMaze;
-        private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.ToolStripButton toolStripButton2;
+        private System.Windows.Forms.TabControl tabControl2;
+        private System.Windows.Forms.TabPage tabPage3;
+        private System.Windows.Forms.GroupBox gbInd;
+        private System.Windows.Forms.TabPage tabPage4;
+        private System.Windows.Forms.TextBox txtMsg;
     }
 }
 

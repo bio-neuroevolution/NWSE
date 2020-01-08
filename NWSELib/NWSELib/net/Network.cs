@@ -464,14 +464,18 @@ namespace NWSELib.net
             {
                 this.Effectors.ForEach(e => e.activate(this, time, 0));
             }
-            //计算效应器输出
-            foreach (int key in this.currentActionTraces.Keys)
+            else
             {
-                double value = this.currentActionTraces[key].Item1;
-                Effector effector = getEffectorByActionSensorId(key);
-                effector.activate(this, time, new Vector(value));
+                //计算效应器输出
+                foreach (int key in this.currentActionTraces.Keys)
+                {
+                    double value = this.currentActionTraces[key].Item1;
+                    Effector effector = getEffectorByActionSensorId(key);
+                    effector.activate(this, time, new Vector(value));
 
+                }
             }
+            
             this.judgeTime = time;
         }
         private (InferenceChain chain, Dictionary<int, (double, int[])> actionValues) doJudge(JudgeItem judgeItem)
@@ -587,19 +591,20 @@ namespace NWSELib.net
         public void setReward(double reward)
         {
             if (currentInferenceChain == null) return;
-            for(int i=0;i<this.currentActionTraces.Count;i++)
+            foreach(int key in currentActionTraces.Keys)
             {
-                if (this.currentActionTraces[i].Item2 == null) continue;
-                int count = this.currentActionTraces[i].Item2.Length;
-                double avg = reward / (count+1);
-                List<InferenceChain.Item> items = currentInferenceChain.getItemsFromTrace(this.currentActionTraces[i].Item2);
+                if (this.currentActionTraces[key].Item2 == null) continue;
+                int count = this.currentActionTraces[key].Item2.Length;
+                double avg = reward / (count + 1);
+                List<InferenceChain.Item> items = currentInferenceChain.getItemsFromTrace(this.currentActionTraces[key].Item2);
                 if (items == null || items.Count <= 0) continue;
-                for(int j=0;j<items.Count;j++)
+                for (int j = 0; j < items.Count; j++)
                 {
                     Node node = this.nodes.FirstOrDefault(n => n.Id == items[j].referenceNode);
                     node.Reability = node.Reability + avg;
                 }
             }
+            
         }
     }
 }

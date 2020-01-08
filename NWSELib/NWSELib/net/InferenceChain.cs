@@ -127,9 +127,10 @@ namespace NWSELib.net
         public List<Item> getItemsFromTrace(int[] trace)
         {
             List<Item> items = new List<Item>();
-            if (trace == null || trace.Length <= 0) return items;
             Item item = head;
             items.Add(item);
+            if (trace == null || trace.Length <= 0) return items;
+            
             for(int i=0;i<trace.Length; i++)
             {
                 item = item.next[trace[i]];
