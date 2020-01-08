@@ -12,6 +12,7 @@
           "Microsoft.ML.Probabilistic": "0.3.1912.403",
           "Microsoft.ML.Probabilistic.Compiler": "0.3.1912.403",
           "Microsoft.ML.Probabilistic.Learners": "0.3.1912.403",
+          "Microsoft.ML.Probabilistic.Visualizers.Windows": "0.3.1810.501",
           "NETStandard.Library": "2.0.3",
           "log4net": "2.0.8"
         },
@@ -238,6 +239,51 @@
           "lib/netstandard2.0/Microsoft.ML.Probabilistic.Learners.dll": {
             "assemblyVersion": "0.3.1912.403",
             "fileVersion": "0.3.1912.403"
+          }
+        }
+      },
+      "Microsoft.ML.Probabilistic.Visualizers.Windows/0.3.1810.501": {
+        "dependencies": {
+          "Microsoft.ML.Probabilistic": "0.3.1912.403",
+          "Microsoft.ML.Probabilistic.Compiler": "0.3.1912.403",
+          "Microsoft.Msagl": "1.1.1",
+          "Microsoft.Msagl.Drawing": "1.1.1",
+          "Microsoft.Msagl.GraphViewerGDI": "1.1.1"
+        },
+        "runtime": {
+          "lib/net461/Microsoft.ML.Probabilistic.Compiler.Visualizers.Windows.dll": {
+            "assemblyVersion": "0.3.1810.501",
+            "fileVersion": "0.3.1810.501"
+          }
+        }
+      },
+      "Microsoft.Msagl/1.1.1": {
+        "runtime": {
+          "lib/net40/Microsoft.Msagl.dll": {
+            "assemblyVersion": "3.0.0.0",
+            "fileVersion": "3.0.0.0"
+          }
+        }
+      },
+      "Microsoft.Msagl.Drawing/1.1.1": {
+        "dependencies": {
+          "Microsoft.Msagl": "1.1.1"
+        },
+        "runtime": {
+          "lib/net40/Microsoft.Msagl.Drawing.dll": {
+            "assemblyVersion": "3.0.0.0",
+            "fileVersion": "3.0.0.0"
+          }
+        }
+      },
+      "Microsoft.Msagl.GraphViewerGDI/1.1.1": {
+        "dependencies": {
+          "Microsoft.Msagl.Drawing": "1.1.1"
+        },
+        "runtime": {
+          "lib/net40/Microsoft.Msagl.GraphViewerGdi.dll": {
+            "assemblyVersion": "3.0.0.0",
+            "fileVersion": "3.0.0.0"
           }
         }
       },
@@ -1460,6 +1506,34 @@
       "sha512": "sha512-C4BnoJvlitadHUb4UIJVo++AOja+NAHYmGA2OmuKMDAwPfHD5VE/nAU6w11MZBhhBIbqCsjD2esDasdb8xFlLw==",
       "path": "microsoft.ml.probabilistic.learners/0.3.1912.403",
       "hashPath": "microsoft.ml.probabilistic.learners.0.3.1912.403.nupkg.sha512"
+    },
+    "Microsoft.ML.Probabilistic.Visualizers.Windows/0.3.1810.501": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-ayQvb11VWE29UraFv4zlT8rNh5QZcDu/zUKK7CxVC2HJ3YlWX8OCe1JUKvNAEcggy6Fyv/UpsC+WGQTj8b6j5A==",
+      "path": "microsoft.ml.probabilistic.visualizers.windows/0.3.1810.501",
+      "hashPath": "microsoft.ml.probabilistic.visualizers.windows.0.3.1810.501.nupkg.sha512"
+    },
+    "Microsoft.Msagl/1.1.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-gr4Nh4iKq5Scohe9BOCzMQ5Q3HNrUW78lVNJQpsRGk9fBMc6AcMMvKbuRwH1UyEkoGQxb2HRG5CmbxHc9+Sbfg==",
+      "path": "microsoft.msagl/1.1.1",
+      "hashPath": "microsoft.msagl.1.1.1.nupkg.sha512"
+    },
+    "Microsoft.Msagl.Drawing/1.1.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-NFBnYRnYFKv52M4Mx7T0DMnx+DBuxvAt2zvlJtIVL7Y3c3J15/AdxpI/+zA/E+iBl3bwEEsjSxmvBfz2pJDRKw==",
+      "path": "microsoft.msagl.drawing/1.1.1",
+      "hashPath": "microsoft.msagl.drawing.1.1.1.nupkg.sha512"
+    },
+    "Microsoft.Msagl.GraphViewerGDI/1.1.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-X4i2j2CNP6KqIufbNBy6iua9WPay43/SKsZri/2ZdylTI108aJTcG7XQI3O0MsLZpDGNAd7cP0wAM4NW3hPOkQ==",
+      "path": "microsoft.msagl.graphviewergdi/1.1.1",
+      "hashPath": "microsoft.msagl.graphviewergdi.1.1.1.nupkg.sha512"
     },
     "Microsoft.NETCore.Platforms/1.1.0": {
       "type": "package",

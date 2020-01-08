@@ -50,6 +50,10 @@
               "target": "Package",
               "version": "[0.3.1912.403, )"
             },
+            "Microsoft.ML.Probabilistic.Visualizers.Windows": {
+              "target": "Package",
+              "version": "[0.3.1810.501, )"
+            },
             "NETStandard.Library": {
               "suppressParent": "All",
               "target": "Package",

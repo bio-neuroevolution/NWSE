@@ -178,6 +178,7 @@ namespace NWSELib.net
                 for (int i = 0; i < totaldimesion; i++)
                     record.covariance[i, i] = 1.0;
                 record.weight = 1.0;
+                this.records.Add(record);
                 return null;
             }
 
@@ -394,6 +395,7 @@ namespace NWSELib.net
             using (Variable.ForEach(n))
             {
                 z[n] = Variable.Discrete(weights);
+                z.SetValueRange(n);
                 using (Variable.Switch(z[n]))
                 {
                     data[n] = Variable.VectorGaussianFromMeanAndVariance(

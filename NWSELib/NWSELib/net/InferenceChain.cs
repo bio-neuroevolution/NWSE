@@ -89,8 +89,7 @@ namespace NWSELib.net
             if (p >= 0)
             {
                 traces.Add(curTrace);
-                curTrace = new List<int>(curTrace);
-
+                curTrace = new List<int>();
             }
             
             for(int i=0;i<item.next.Count;i++)
@@ -118,6 +117,7 @@ namespace NWSELib.net
         private Item do_trace(List<int> trace,int xh,Item cur)
         {
             if (cur == null) cur = head;
+            if (trace.Count <= 0) return cur;
             cur = cur.next[trace[xh++]];
             if (xh >= trace.Count) return cur;
             return do_trace(trace, xh, cur);

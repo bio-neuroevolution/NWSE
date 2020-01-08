@@ -358,6 +358,12 @@ namespace NWSELib.net
             {
                 this.Handlers.ForEach(n => n.activate(this, time, null));
             }
+
+            //激活推理节点
+            for(int i=0;i<this.Inferences.Count;i++)
+            {
+                this.Inferences[i].activate(this, time);
+            }
             //进行评判
             judge(time);
 
@@ -387,10 +393,10 @@ namespace NWSELib.net
                 (var var1, var var2) = doJudge(judgeItem);
                 if (var1 != null)
                 {
-                    judgeResultList.Add((var1, var2));
-                    ws.RemoveAt(judgeIndex);
-                    judges.RemoveAt(judgeIndex);
+                    judgeResultList.Add((var1, var2));  
                 }
+                ws.RemoveAt(judgeIndex);
+                judges.RemoveAt(judgeIndex);
             }
             //没有得到有效评判结果（初始的时候所有节点都没有值）
             if(judgeResultList.Count<=0)
@@ -420,7 +426,7 @@ namespace NWSELib.net
                     for (int k = 0; k < condids.Count; k++)
                     {
                         Node node = this.getNode(condids[k]);
-                        if (node.Cataory != "action")
+                        if (!node.Group.StartsWith("action"))
                             condValues.Add(node.Value);
                         else
                         {
@@ -447,8 +453,6 @@ namespace NWSELib.net
                     error *= this.genome.judgeGene.weights[judgeIndex];
                     errors.Add(error);
                 }
-                
-                
             }
 
             //选择误差最小的推理
@@ -487,6 +491,8 @@ namespace NWSELib.net
             {
                 (List<Vector> condition, int varId, double value) = varInferences[j].arginference(judgeItem.expression);
                 if (condition == null) continue;
+                int varindex = ((InferenceGene)(varInferences[j].Gene)).getVariableIndex();
+                condition.RemoveAt(varindex);
                 if (judgeItem.expression == "argmax" && value > variableValue)
                 {
                     variableValue = value;

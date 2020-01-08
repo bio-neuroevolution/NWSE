@@ -57,6 +57,7 @@ namespace NWSEExperiment.maze
         {
             //reset();
             AgentVisible = true;
+
         }
 
         #endregion
@@ -90,6 +91,8 @@ namespace NWSEExperiment.maze
 
             Console.WriteLine("# walls: " + k.walls.Count);
             k.rng = new Random(k.seed);
+
+            k.initOptimaTraces();
             return k;
         }
 
@@ -187,9 +190,12 @@ namespace NWSEExperiment.maze
 
         List<double> IEnv.reset(Network net)
         {
-            IAgent agent = this.agents.Values.ToList().FirstOrDefault(a => a.getId() == net.Id);
+            RobotAgent agent = this.agents.Values.ToList().FirstOrDefault(a => a.getId() == net.Id);
             if (agent == null)
+            {
                 agent = new RobotAgent(net, this);
+                this.agents.TryAdd(agent.getId(), agent);
+            }
             List<double> obs =agent.getObserve();
             obs.Add(0.0);obs.Add(0.0);
             return obs;
@@ -249,7 +255,7 @@ namespace NWSEExperiment.maze
 
             double r = EngineUtilities.euclideanDistance(agent.Location, correctPoint) /
                        EngineUtilities.euclideanDistance(correctPoint, optimaTraces[optima_index][posindex]);
-            return r >= 1 ? 1.0 : r;
+            return r >= 1 ? 1.0-r : r;
 
         }
 

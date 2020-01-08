@@ -385,7 +385,7 @@ namespace NWSELib.genome
             //生成缺省推理节点
             for (int i = 0; i < genome.receptorGenes.Count; i++)
             {
-                if (genome.receptorGenes[i].Cataory == "action") continue;
+                if (genome.receptorGenes[i].Group.StartsWith("action")) continue;
 
                 InferenceGene inferenceGene = new InferenceGene();
                 inferenceGene.Generation = session.Generation;
@@ -393,10 +393,24 @@ namespace NWSELib.genome
                 for (int j = 0; j < genome.receptorGenes.Count; j++)
                 {
                     inferenceGene.dimensions.Add((genome.receptorGenes[j].Id, 1));
+                    
                 }
                 inferenceGene.dimensions.Add((genome.receptorGenes[i].Id, 0));
                 inferenceGene.Id = session.idGenerator.getGeneId(genome, inferenceGene);
                 genome.infrernceGenes.Add(inferenceGene);
+
+
+            }
+
+            //生成连接基因
+            for(int i=0;i< genome.infrernceGenes.Count;i++)
+            {
+                for(int j=0;j<genome.infrernceGenes[i].dimensions.Count;j++)
+                {
+                    (int ing, int outg) = (genome.infrernceGenes[i].dimensions[j].Item1, genome.infrernceGenes[i].Id);
+                    if(!genome.connectionGene.Contains((ing,outg)))
+                        genome.connectionGene.Add((ing,outg));
+                }
             }
                 
             
@@ -524,7 +538,7 @@ namespace NWSELib.genome
                 List<(int, int)> diemesnion = new List<(int, int)>();
                 //选择一个作为变量
                 int varindex = -1;
-                while(varindex == -1 || inputs[varindex].Cataory == "action")
+                while(varindex == -1 || inputs[varindex].Group.StartsWith("action"))
                 {
                     varindex = new Random().Next(0, inputs.Count);
                 }

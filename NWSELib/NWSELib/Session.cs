@@ -140,18 +140,20 @@ namespace NWSELib
                 foreach(Network net in inds)
                 {
                     logger.Info("gamebegin ind=" + net.Genome.id);
-                    List<double> initobs = env.reset(net);
+                    List<double> curobs = env.reset(net);
 
                     List<(List<double>, List<double>,double)> traces = new List<(List<double>, List<double>,double)>();
-                    traces.Add((null,initobs,0));
-                    logger.Info("gamereset ind=" + net.Genome.id + ",obs="+initobs);
+                    traces.Add((null, curobs, 0));
+                    logger.Info("gamereset ind=" + net.Genome.id + ",obs="+ curobs);
                     for (int time = 0; time <= Session.GetConfiguration().evaluation.run_count; time++) 
                     {
-                        List<double> actions = net.activate(initobs, time);
+                        List<double> actions = net.activate(curobs, time);
                         (List<double> obs,double reward) = env.action(net,actions);
+                        curobs = obs;
+                        net.setReward(reward);
                         this.triggerEvent("do_action", net);
                         traces.Add((actions,obs, reward));
-                        logger.Info("gamerun ind=" + net.Genome.id +",time="+time+ ",action"+actions+ ",obs=" + initobs+",reward="+reward);
+                        logger.Info("gamerun ind=" + net.Genome.id +",time="+time+ ",action"+actions+ ",obs=" + curobs+",reward="+reward);
                         if (reward >= Session.GetConfiguration().evaluation.max_reward)
                         {
                             logger.Info("evolution_end reason=maxreward ind="+net.Genome.id+",generation="+Generation);

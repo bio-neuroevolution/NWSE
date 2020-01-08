@@ -9,6 +9,7 @@
     <PackageReference Include="Microsoft.ML.Probabilistic" Version="0.3.1912.403" />
     <PackageReference Include="Microsoft.ML.Probabilistic.Compiler" Version="0.3.1912.403" />
     <PackageReference Include="Microsoft.ML.Probabilistic.Learners" Version="0.3.1912.403" />
+    <PackageReference Include="Microsoft.ML.Probabilistic.Visualizers.Windows" Version="0.3.1810.501" />
   </ItemGroup>
 
   <ItemGroup>

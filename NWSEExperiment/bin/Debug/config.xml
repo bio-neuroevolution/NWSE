@@ -37,8 +37,8 @@
         </sensor>
       </gestures>
       <actions>
+        <sensor name="_a2" cataory="speed" group="action"  range="[0 - 6]" />
         <sensor name="_a1" cataory="omege" group="action"  range="[0 - 3.14]" />
-        <sensor name="_a2" cataory="speed" group="action"  range="[0 - 10]" />
       </actions>
     </receptors>
 

@@ -15,3 +15,10 @@ D:\gitlib\NWSE\NWSEExperiment\bin\Debug\QDMaze.xml
 D:\gitlib\NWSE\NWSEExperiment\bin\Debug\log4net.dll
 D:\gitlib\NWSE\NWSEExperiment\bin\Debug\log4net.xml
 D:\gitlib\NWSE\NWSEExperiment\bin\Debug\config.xml
+D:\gitlib\NWSE\NWSEExperiment\bin\Debug\Microsoft.ML.Probabilistic.dll
+D:\gitlib\NWSE\NWSEExperiment\bin\Debug\Microsoft.ML.Probabilistic.pdb
+D:\gitlib\NWSE\NWSEExperiment\bin\Debug\Microsoft.ML.Probabilistic.xml
+D:\gitlib\NWSE\NWSEExperiment\bin\Debug\Microsoft.ML.Probabilistic.Compiler.dll
+D:\gitlib\NWSE\NWSEExperiment\bin\Debug\System.Collections.Immutable.dll
+D:\gitlib\NWSE\NWSEExperiment\bin\Debug\Microsoft.ML.Probabilistic.Compiler.pdb
+D:\gitlib\NWSE\NWSEExperiment\bin\Debug\Microsoft.ML.Probabilistic.Compiler.xml

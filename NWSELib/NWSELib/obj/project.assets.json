@@ -228,6 +228,55 @@
           "lib/netstandard2.0/Microsoft.ML.Probabilistic.Learners.dll": {}
         }
       },
+      "Microsoft.ML.Probabilistic.Visualizers.Windows/0.3.1810.501": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.ML.Probabilistic": "0.3.1810.501",
+          "Microsoft.ML.Probabilistic.Compiler": "0.3.1810.501",
+          "Microsoft.Msagl": "1.1.1",
+          "Microsoft.Msagl.Drawing": "1.1.1",
+          "Microsoft.Msagl.GraphViewerGdi": "1.1.1"
+        },
+        "compile": {
+          "lib/net461/Microsoft.ML.Probabilistic.Compiler.Visualizers.Windows.dll": {}
+        },
+        "runtime": {
+          "lib/net461/Microsoft.ML.Probabilistic.Compiler.Visualizers.Windows.dll": {}
+        }
+      },
+      "Microsoft.Msagl/1.1.1": {
+        "type": "package",
+        "compile": {
+          "lib/net40/Microsoft.Msagl.dll": {}
+        },
+        "runtime": {
+          "lib/net40/Microsoft.Msagl.dll": {}
+        }
+      },
+      "Microsoft.Msagl.Drawing/1.1.1": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.Msagl": "1.1.1"
+        },
+        "compile": {
+          "lib/net40/Microsoft.Msagl.Drawing.dll": {}
+        },
+        "runtime": {
+          "lib/net40/Microsoft.Msagl.Drawing.dll": {}
+        }
+      },
+      "Microsoft.Msagl.GraphViewerGDI/1.1.1": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.Msagl.Drawing": "1.1.1"
+        },
+        "compile": {
+          "lib/net40/Microsoft.Msagl.GraphViewerGdi.dll": {}
+        },
+        "runtime": {
+          "lib/net40/Microsoft.Msagl.GraphViewerGdi.dll": {}
+        }
+      },
       "Microsoft.NETCore.Platforms/1.1.0": {
         "type": "package",
         "compile": {
@@ -2114,6 +2163,58 @@
         "lib/netstandard2.0/Microsoft.ML.Probabilistic.Learners.xml",
         "microsoft.ml.probabilistic.learners.0.3.1912.403.nupkg.sha512",
         "microsoft.ml.probabilistic.learners.nuspec"
+      ]
+    },
+    "Microsoft.ML.Probabilistic.Visualizers.Windows/0.3.1810.501": {
+      "sha512": "ayQvb11VWE29UraFv4zlT8rNh5QZcDu/zUKK7CxVC2HJ3YlWX8OCe1JUKvNAEcggy6Fyv/UpsC+WGQTj8b6j5A==",
+      "type": "package",
+      "path": "microsoft.ml.probabilistic.visualizers.windows/0.3.1810.501",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "lib/net461/Microsoft.ML.Probabilistic.Compiler.Visualizers.Windows.dll",
+        "lib/net461/Microsoft.ML.Probabilistic.Compiler.Visualizers.Windows.xml",
+        "microsoft.ml.probabilistic.visualizers.windows.0.3.1810.501.nupkg.sha512",
+        "microsoft.ml.probabilistic.visualizers.windows.nuspec"
+      ]
+    },
+    "Microsoft.Msagl/1.1.1": {
+      "sha512": "gr4Nh4iKq5Scohe9BOCzMQ5Q3HNrUW78lVNJQpsRGk9fBMc6AcMMvKbuRwH1UyEkoGQxb2HRG5CmbxHc9+Sbfg==",
+      "type": "package",
+      "path": "microsoft.msagl/1.1.1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "lib/net40/Microsoft.Msagl.XML",
+        "lib/net40/Microsoft.Msagl.dll",
+        "microsoft.msagl.1.1.1.nupkg.sha512",
+        "microsoft.msagl.nuspec"
+      ]
+    },
+    "Microsoft.Msagl.Drawing/1.1.1": {
+      "sha512": "NFBnYRnYFKv52M4Mx7T0DMnx+DBuxvAt2zvlJtIVL7Y3c3J15/AdxpI/+zA/E+iBl3bwEEsjSxmvBfz2pJDRKw==",
+      "type": "package",
+      "path": "microsoft.msagl.drawing/1.1.1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "lib/net40/Microsoft.Msagl.Drawing.XML",
+        "lib/net40/Microsoft.Msagl.Drawing.dll",
+        "microsoft.msagl.drawing.1.1.1.nupkg.sha512",
+        "microsoft.msagl.drawing.nuspec"
+      ]
+    },
+    "Microsoft.Msagl.GraphViewerGDI/1.1.1": {
+      "sha512": "X4i2j2CNP6KqIufbNBy6iua9WPay43/SKsZri/2ZdylTI108aJTcG7XQI3O0MsLZpDGNAd7cP0wAM4NW3hPOkQ==",
+      "type": "package",
+      "path": "microsoft.msagl.graphviewergdi/1.1.1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "lib/net40/Microsoft.Msagl.GraphViewerGdi.XML",
+        "lib/net40/Microsoft.Msagl.GraphViewerGdi.dll",
+        "microsoft.msagl.graphviewergdi.1.1.1.nupkg.sha512",
+        "microsoft.msagl.graphviewergdi.nuspec"
       ]
     },
     "Microsoft.NETCore.Platforms/1.1.0": {
@@ -6642,6 +6743,7 @@
       "Microsoft.ML.Probabilistic >= 0.3.1912.403",
       "Microsoft.ML.Probabilistic.Compiler >= 0.3.1912.403",
       "Microsoft.ML.Probabilistic.Learners >= 0.3.1912.403",
+      "Microsoft.ML.Probabilistic.Visualizers.Windows >= 0.3.1810.501",
       "NETStandard.Library >= 2.0.3",
       "log4net >= 2.0.8"
     ]
@@ -6695,6 +6797,10 @@
             "target": "Package",
             "version": "[0.3.1912.403, )"
           },
+          "Microsoft.ML.Probabilistic.Visualizers.Windows": {
+            "target": "Package",
+            "version": "[0.3.1810.501, )"
+          },
           "NETStandard.Library": {
             "suppressParent": "All",
             "target": "Package",
@@ -6719,5 +6825,47 @@
         "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.100\\RuntimeIdentifierGraph.json"
       }
     }
-  }
+  },
+  "logs": [
+    {
+      "code": "NU1701",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "已使用“.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8”而不是项目目标框架“.NETStandard,Version=v2.0”还原包“Microsoft.ML.Probabilistic.Visualizers.Windows 0.3.1810.501”。此包可能与项目不完全兼容。",
+      "libraryId": "Microsoft.ML.Probabilistic.Visualizers.Windows",
+      "targetGraphs": [
+        ".NETStandard,Version=v2.0"
+      ]
+    },
+    {
+      "code": "NU1701",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "已使用“.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8”而不是项目目标框架“.NETStandard,Version=v2.0”还原包“Microsoft.Msagl 1.1.1”。此包可能与项目不完全兼容。",
+      "libraryId": "Microsoft.Msagl",
+      "targetGraphs": [
+        ".NETStandard,Version=v2.0"
+      ]
+    },
+    {
+      "code": "NU1701",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "已使用“.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8”而不是项目目标框架“.NETStandard,Version=v2.0”还原包“Microsoft.Msagl.Drawing 1.1.1”。此包可能与项目不完全兼容。",
+      "libraryId": "Microsoft.Msagl.Drawing",
+      "targetGraphs": [
+        ".NETStandard,Version=v2.0"
+      ]
+    },
+    {
+      "code": "NU1701",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "已使用“.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8”而不是项目目标框架“.NETStandard,Version=v2.0”还原包“Microsoft.Msagl.GraphViewerGDI 1.1.1”。此包可能与项目不完全兼容。",
+      "libraryId": "Microsoft.Msagl.GraphViewerGDI",
+      "targetGraphs": [
+        ".NETStandard,Version=v2.0"
+      ]
+    }
+  ]
 }
