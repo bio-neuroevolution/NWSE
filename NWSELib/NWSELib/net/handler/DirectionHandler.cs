@@ -21,7 +21,11 @@ namespace NWSELib.net.handler
                 return null;
             int t = time;
 
-            Vector v = (inputs[0].Value - inputs[1].Value).normalize();
+            Node input1 = inputs[0];
+            Node input2 = inputs.Count <= 1 ? inputs[0] : inputs[1];
+            Vector v1 = input1.Value;
+            Vector v2 = input2.GetValue(t - 1);
+            Vector v = (v1-v2).normalize();
             base.activate(net, time, v);
             return v;
         }

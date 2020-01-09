@@ -136,6 +136,7 @@ namespace NWSEExperiment.maze
         public static Random RNG = new Random();
 
         #region Pen Colors
+        public static Brush RedBrush = System.Drawing.Brushes.Red;
         public static Pen RedPen = new Pen(System.Drawing.Brushes.Red, 2.0f);
         public static Pen BluePen = new Pen(System.Drawing.Brushes.Blue, 2.0f);
         public static Pen GreendPen = new Pen(System.Drawing.Brushes.Green, 2.0f);

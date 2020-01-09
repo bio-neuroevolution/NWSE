@@ -81,6 +81,8 @@ namespace NWSELib.evolution
                     newinds.Add(mutateNet);
                     EvolutionTreeNode cnode = new EvolutionTreeNode(mutateNet, node);
                     node.childs.Add(cnode);
+
+                    session.judgePaused();
                 }
             }
             inds.AddRange(newinds);

@@ -440,7 +440,7 @@ namespace NWSELib.genome
                 if (!genome.exist(newGene))
                 {
                     genome.handlerGenes.Add(newGene);
-                    session.triggerEvent(Session.EVT_NAME_MESSAGE, "A new handler gene is produced:" + newGene.Text);
+                    session.triggerEvent(Session.EVT_NAME_MESSAGE, "A new handler gene is produced in "+ genome.id.ToString() +":" + newGene.Text);
                     newhandler_created = true;
                     break;
                 }
@@ -459,21 +459,25 @@ namespace NWSELib.genome
                     int i = rng.Next(0, inputs.Count);
                     genome.infrernceGenes[index].dimensions.Add((inputs[i].Id, t2));
                     genome.infrernceGenes[index].sort_dimension();
-                }else if(operation <= 0.6 && this.infrernceGenes[index].dimensions.Count > 2) //删除一个维度
+                    session.triggerEvent(Session.EVT_NAME_MESSAGE, "A inference gene is modified in " + genome.id.ToString() + ":" + genome.infrernceGenes[index].Text);
+                }
+                else if(operation <= 0.6 && this.infrernceGenes[index].dimensions.Count > 2) //删除一个维度
                 {
                     List<(int, int)> conds = this.infrernceGenes[index].getConditions();
                     int i = rng.Next(0, conds.Count);
                     genome.infrernceGenes[index].dimensions.Remove(conds[i]);
+                    session.triggerEvent(Session.EVT_NAME_MESSAGE, "A inference gene is modifiedd in " + genome.id.ToString() + ":" + genome.infrernceGenes[index].Text);
                 }
                 else //修改一个维度
                 {
                     int i = rng.Next(0, inputs.Count);
                     int j = rng.Next(0, this.infrernceGenes[index].dimensions.Count);
                     genome.infrernceGenes[index].dimensions[j] = (inputs[i].Id, this.infrernceGenes[index].dimensions[j].Item2);
-                    
+                    session.triggerEvent(Session.EVT_NAME_MESSAGE, "A inference gene is modifiedx in " + genome.id.ToString() + ":" + genome.infrernceGenes[index].Text);
                 }
                 genome.infrernceGenes[index].sort_dimension();
                 genome.infrernceGenes[index].Id = Session.idGenerator.getGeneId(genome.infrernceGenes[index]);
+                
             }
             else //添加一个推理节点
             {
@@ -504,6 +508,7 @@ namespace NWSELib.genome
                 inferenceGene.Id = Session.idGenerator.getGeneId(inferenceGene);
                 inferenceGene.sort_dimension();
                 genome.infrernceGenes.Add(inferenceGene);
+                session.triggerEvent(Session.EVT_NAME_MESSAGE, "A inference gene is added in " + genome.id.ToString() + ":" + inferenceGene.Text);
             }
             //对判定节点权重进行变异
             genome.computeNodeDepth();

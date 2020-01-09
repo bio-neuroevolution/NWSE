@@ -532,7 +532,7 @@ namespace NWSEExperiment.maze
         internal void draw(Graphics g, CoordinateFrame frame)
         {
             Point2D p2 = frame.convertToDisplay(this.location);
-            g.DrawEllipse(EngineUtilities.RedPen, new Rectangle((int)p2.X - 3, (int)p2.Y - 3, 6, 6));
+            g.FillEllipse(System.Drawing.Brushes.Red, new Rectangle((int)p2.X - 3, (int)p2.Y - 3, 6, 6));
             
         }
     }

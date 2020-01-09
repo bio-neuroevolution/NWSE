@@ -22,7 +22,8 @@ namespace NWSELib.genome
             {
                 List<NodeGene> inputs = this.inputs.ConvertAll(i => owner[i]);
                 inputs.Sort();
-                return function + "(" + inputs.ConvertAll(x => x.Text).Aggregate((m, n) =>"{" + m + "}"+ ",{" + n + "}") + ")";
+                //return function + "(" + inputs.ConvertAll(x => x.Text).Aggregate((m, n) =>"{" + m + "}"+ ",{" + n + "}") + ")";
+                return function + "(" + inputs.ConvertAll(x => x.Text).Aggregate((m, n) => m + "," + n ) + ")";
             }
         }
 

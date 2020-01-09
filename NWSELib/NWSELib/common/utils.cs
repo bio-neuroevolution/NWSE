@@ -21,6 +21,13 @@ namespace NWSELib.common
         {
             return s.Split(',').ToList().ConvertAll(x => Double.Parse(x)).ToList<double>();
         }
+        public static string toString(List<double> values,String sep =",",int precise=3)
+        {
+            if (values == null || values.Count <= 0) return "";
+            else if (values.Count == 1) return String.Format("{0:f"+ precise.ToString()+"}", values[0]);
+            else return values.ConvertAll(v => String.Format("{0:f"+ precise.ToString()+"}", v)).Aggregate((a, b) => a + sep + b);
+        }
+
         /// <summary>
         /// 判断两个集合是否完全想等
         /// Wether two sets are equal.
@@ -113,5 +120,7 @@ namespace NWSELib.common
             return t2 < t3 ? new double[] { t2,t3}: new double[] { t3,t2};
    
         }
+
+        
     }
 }

@@ -74,11 +74,23 @@ namespace NWSELib.net
 
         public List<Vector> GetValues(int new_time, int count)
         {
+            
             List<int> ts = this.times.ToList();
             int tindex = ts.IndexOf(new_time);
             if (tindex < 0) return null;
-            if (tindex < count - 1) return null;
-            return this.ValueList.GetRange(tindex - count + 1, count);
+
+            List<Vector> vs = this.values.ToList();
+            List<Vector> r = new List<Vector>();
+            for (int i=0;i<count;i++)
+            {
+                tindex -= i;
+                if (tindex >= 0)
+                    r.Add(vs[tindex]);
+                else
+                    r.Add(r[r.Count-1]);
+
+            }
+            return r;
         }
 
         public Vector GetValue(int time, int backIndex)

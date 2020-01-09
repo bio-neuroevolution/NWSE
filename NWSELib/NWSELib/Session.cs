@@ -66,6 +66,7 @@ namespace NWSELib
         #endregion
 
         #region 进化状态
+        public bool paused;
         /// <summary>
         /// 进化年代
         /// </summary>
@@ -165,12 +166,13 @@ namespace NWSELib
                     {
                         List<double> actions = net.activate(curobs, time);
                         (List<double> obs,double reward) = env.action(net,actions);
-                        
+
                         curobs = obs;
                         net.setReward(reward);
                         this.triggerEvent(Session.EVT_NAME_MESSAGE, "time="+time.ToString()+",action=" + actions.ConvertAll(x => x.ToString()).Aggregate((a, b) => String.Format("{0:##.###}", a) + "," + String.Format("{0:##.###}", b))
-                            + ",reward = " + reward.ToString());
-                        this.triggerEvent(Session.EVT_NAME_MESSAGE," mental process:"+net.getInferenceChainText())
+                            + ",reward = " + reward.ToString() + ", obs="+Utility.toString(curobs));
+                        this.triggerEvent(Session.EVT_NAME_MESSAGE, " mental process:" + net.getInferenceChainText());
+                        
 
                         traces.Add((actions,obs, reward));
                         logger.Info("gamerun ind=" + net.Genome.id +",time="+time+ ",action"+actions+ ",obs=" + curobs+",reward="+reward);
@@ -183,6 +185,8 @@ namespace NWSELib
                     }
                     this.triggerEvent(Session.EVT_NAME_END_ACTION, net,this.generation);
                     this.triggerEvent(Session.EVT_NAME_MESSAGE, "Network(" + net.Id + ") end"+System.Environment.NewLine);
+
+                    judgePaused();
                 }
                 this.triggerEvent(Session.EVT_NAME_CLEAR_AGENT);
 
@@ -203,10 +207,34 @@ namespace NWSELib
                 Evolution evolution = new Evolution();
                 evolution.execute(inds, this);
 
-                
+                judgePaused();
+
             }
 
         }
+        /// <summary>
+        /// 判断是否暂停
+        /// </summary>
+        /// <returns></returns>
+        public bool judgePaused()
+        {
+            while(paused)
+            {
+                try
+                {
+                    Thread.Sleep(1000);
+
+                }catch(ThreadInterruptedException e1)
+                {
+                    return false;
+                }catch(Exception e2)
+                {
+                    return true;
+                }
+            }
+            return true;
+        }
+        
 
         public const String EVT_NAME_DO_ACTION = "do_action";
         public const String EVT_NAME_END_ACTION = "end_action";

@@ -135,7 +135,7 @@ namespace NWSEExperiment
             }
             else if(eventName == Session.EVT_NAME_REABILITY)
             {
-                txtLog.Text += "reablity=" + states[0].ToString() + "," + states[1].ToString() + System.Environment.NewLine;
+                txtLog.Text += "reablity avg=" + states[0].ToString() + ",variance=" + states[1].ToString() + System.Environment.NewLine;
             }
             else if(eventName == Session.EVT_NAME_IND_COUNT)
             {
@@ -144,5 +144,10 @@ namespace NWSEExperiment
             }
         }
 
+        private void toolStripButton3_Click(object sender, EventArgs e)
+        {
+            if (this.evolutionSession == null) return;
+            this.evolutionSession.paused = !this.evolutionSession.paused;
+        }
     }
 }

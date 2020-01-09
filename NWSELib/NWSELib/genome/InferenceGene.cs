@@ -36,9 +36,10 @@ namespace NWSELib.genome
                     .ConvertAll(c => c.Item1)
                     .ConvertAll(id => owner[id])
                     .ConvertAll(g => g.Text)
-                    .Aggregate((x, y) => "["+x+"],[" + y+"]") +
-                (t1 == t2 ? "<=>" : "=>") +
+                    .Aggregate((x, y) => x + "," + y) +
+                    (t1 == t2 ? "<=>" : "=>") +
                 owner[this.getVariable().Item1].Text;
+                //.Aggregate((x, y) => "["+x+"],[" + y+"]") +
             }
         }
 
