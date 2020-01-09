@@ -205,37 +205,34 @@ namespace NWSELib.genome
         /// <param name="allmatched">要求全部匹配</param>
         /// <param name="conditions">条件Id</param>
         /// <returns></returns>
+        public bool matchVariable(params int[] conditions)
+        {
+            (int t1, int t2) = this.getTimeDiff();
+            List<int> conds = conditions.ToList();
+            int varid = this.getVariable().Item1;
+            if (!conds.Contains(varid)) return false;
+            return true;
+        }
+
+        /// <summary>
+        /// 条件是否匹配
+        /// </summary>
+        /// <param name="allmatched">要求全部匹配</param>
+        /// <param name="conditions">条件Id</param>
+        /// <returns></returns>
         public bool matchCondition(bool allmatched, params int[] conditions)
         {
             (int t1, int t2) = this.getTimeDiff();
             List<int> conds = conditions.ToList();
-            for (int i = 0; i < dimensions.Count; i++)
+            List<int> condids = this.getConditions().ConvertAll(x=>x.Item1);
+            for (int i = 0; i < condids.Count; i++)
             {
-                if (!conds.Contains(dimensions[i].Item1)) continue;
-                if (dimensions[i].Item2 < t1) return false;
-                conds.Remove(dimensions[i].Item1);
+                if (!conds.Contains(condids[i])) continue;
+                conds.Remove(condids[i]);
             }
             return allmatched ? conds.Count <= 0 : conds.Count < conditions.Length;
         }
-        /// <summary>
-        /// 变量是否匹配
-        /// </summary>
-        /// <param name="allmatch">全部匹配</param>
-        /// <param name="variables"></param>
-        /// <returns></returns>
-        public bool matchVariable(int variableId)
-        {
-            (int t1, int t2) = this.getTimeDiff();
-         
-            for (int i = 0; i < dimensions.Count; i++)
-            {
-                if (variableId != dimensions[i].Item1) continue;
-                if (dimensions[i].Item2 != t2) continue;
-                return true;
-            }
-            return false;
-        }
-        
+
 
 
     }

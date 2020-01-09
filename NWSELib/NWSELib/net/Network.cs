@@ -156,7 +156,7 @@ namespace NWSELib.net
             {
                 if (condition_or_variable == VARIABLE)
                 {
-                    if (((InferenceGene)inferences[i].Gene).matchVariable(ids[0]))
+                    if (((InferenceGene)inferences[i].Gene).matchVariable(ids))
                         results.Add((Inference)inferences[i]);
                 }
                 else if (condition_or_variable == CONDITION)
@@ -600,13 +600,17 @@ namespace NWSELib.net
         
         private InferenceChain do_reverse_inference(Inference inference, List<Vector> conditionValues,double varargValue, InferenceChain chain)
         {
+            //inference的条件部分
             List<int> condids = ((InferenceGene)inference.Gene).getConditions().ConvertAll(c => c.Item1);
-            List<Node> infs = this.Inferences.FindAll(i => ((InferenceGene)i.Gene).matchCondition(false, condids.ToArray()));
+            //寻找以condids为变量的推理节点
+            //List<Node> infs = this.Inferences.FindAll(i => ((InferenceGene)i.Gene).matchCondition(false, condids.ToArray()));
+            List<Node> infs = this.Inferences.FindAll(i => ((InferenceGene)i.Gene).matchVariable(condids.ToArray()));
             if (infs == null || infs.Count <= 0) return chain;
 
             List<InferenceChain.Item> items = new List<InferenceChain.Item>();
             for(int i=0;i<infs.Count;i++)
             {
+                //如果这个推理节点已经在推理链上了，跳过以避免循环推理
                 Inference inf = (Inference)infs[i];
                 if (chain.contains(inf, chain.current))
                     continue;
