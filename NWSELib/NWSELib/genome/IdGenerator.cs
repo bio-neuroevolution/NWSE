@@ -33,9 +33,12 @@ namespace NWSELib.genome
         /// <param name="genome"></param>
         /// <param name="gene"></param>
         /// <returns></returns>
-        public int getGeneId(NWSEGenome genome,NodeGene gene)
+        public int getGeneId(NodeGene gene)
         {
-            String code = genome.encodeNodeGene(gene);
+            return this.getGeneId(gene.Text);
+        }
+        public int getGeneId(String code)
+        {
             if (ids.ContainsKey(code)) return ids[code];
             ids.Add(code, ++currentGeneId);
             return currentGeneId;

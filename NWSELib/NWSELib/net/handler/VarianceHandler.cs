@@ -27,7 +27,7 @@ namespace NWSELib.net.handler
                 int index = net.idToIndex(inputs[i].Id);
                 vs[i] = net.getMemoryItem(t[i], index);
             }
-            Vector r = Vector.variance(vs);
+            double[,] r = Vector.covariance(vs);
             base.activate(net, time, r);
             return r;
         }

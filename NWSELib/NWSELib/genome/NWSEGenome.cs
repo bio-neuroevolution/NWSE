@@ -36,16 +36,11 @@ namespace NWSELib.genome
         /// </summary>
         public readonly List<InferenceGene> infrernceGenes = new List<InferenceGene>();
 
-        /// <summary>
-        /// 连接基因，两个神经元的ID
-        /// </summary>
-        public readonly List<(int, int)> connectionGene = new List<(int, int)>();
-
         
         /// <summary>
         /// 评判基因
         /// </summary>
-        public JudgeGene judgeGene = new JudgeGene();
+        public readonly List<JudgeGene> judgeGenes = new List<JudgeGene>();
 
 
         /// <summary>
@@ -58,6 +53,13 @@ namespace NWSELib.genome
         /// </summary>
         public List<NodeGene> vaildInferenceNodes = new List<NodeGene>();
 
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        public NWSEGenome()
+        {
+          
+        }
         #endregion
 
         #region 克隆、编码和等价性
@@ -72,9 +74,10 @@ namespace NWSELib.genome
             genome.handlerSelectionProb.AddRange(handlerSelectionProb);
             handlerGenes.ForEach(h => genome.handlerGenes.Add(h.clone<HandlerGene>()));
             infrernceGenes.ForEach(i => genome.infrernceGenes.Add(i.clone<InferenceGene>()));
-            genome.connectionGene.AddRange(connectionGene);
-            genome.judgeGene = this.judgeGene.clone<JudgeGene>();
+            judgeGenes.ForEach(j => genome.judgeGenes.Add(j.clone()));
             invaildInferenceNodes.ForEach(inf => genome.invaildInferenceNodes.Add(inf.clone<NodeGene>()));
+            vaildInferenceNodes.ForEach(vf => genome.vaildInferenceNodes.Add(vf.clone<NodeGene>()));
+
             return genome;
         }
 
@@ -85,39 +88,39 @@ namespace NWSELib.genome
         /// <returns></returns>
         public bool equiv(NWSEGenome genome)
         {
+            if (handlerGenes.Count != genome.handlerGenes.Count)
+                return false;
+
             for (int i = 0; i < handlerGenes.Count; i++)
             {
                 for (int j = 0; j < genome.handlerGenes.Count; j++)
                 {
-                    if (!equiv(handlerGenes[i], genome.handlerGenes[j])) return false;
+                    if (!handlerGenes[i].equiv(genome.handlerGenes[j])) return false;
                 }
             }
+
+            if (genome.handlerGenes.Count != handlerGenes.Count)
+                return false;
             for (int i = 0; i < genome.handlerGenes.Count; i++)
             {
                 if (handlerGenes.Exists(g => g.Id == genome.handlerGenes[i].Id))
                     continue;
                 for (int j = 0; j < handlerGenes.Count; j++)
                 {
-                    if (!equiv(genome.handlerGenes[i], handlerGenes[j])) return false;
+                    if (!genome.handlerGenes[i].equiv(handlerGenes[j])) return false;
                 }
             }
 
+            if (infrernceGenes.Count != genome.infrernceGenes.Count)
+                return false;
             for (int i = 0; i < infrernceGenes.Count; i++)
             {
                 for (int j = 0; j < genome.infrernceGenes.Count; j++)
                 {
-                    if (!equiv(infrernceGenes[i], genome.infrernceGenes[j])) return false;
+                    if (!infrernceGenes[i].equiv(genome.infrernceGenes[j])) return false;
                 }
             }
-            for (int i = 0; i < genome.infrernceGenes.Count; i++)
-            {
-                if (infrernceGenes.Exists(g => g.Id == genome.infrernceGenes[i].Id))
-                    continue;
-                for (int j = 0; j < infrernceGenes.Count; j++)
-                {
-                    if (!equiv(genome.infrernceGenes[i], infrernceGenes[j])) return false;
-                }
-            }
+            
             return true;
         }
 
@@ -133,6 +136,7 @@ namespace NWSELib.genome
             return false;
         }
 
+        
         /// <summary>
         /// 是否等价
         /// </summary>
@@ -140,39 +144,9 @@ namespace NWSELib.genome
         /// <returns></returns>
         public bool equiv(NodeGene g1, NodeGene g2)
         {
-            return this.encodeNodeGene(g1) == this.encodeNodeGene(g2);
+            return g1.Text == g2.Text;
         }
-        /// <summary>
-        /// 对基因做编码，该编码可以作为等价类的编码
-        /// </summary>
-        /// <param name="gene"></param>
-        /// <returns></returns>
-        public String encodeNodeGene(NodeGene gene)
-        {
-            if (gene.GetType() == typeof(EffectorGene))
-                return "Effector:" + gene.Name;
-            else if (gene.GetType() == typeof(HandlerGene))
-            {
-                List<int> inputIds = this.getInputs(gene).ConvertAll(g => g.Id);
-                inputIds.Sort();
-                return "Handler:" + ((HandlerGene)gene).function + "(" +
-                    inputIds.ConvertAll(x => x.ToString()).Aggregate((x, y) => x + "," + y) + ")";
-            }
-            else if (gene.GetType() == typeof(InferenceGene))
-            {
-                ((InferenceGene)gene).sort_dimension();
-                return "Inference:" + ((InferenceGene)gene).dimensions.ConvertAll(d => d.Item1.ToString() + "-" + d.Item2.ToString())
-                    .Aggregate((x, y) => x + "," + y);
-            }
-            else if (gene.GetType() == typeof(JudgeGene))
-            {
-                return "Judge:" ;
-            }
-            else if (gene.GetType() == typeof(ReceptorGene))
-                return "Receptor:" + gene.Name;
-
-            return "";
-        }
+        
         
 
         #endregion
@@ -214,8 +188,11 @@ namespace NWSELib.genome
         /// <returns></returns>
         public List<NodeGene> getInputs(NodeGene gene)
         {
-            List<int> ids = this.connectionGene.FindAll(c => c.Item2 == gene.Id).ConvertAll(c => c.Item1);
-            return ids.ConvertAll(id => this[id]);
+            if (gene is ReceptorGene) return new List<NodeGene>();
+            if (gene is HandlerGene) return ((HandlerGene)gene).inputs.ConvertAll(g => this[g]);
+            if (gene is InferenceGene) return ((InferenceGene)gene).dimensions.ConvertAll(x => this[x.Item1]);
+            if(gene is JudgeGene)return new List<NodeGene>();
+            return new List<NodeGene>();
         }
 
         public List<ReceptorGene> getEnvSensorGenes()
@@ -263,44 +240,10 @@ namespace NWSELib.genome
                 if (t < d + 1) i.Depth = d + 1;
             });
             d = this.infrernceGenes.ConvertAll(i => i.Depth).Max();
-            this.judgeGene.Depth = d + 1;
+            this.judgeGenes.ForEach(j=>j.Depth = d + 1);
         }
-        public void computeGeneText()
-        {
-            this.receptorGenes.ForEach(r => r.Text = r.Name);
-            this.handlerGenes.ForEach(h =>
-            {
-                List<NodeGene> inputs = this.getInputs(h);
-                inputs.Sort();
-                h.Text = h.function+"("+inputs.ConvertAll(x => x.Text).Aggregate((m, n) => m + "," + n)+")";
-            });
-            for(int i=0;i<this.infrernceGenes.Count;i++)
-            {
-                (int t1, int t2) = this.infrernceGenes[i].getTimeDiff();
-                this.infrernceGenes[i].Text = 
-                this.infrernceGenes[i].getConditions()
-                    .ConvertAll(c => c.Item1)
-                    .ConvertAll(id => this[id])
-                    .ConvertAll(g => g.Text)
-                    .Aggregate((x, y) => x + "," + y) +
-                (t1 == t2 ? "<=>" : "=>") +
-                this[this.infrernceGenes[i].getVariable().Item1].Text;
-
-            }
-            for(int i=0;i<this.judgeGene.items.Count;i++)
-            {
-                this.judgeGene.items[i].Text =
-                    this.judgeGene.items[i].expression + "(" +
-                    this[this.judgeGene.items[i].variable].Text +
-                    "|env,action)";
-            }
-        }
+        
         #endregion
-
-
-
-
-
 
 
         #region 漂移和变异
@@ -363,12 +306,12 @@ namespace NWSELib.genome
             List<Configuration.Sensor> sensors = Session.GetConfiguration().agent.receptors.GetAllSensor();
             for(int i=0;i< sensors.Count;i++)
             {
-                ReceptorGene receptorGene = new ReceptorGene();
+                ReceptorGene receptorGene = new ReceptorGene(genome);
                 receptorGene.Cataory = sensors[i].cataory;
                 receptorGene.Generation = session.Generation;
                 receptorGene.Group = sensors[i].group;
                 receptorGene.Name = sensors[i].name;
-                receptorGene.Id = session.GetIdGenerator().getGeneId(genome,receptorGene);
+                receptorGene.Id = session.GetIdGenerator().getGeneId(receptorGene);
                 genome.receptorGenes.Add(receptorGene);
             }
             //生成感受器的分段数
@@ -387,7 +330,7 @@ namespace NWSELib.genome
             {
                 if (genome.receptorGenes[i].Group.StartsWith("action")) continue;
 
-                InferenceGene inferenceGene = new InferenceGene();
+                InferenceGene inferenceGene = new InferenceGene(genome);
                 inferenceGene.Generation = session.Generation;
                 inferenceGene.dimensions = new List<(int, int)>();
                 for (int j = 0; j < genome.receptorGenes.Count; j++)
@@ -396,40 +339,27 @@ namespace NWSELib.genome
                     
                 }
                 inferenceGene.dimensions.Add((genome.receptorGenes[i].Id, 0));
-                inferenceGene.Id = session.idGenerator.getGeneId(genome, inferenceGene);
+                inferenceGene.Id = Session.idGenerator.getGeneId(inferenceGene);
                 genome.infrernceGenes.Add(inferenceGene);
 
 
             }
 
-            //生成连接基因
-            for(int i=0;i< genome.infrernceGenes.Count;i++)
-            {
-                for(int j=0;j<genome.infrernceGenes[i].dimensions.Count;j++)
-                {
-                    (int ing, int outg) = (genome.infrernceGenes[i].dimensions[j].Item1, genome.infrernceGenes[i].Id);
-                    if(!genome.connectionGene.Contains((ing,outg)))
-                        genome.connectionGene.Add((ing,outg));
-                }
-            }
-                
             
 
             //生成判定基因
-            JudgeGene judgeGene = new JudgeGene();
-            judgeGene.Generation = session.Generation;
-            JudgeItem judgeItem = new JudgeItem();
+            
+            JudgeGene judgeItem = new JudgeGene(genome);
             judgeItem.conditions.Add(genome["_a2"].Id);
             judgeItem.variable = genome["d3"].Id;
-            judgeItem.expression = JudgeItem.ARGMAX;
-            judgeGene.items.Add(judgeItem);
-            judgeGene.weights.AddRange(new double[]{0.5,0.5 });
-            judgeGene.Id = session.idGenerator.getGeneId(genome, judgeGene);
-            genome.judgeGene = judgeGene;
-            
-            genome.id = session.idGenerator.getGenomeId();
+            judgeItem.expression = JudgeGene.ARGMAX;
+            judgeItem.weight = 1.0;
+            judgeItem.Generation = session.Generation;
+            judgeItem.Id = Session.idGenerator.getGeneId(judgeItem);
+            genome.judgeGenes.Add(judgeItem);
+
+            genome.id = Session.idGenerator.getGenomeId();
             genome.computeNodeDepth();
-            genome.computeGeneText();
             return genome;
         }
         /// <summary>
@@ -440,6 +370,7 @@ namespace NWSELib.genome
         public NWSEGenome mutate(Session session)
         {
             NWSEGenome genome = this.clone();
+            Random rng = new Random();
             //对感受器的分段数进行变异
             for (int i = 0; i < genome.receptorGenes.Count; i++)
             {
@@ -447,7 +378,7 @@ namespace NWSELib.genome
                 Configuration.Sensor sensor = Session.GetConfiguration().agent.receptors.GetSensor(genome.receptorGenes[i].Name);
                 int min1 = (int)sensor.Level.Min;
                 int max1 = (int)sensor.Level.Max;
-                if(new Random().NextDouble() <= 0.5)
+                if(rng.NextDouble() <= 0.5)
                     genome.receptorGenes[i].SectionCount = new Random().Next(min1,max1+1);
             }
 
@@ -460,17 +391,18 @@ namespace NWSELib.genome
 
             //对处理器的选择概率变异
             double[] handler_selection_prob = Session.GetConfiguration().evolution.mutate.Handlerprob.ToArray();
-            int handler_index = new Random().Next(0,handler_selection_prob.Length);
+            /*int handler_index = new Random().Next(0,handler_selection_prob.Length);
             double min = Session.GetConfiguration().handlers[handler_index].Selection_prob_range.Min;
             double max = Session.GetConfiguration().handlers[handler_index].Selection_prob_range.Max;
-            handler_selection_prob[handler_index] = new Random().NextDouble()*(max-min)+min;
+            handler_selection_prob[handler_index] = rng.NextDouble()*(max-min)+min;
             int handler_index2 = handler_index;
             while(handler_index2 == handler_index)
-                handler_index2 = new Random().Next(0, handler_selection_prob.Length);
+                handler_index2 = rng.Next(0, handler_selection_prob.Length);
             handler_selection_prob[handler_index2] = 0.0;
             handler_selection_prob[handler_index2] = 1.0 - handler_selection_prob.ToList().Sum();
             genome.handlerSelectionProb.Clear();
             genome.handlerSelectionProb.AddRange(handler_selection_prob);
+            */
 
             //添加一个处理器
             Configuration.Handler cHandler = Session.GetConfiguration().random_handler(handler_selection_prob);
@@ -478,30 +410,29 @@ namespace NWSELib.genome
             List<NodeGene> inputs = new List<NodeGene>();
             inputs.AddRange(receptorGenes);
             inputs.AddRange(handlerGenes);
-            for(int num=0;num< inputs.Count;num++)
+            for(int num=1;num< inputs.Count;num++)
             {
-                List<int> index = new List<int>();
-                index[0] = new Random().Next(0, inputs.Count);
+                int[] index = new int[num];
+                for (int t = 0; t < num; t++) index[t] = -1;
+                index[0] = rng.Next(0, inputs.Count);
                 int cur = 1;
                 while(cur < num)
                 {
-                    int t = new Random().Next(0, inputs.Count);
+                    int t = rng.Next(0, inputs.Count);
                     if (index.Contains(t) || inputs[t].Cataory != inputs[index[0]].Cataory)
                         continue;
-                    index[cur++] = t;
-                   
+                    index[cur++] = t; 
                 }
 
                 double[] ps = cHandler.randomParam();
-                newGene = new HandlerGene(cHandler.name, ps);
-                newGene.Id = session.GetIdGenerator().getGeneId(this, newGene);
+                newGene = new HandlerGene(this,cHandler.name, new List<int>(index),ps);
                 newGene.Generation = session.Generation;
                 newGene.Cataory = inputs[index[0]].Cataory;
+                newGene.Id = session.GetIdGenerator().getGeneId(newGene);
                 genome.handlerGenes.Add(newGene);
-                for(int i=0;i<index.Count;i++)
-                {
-                    genome.connectionGene.Add((inputs[index[i]].Id, newGene.Id));
-                }
+                
+                
+                session.triggerEvent(Session.EVT_NAME_MESSAGE, "A new handler gene is produced:" + newGene.Text);
             }
             
 
@@ -529,7 +460,7 @@ namespace NWSELib.genome
                     genome.infrernceGenes[index].dimensions[j] = (inputs[i].Id, this.infrernceGenes[index].dimensions[j].Item2);
                     
                 }
-                genome.infrernceGenes[index].Id = session.idGenerator.getGeneId(genome, genome.infrernceGenes[index]);
+                genome.infrernceGenes[index].Id = Session.idGenerator.getGeneId(genome.infrernceGenes[index]);
             }
             else //添加一个推理节点
             {
@@ -553,18 +484,15 @@ namespace NWSELib.genome
                     diemesnion.Add((inputs[condindex].Id, 1));
                 }
 
-                InferenceGene inferenceGene = new InferenceGene();
+                InferenceGene inferenceGene = new InferenceGene(this);
                 inferenceGene.dimensions = diemesnion;
                 inferenceGene.Cataory = inputs[varindex].Cataory;
                 inferenceGene.Generation = session.Generation;
-                inferenceGene.Id = session.idGenerator.getGeneId(genome, inferenceGene);
+                inferenceGene.Id = Session.idGenerator.getGeneId(inferenceGene);
                 genome.infrernceGenes.Add(inferenceGene);
             }
-
-
             //对判定节点权重进行变异
             genome.computeNodeDepth();
-            genome.computeGeneText();
             return genome;
         }
 

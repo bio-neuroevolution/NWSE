@@ -22,6 +22,11 @@ namespace NWSELib.evolution
             for (int i = 0; i < inds.Count; i++)
             {
                 List<NodeGene> invaildInference = inds[i].getInvaildInferenceGene();
+                if(invaildInference != null && invaildInference.Count>0)
+                {
+                    invaildInference.ForEach(iinf =>
+                        session.triggerEvent(Session.EVT_NAME_INVAILD_GENE, "基因被置入无效基因库：ind=" + inds[i].Id + ",gene=" + iinf.ToString()));
+                }
                 List<NodeGene> vaildInference = inds[i].getVaildInferenceGene();
 
                 List<EvolutionTreeNode> nearest = EvolutionTreeNode.search(session.getEvolutionRootNode(), inds[i]).getNearestNode();
@@ -33,17 +38,23 @@ namespace NWSELib.evolution
             double sum_reability = reability.Sum();
             reability = reability.ConvertAll(r => r / sum_reability);
             (double avg_reability, double variance_reability) = new Vector(reability).avg_variance();
-            
+
             //3.根据所有个体可靠度的均值和方差， 确定淘汰个体的可靠度下限：以可靠度均值和方差构成的高斯分布最大值的
-            Gaussian gaussian = Gaussian.FromMeanAndVariance(avg_reability, variance_reability);
-            double lowlimit_rebility = gaussian.GetQuantile(gaussian.GetMode() * Session.GetConfiguration().evolution.selection.reability_lowlimit);
-            for(int i=0;i<inds.Count;i++)
+            if (inds.Count >= Session.GetConfiguration().evolution.selection.count)
             {
-                if (inds[i].Reability <= lowlimit_rebility)
+                int prevcount = inds.Count;
+                Gaussian gaussian = Gaussian.FromMeanAndVariance(avg_reability, variance_reability);
+                double lowlimit_rebility = gaussian.GetQuantile(gaussian.GetMode() * Session.GetConfiguration().evolution.selection.reability_lowlimit);
+                for (int i = 0; i < inds.Count; i++)
                 {
-                    inds.RemoveAt(i);i--;
+                    if (inds[i].Reability <= lowlimit_rebility)
+                    {
+                        inds.RemoveAt(i); i--;
+                    }
                 }
+                session.triggerEvent(Session.EVT_NAME_IND_COUNT, prevcount, inds.Count);
             }
+            
             //4.计算每个个体所有节点可靠度总和所占全部的比例，该比例乘以基数为下一代数量
             int propagate_base_count = inds.Count * Session.GetConfiguration().evolution.propagate_base_count;
             List<int> planPropagateCount = new List<int>();

@@ -2,9 +2,10 @@
 
 namespace NWSELib.genome
 {
-    public abstract class NodeGene
+    public abstract class NodeGene : IGene
     {
         #region 基本信息
+        public NWSEGenome owner;
         /// <summary>
         /// id
         /// </summary>
@@ -68,7 +69,7 @@ namespace NWSELib.genome
         /// <summary>
         /// 显示文本
         /// </summary>
-        public String Text { get => text; set => text = value; } 
+        public virtual String Text { get => Name; } 
             
         #endregion
 
@@ -177,8 +178,19 @@ namespace NWSELib.genome
             s = str.Substring(i2 + 1, i3 - i2 - 1);
             sectionCount = int.Parse(s);
         }
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="genome">染色体</param>
+        public NodeGene(NWSEGenome genome)
+        {
+            owner = genome;
+        }
+
+        public bool equiv(NodeGene gene)
+        {
+            return this.Text == gene.Text;
+        }
         #endregion
-
-
     }
 }

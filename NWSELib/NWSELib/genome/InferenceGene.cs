@@ -17,9 +17,63 @@ namespace NWSELib.genome
 
         public override T clone<T>()
         {
-            InferenceGene gene = new InferenceGene().copy<InferenceGene>(this);
+            InferenceGene gene = new InferenceGene(this.owner).copy<InferenceGene>(this);
             gene.dimensions.AddRange(this.dimensions);
             return (T)(Object)gene;
+        }
+        public InferenceGene(NWSEGenome genome):base(genome)
+        { 
+        }
+        /// <summary>
+        /// 显示文本
+        /// </summary>
+        public override String Text
+        {
+            get
+            {
+                (int t1, int t2) = this.getTimeDiff();
+                return this.getConditions()
+                    .ConvertAll(c => c.Item1)
+                    .ConvertAll(id => owner[id])
+                    .ConvertAll(g => g.Text)
+                    .Aggregate((x, y) => "["+x+"],[" + y+"]") +
+                (t1 == t2 ? "<=>" : "=>") +
+                owner[this.getVariable().Item1].Text;
+            }
+        }
+
+        public override string ToString()
+        {
+            this.sort_dimension();
+            return "InferenceGene:" + Text + ";info:" + base.ToString() + ";param:";
+        }
+        public static new InferenceGene Parse(String s)
+        {
+            int t1 = s.IndexOf("InferenceGene") + "InferenceGene".Length;
+            int t2 = s.IndexOf("info");
+            int t3 = s.IndexOf("param");
+            String s1 = s.Substring(t1, t2 - t1 - 3);//Text部分
+            String s2 = s.Substring(t2 + 5, t3 - t2 - 7);//info部分
+            String s3 = s.Substring(t3 + 6);//param部分
+
+            //解析text
+            List<(int, int)> conditions = new List<(int, int)>();
+            int t4 = s1.IndexOf("<=>");
+            bool causeeffect_or_assocation = t4 < 0;
+            int t5 = s1.IndexOf("[");
+            while(t5>=0)
+            {
+                int t6 = s1.IndexOf("]",t5+1);
+                int geneid = Session.idGenerator.getGeneId(s1.Substring(t5 + 1, t6 - t5 - 1));
+                conditions.Add((geneid, (t6 < t4 ? 1 : 0)));
+            }
+            //解析info
+            InferenceGene gene = new InferenceGene(null);
+            gene.parse(s2);
+
+
+            
+            return gene;
         }
 
         private int comp_dimension((int,int) t1,(int,int) t2)
@@ -81,33 +135,7 @@ namespace NWSELib.genome
             throw new ExecutionEngineException();
 
         }
-        public override string ToString()
-        {
-            this.sort_dimension();
-            return base.ToString() + ",dimensions=" +
-                dimensions.ConvertAll(d=>d.Item1.ToString()+"-"+d.Item2.ToString())
-                .Aggregate((x,y)=>x+","+y);
-        }
-        public static new InferenceGene parse(String str)
-        {
-            InferenceGene gene = new InferenceGene();
-            ((NodeGene)gene).parse(str);
-
-            int i1 = str.IndexOf("dimensions");
-            int i2 = str.IndexOf("=", i1 + 1);
-            String s = str.Substring(i2+1);
-            String[] ss = s.Split(',');
-            for(int i = 0; i < ss.Length; i++)
-            {
-                if (ss[i] == null || ss[i].Trim() == "") continue;
-                String[] s2 = ss[i].Trim().Split('-');
-                if (s2 == null || s2.Length < 2) continue;
-                int t1 = int.Parse(s2[0]);
-                int t2 = int.Parse(s2[1]);
-                gene.dimensions.Add((t1,t2));
-            }
-            return gene;
-        } 
+        
 
         /// <summary>
         /// 得到推理变量Id对应的索引

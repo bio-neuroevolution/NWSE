@@ -290,6 +290,10 @@ namespace NWSELib.common
             }
 
             i1 = value.IndexOf("-");
+            //测试下-左边是不是数
+            double td = 0;
+            if (!double.TryParse(value.Substring(0, i1).Trim(), out td))
+                i1 = value.IndexOf("-", i1 + 1);
             String begin = value.Substring(0, i1).Trim();
             int j = i1 + 1;
             this.cataory = Cataory.EdiffSeries;

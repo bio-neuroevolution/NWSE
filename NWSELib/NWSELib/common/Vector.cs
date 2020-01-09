@@ -189,13 +189,12 @@ namespace NWSELib.common
             }
             return v;
         }
-
         /// <summary>
-        /// 计算向量组的方差
+        /// 计算向量组的协方差矩阵
         /// </summary>
-        /// <param name="vs">向量组，长度都一样</param>
-        /// <returns>因为是对称矩阵，所以只返回了一个向量</returns>
-        public static Vector variance(params Vector[] vs)
+        /// <param name="vs"></param>
+        /// <returns></returns>
+        public static double[,] covariance(params Vector[] vs)
         {
             int size = VectorExtender.maxSize(vs);
             List<Vector> cv = new List<Vector>();
@@ -206,26 +205,29 @@ namespace NWSELib.common
                 cv.Add(VectorExtender.column(vs.ToList(), i));
                 avg.Add(cv[i].average());
             }
+
             int dim = avg.Count;
             int n = cv[0].Size;
             Vector r = new Vector(true, dim * (dim + 1) / 2);
             int index = 0;
+            double[,] result = new double[size, size];
             for (int i = 0; i < size; i++)
             {
                 for (int j = 0; j < size; j++)
                 {
-                    if (i > j) continue;
+                    if (i > j) { result[i, j] = result[j, i]; continue; }
                     double sum = 0.0;
                     for (int k = 0; k < n; k++)
                     {
                         sum += (cv[i][k] - avg[i]) * (cv[j][k] - avg[j]);
                     }
                     sum /= (n - 1);
-                    r[index++] = sum;
+                    result[i, j] = sum;
                 }
             }
-            return r;
+            return result;
         }
+        
         #endregion
 
         #region 统计

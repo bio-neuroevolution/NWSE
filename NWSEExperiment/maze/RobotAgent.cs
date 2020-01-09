@@ -489,6 +489,7 @@ namespace NWSEExperiment.maze
             for (int j = 0; j < WallSensors.Count; j++)
             {
                 obs[j] = ((RangeFinder)WallSensors[j]).DistanceToClosestObject;
+                obs[j] = obs[j] / RangefinderRange;
             }
 
             // Update pie slice sensor inputs

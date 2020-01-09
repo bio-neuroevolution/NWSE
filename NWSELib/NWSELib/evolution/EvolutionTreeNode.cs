@@ -63,13 +63,19 @@ namespace NWSELib.evolution
         {
             List<EvolutionTreeNode> r = new List<EvolutionTreeNode>();
             if(this.parent != null && !this.parent.extinct)r.Add(this.parent);
-            foreach(EvolutionTreeNode c in this.parent.childs)
+            if (this.parent != null)
             {
-                if (c != this && !c.extinct) r.Add(c);
+                foreach (EvolutionTreeNode c in this.parent.childs)
+                {
+                    if (c != this && !c.extinct) r.Add(c);
+                }
             }
-            foreach (EvolutionTreeNode c in this.childs)
+            if (this.childs != null && this.childs.Count > 0)
             {
-                if (c != this && !c.extinct) r.Add(c);
+                foreach (EvolutionTreeNode c in this.childs)
+                {
+                    if (c != this && !c.extinct) r.Add(c);
+                }
             }
             return r;
         }

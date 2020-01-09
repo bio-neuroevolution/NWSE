@@ -15,7 +15,7 @@ namespace NWSELib.net
     public class InferenceChain
     {
         /// <summary>评判项</summary>
-        public JudgeItem juegeItem;
+        public JudgeGene juegeItem;
         /// <summary>链头</summary>
         public Item head;
         

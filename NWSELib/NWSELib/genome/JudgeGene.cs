@@ -5,10 +5,11 @@ using System.Linq;
 using NWSELib.common;
 namespace NWSELib.genome
 {
+
     /// <summary>
-    ///  判定项
+    /// 评判基因
     /// </summary>
-    public class JudgeItem
+    public class JudgeGene : NodeGene
     {
         public const String ARGMAX = "argmax";
         public const String ARGMIN = "argmin";
@@ -24,18 +25,54 @@ namespace NWSELib.genome
         /// 判定后置变量
         /// </summary>
         public int variable;
-
-        public string Text { get; internal set; }
-
-        public JudgeItem clone()
+        /// <summary>
+        /// 权重
+        /// </summary>
+        public double weight;
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="genome"></param>
+        public JudgeGene(NWSEGenome genome):base(genome)
         {
-            JudgeItem item = new JudgeItem()
+
+        }
+
+        
+
+        public override string Text
+        {
+            get
+            {
+                return expression + "(" +
+                    owner[variable].Text +
+                    "|env,action)";
+            }
+        }
+
+        public JudgeGene clone()
+        {
+            JudgeGene item = new JudgeGene(this.owner)
             {
                 expression = this.expression,
-                variable = this.variable
+                variable = this.variable,
+                weight = this.weight
+                
             };
             item.conditions.AddRange(this.conditions);
             return item;
+        }
+
+        public override T clone<T>()
+        {
+            JudgeGene item = new JudgeGene(this.owner)
+            {
+                expression = this.expression,
+                variable = this.variable,
+                weight = this.weight
+            };
+            item.conditions.AddRange(this.conditions);
+            return (T)(Object)item;
         }
 
         /// <summary>
@@ -44,75 +81,41 @@ namespace NWSELib.genome
         /// <returns></returns>
         public override string ToString()
         {
-            conditions.Sort();
-            return expression + "(" + variable.ToString() + " | " +
-                conditions.ConvertAll(x => x.ToString()).Aggregate<String>((x, y) => x + "," + y);
+            return "JudgeGene:" + Text + ";info:" + base.ToString() + ";param:weight=" + weight.ToString();    
+                //conditions.ConvertAll(x => x.ToString()).Aggregate<String>((x, y) => x + "," + y);
         }
         /// <summary>
         /// 解析字符串
         /// </summary>
         /// <param name="s"></param>
         /// <returns></returns>
-        public static JudgeItem Parse(String s)
+        public static JudgeGene Parse(String s)
         {
-            JudgeItem item = new JudgeItem();
-            int b1 = s.IndexOf("(");
-            int b2 = s.IndexOf("|");
-            item.expression = s.Substring(0, b1).Trim();
-            String variable = s.Substring(b1 + 1, b2 - b1 - 1).Trim();
-            item.variable = int.Parse(variable);
-            s = s.Substring(b2 + 1, s.Length - b2 - 2).Trim();
-            item.conditions = s.Split(',').ToList().ConvertAll(x => int.Parse(x));
+            JudgeGene item = new JudgeGene(null);
+            int t1 = s.IndexOf("JudgeGene")+10;
+            int t2 = s.IndexOf("info");
+            int t3 = s.IndexOf("param");
+            String s1 = s.Substring(t1, t2 - t1 - 3);//Text部分
+            String s2 = s.Substring(t2+5,t3-t2-7);//info部分
+            String s3 = s.Substring(t3+6);//param部分
+
+            //解析Text
+            int t5 = s1.IndexOf("(");
+            item.expression = s1.Substring(0, t5 - 1).Trim();
+            int t6 = s1.IndexOf("|");
+            item.variable = Session.idGenerator.getGeneId(s1.Substring(t5+1,t6-t5-2).Trim());
+            
+
+            //解析info
+            item.parse(s2);
+            //解析参数
+            int t4 = s3.IndexOf("=");
+            item.weight = double.Parse(s3.Substring(t4+1));
+
+            
             return item;
         }
-    }
-    /// <summary>
-    /// 评判基因
-    /// </summary>
-    public class JudgeGene : NodeGene
-    {
-        /// <summary>
-        /// 评判项
-        /// </summary>
-        public List<JudgeItem> items = new List<JudgeItem>();
-        /// <summary>
-        /// 每项的权重
-        /// </summary>
-        public List<double> weights = new List<double>();
 
-
-        public override T clone<T>()
-        {
-            JudgeGene gene = new JudgeGene().copy<JudgeGene>(this);
-            gene.items = this.items.ConvertAll(x => x.clone()).ToList();
-            gene.weights.AddRange(this.weights);
-            return (T)(Object)gene;
-        }
-
-        public override string ToString()
-        {
-            return base.ToString() + ",weights="+
-                weights.ConvertAll(w=>w.ToString()).Aggregate((x,y)=>x+","+y)+
-                ",items="+items.ConvertAll(i=>i.ToString()).Aggregate((x,y)=>x+":"+y);
-        }
-        public static new JudgeGene parse(String str)
-        {
-            JudgeGene gene = new JudgeGene();
-            ((NodeGene)gene).parse(str);
-
-            int i1 = str.IndexOf("weights");
-            int i2 = str.IndexOf("=", i1 + 1);
-            int i3 = str.IndexOf(",",i2+1);
-
-            gene.weights = Utility.parse(str.Substring(i2 + 1, i3 - i2 - 1));
-
-            i1 = str.IndexOf("items");
-            i2 = str.IndexOf("=", i1 + 1);
-            str = str.Substring(i2+1);
-
-            gene.items = str.Split(':').ToList().ConvertAll(s=>JudgeItem.Parse(s));
-            return gene;
-
-        }
+        
     }
 }

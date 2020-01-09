@@ -14,7 +14,7 @@ namespace NWSELib.genome
         /// </summary>
         public ReceptorGene toActionGene()
         {
-            return new ReceptorGene()
+            return new ReceptorGene(this.owner)
             {
                 Id = this.Id,
                 name = this.name.Substring(1),
@@ -22,6 +22,11 @@ namespace NWSELib.genome
                 cataory = this.cataory,
                 sectionCount = this.sectionCount
             };
+        }
+
+        public ReceptorGene(NWSEGenome genome):base(genome)
+        {
+
         }
         /// <summary>
         /// 转字符串
@@ -39,7 +44,7 @@ namespace NWSELib.genome
         public static ReceptorGene parse(String s)
         {
             String[] ss = s.Split(':');
-            ReceptorGene gene = new ReceptorGene();
+            ReceptorGene gene = new ReceptorGene(null);
             gene.name = ss[0].Trim();
             gene.sectionCount = int.Parse(ss[1].Trim());
             return gene;
@@ -48,7 +53,7 @@ namespace NWSELib.genome
 
         public override T clone<T>()
         {
-            return (T)(Object)new ReceptorGene().copy<ReceptorGene>(this);
+            return (T)(Object)new ReceptorGene(this.owner).copy<ReceptorGene>(this);
         }
     }
 }

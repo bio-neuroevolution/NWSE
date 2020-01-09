@@ -52,12 +52,12 @@
 
   
 
-  <evaluation timeStep="1.0" run_count="20" max_reward="100" gene_reability_range="[-1.0,10.0+0.1]">
+  <evaluation timeStep="1.0" run_count="20" max_reward="100" gene_reability_range="[-10.0-10.0+0.1]">
     
   </evaluation>
   
   <evolution propagate_base_count="3" iter_count="500">
-    <selection reability_lowlimit="0.25"></selection>
+    <selection count="100" reability_lowlimit="0.25"></selection>
     <mutate handlerprob="0.25,0.25,0.25,0.25"></mutate>
     
   </evolution>

@@ -187,6 +187,8 @@ namespace NWSELib
         public class EvolutionSelection
         {
             [XmlAttribute]
+            public int count;
+            [XmlAttribute]
             public double reability_lowlimit;
         }
      

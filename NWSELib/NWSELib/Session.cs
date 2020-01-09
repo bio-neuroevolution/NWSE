@@ -33,7 +33,7 @@ namespace NWSELib
         /// <summary>
         /// ID生成器
         /// </summary>
-        public IdGenerator idGenerator = new IdGenerator();
+        public static IdGenerator idGenerator = new IdGenerator();
 
         /// <summary>
         /// 配置
@@ -197,6 +197,8 @@ namespace NWSELib
         public const String EVT_NAME_CLEAR_AGENT = "clear_agent";
         public const String EVT_NAME_OPTIMA_IND = "optima_ind";
         public const String EVT_NAME_MESSAGE = "message";
+        public const String EVT_NAME_INVAILD_GENE = "invail_gene";
+        public const String EVT_NAME_IND_COUNT = "ind_count";
     }
     #endregion
 }

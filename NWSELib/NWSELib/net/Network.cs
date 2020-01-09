@@ -258,13 +258,24 @@ namespace NWSELib.net
             }
 
             //构造连接矩阵
-            adjMatrix = new double[this.nodes.Count, this.nodes.Count];
-            for (int i = 0; i < this.genome.connectionGene.Count; i++)
+            this.adjMatrix = new double[this.nodes.Count, this.nodes.Count];
+            for (int i = 0; i < genome.handlerGenes.Count; i++)
             {
-                (int, int) connection = this.genome.connectionGene[i];
-                int srcIndex = this.idToIndex(connection.Item1);
-                int destIndex = this.idToIndex(connection.Item2);
-                this.adjMatrix[srcIndex, destIndex] = 1;
+                int k1 = idToIndex(genome.handlerGenes[i].Id);
+                for(int j=0;j< genome.handlerGenes[i].inputs.Count;j++)
+                {
+                    int k2 = idToIndex(genome.handlerGenes[i].inputs[j]);
+                    this.adjMatrix[k2, k1] = 1;
+                }
+            }
+            for (int i = 0; i < genome.infrernceGenes.Count; i++)
+            {
+                int k1 = idToIndex(genome.infrernceGenes[i].Id);
+                for (int j = 0; j < genome.infrernceGenes[i].dimensions.Count; j++)
+                {
+                    int k2 = idToIndex(genome.infrernceGenes[i].dimensions[j].Item1);
+                    this.adjMatrix[k2, k1] = 1;
+                }
             }
 
             //初始化短时记忆
@@ -381,13 +392,13 @@ namespace NWSELib.net
 
             
             //拷贝评判项和权重，做好一项就删除一项
-            List<JudgeItem> judges = new List<JudgeItem>(this.genome.judgeGene.items);
-            List<double> ws = new List<double>(this.genome.judgeGene.weights);
+            List<JudgeGene> judges = new List<JudgeGene>(this.genome.judgeGenes);
+            List<double> ws = judges.ConvertAll(j=>j.weight);
             //对每项做评判
             while (judges.Count > 0)
             {
                 int judgeIndex = ws.argmax();
-                JudgeItem judgeItem = judges[judgeIndex];
+                JudgeGene judgeItem = judges[judgeIndex];
                 double juegeItemWeight = ws[judgeIndex];
 
                 (var var1, var var2) = doJudge(judgeItem);
@@ -449,8 +460,8 @@ namespace NWSELib.net
                         else error += System.Math.Abs(varlen - expectlen);
 
                     }
-                    int judgeIndex = this.genome.judgeGene.items.IndexOf(judgeResultList[i].chain.juegeItem);
-                    error *= this.genome.judgeGene.weights[judgeIndex];
+                    int judgeIndex = this.genome.judgeGenes.IndexOf(judgeResultList[i].chain.juegeItem);
+                    error *= this.genome.judgeGenes[judgeIndex].weight;
                     errors.Add(error);
                 }
             }
@@ -478,7 +489,7 @@ namespace NWSELib.net
             
             this.judgeTime = time;
         }
-        private (InferenceChain chain, Dictionary<int, (double, int[])> actionValues) doJudge(JudgeItem judgeItem)
+        private (InferenceChain chain, Dictionary<int, (double, int[])> actionValues) doJudge(JudgeGene judgeItem)
         { 
             List<int> conditions = judgeItem.conditions;
             double variableValue = judgeItem.expression == "argmax" ? double.MinValue : double.MaxValue;
@@ -569,6 +580,7 @@ namespace NWSELib.net
                 int varindex = condids.IndexOf(((InferenceGene)inf.Gene).getVariable().Item1);
                 Vector varvalue = conditionValues[varindex];
                 (List<Vector> condValue,int vindex) = inf.backinference(varvalue);
+                condValue.RemoveAt(vindex);
                 List<(int, Vector)> condValues = new List<(int, Vector)>();
                 for (int k = 0; k < condValue.Count; k++) condValues.Add((conds[k].Item1, condValue[k]));
                 

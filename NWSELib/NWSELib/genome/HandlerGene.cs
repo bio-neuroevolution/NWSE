@@ -9,39 +9,74 @@ namespace NWSELib.genome
     public class HandlerGene : NodeGene
     {
         public readonly String function;
-        public readonly List<double> param = new List<double>();
+        public List<int> inputs = new List<int>();
+        public List<double> param = new List<double>();
+
+        /// <summary>
+        /// 显示文本
+        /// </summary>
+        public override String Text 
+        { 
+            get
+            {
+                List<NodeGene> inputs = this.inputs.ConvertAll(i => owner[i]);
+                inputs.Sort();
+                return function + "(" + inputs.ConvertAll(x => x.Text).Aggregate((m, n) =>"{" + m + "}"+ ",{" + n + "}") + ")";
+            }
+        }
 
         public override T clone<T>()
         {
-            return new HandlerGene(this.function,this.param.ToArray()).copy<T>(this);
+            return new HandlerGene(this.owner,this.function,this.inputs,this.param.ToArray()).copy<T>(this);
         }
 
-        public HandlerGene(String function,params double[] ps)
+        public HandlerGene(NWSEGenome genome,String function,List<int> inputs,params double[] ps):base(genome)
         {
+            
             this.function = function;
+            this.inputs.AddRange(inputs);
             if (ps != null || ps.Length <= 0) param.AddRange(ps);
         }
+
+        /// <summary>
+        /// 转换字符串
+        /// </summary>
+        /// <returns></returns>
         public override string ToString()
         {
-            return base.ToString()+",function="+function+",param="+
-                (param.Count<=0?"":param.ConvertAll(p=>p.ToString()).Aggregate<String>((x,y)=>x.ToString()+","+y.ToString()));
+            return "HandlerGene:" + Text + ";info:" + base.ToString() + ";param:ps=" +
+                (param.Count <= 0 ? "" : param.ConvertAll(p => p.ToString()).Aggregate<String>((x, y) => x.ToString() + "," + y.ToString()));
         }
         
 
-        public static HandlerGene parse(String str)
+        public static HandlerGene Parse(String s,ref List<int> inputids)
         {
-            int i1 = str.IndexOf("function");
-            int i2 = str.IndexOf("=", i1 + 1);
-            int i3 = str.IndexOf(",", i2 + 1);
-            String s = str.Substring(i2 + 1, i3 - i2 - 1);
-            
-            i1 = str.IndexOf("param");
-            i2 = str.IndexOf("=", i1 + 1);
-            s = str.Substring(i2 + 1, str.Length - i2 - 1);
-            List<double> ds = Utility.parse(s);
+            int t1 = s.IndexOf("HandlerGene") + "HandlerGene".Length;
+            int t2 = s.IndexOf("info");
+            int t3 = s.IndexOf("param");
+            String s1 = s.Substring(t1, t2 - t1 - 3);//Text部分
+            String s2 = s.Substring(t2 + 5, t3 - t2 - 7);//info部分
+            String s3 = s.Substring(t3 + 6);//param部分
 
-            HandlerGene gene = new HandlerGene(s, ds.ToArray());
-            ((NodeGene)gene).parse(str);
+            //解析text
+            int t4 = s1.IndexOf("(");
+            String function = s1.Substring(0, t4);
+            if (inputids == null) inputids = new List<int>();
+            int t6 = s1.IndexOf("{");
+            while(t6>=0)
+            {
+                int t7 = s1.IndexOf("}",t6+1);
+                String s4 = s1.Substring(t6 + 1, t7 - t6 - 1);
+                inputids.Add(Session.idGenerator.getGeneId(s4.Trim()));
+                t6 = s1.IndexOf("{");
+            }
+             //解析info
+             HandlerGene gene = new HandlerGene(null, function, inputids, null);
+            gene.parse(s2);
+            //解析参数
+            int t5 = s3.IndexOf("=");
+            gene.param = Utility.parse(s3.Substring(t5 + 1).Trim());
+
             return gene;
         }
 

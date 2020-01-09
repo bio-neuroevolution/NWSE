@@ -49,11 +49,23 @@ namespace NWSELib.net
         public List<List<Vector>> sample(int count)
         {
             this.initGaussian();
-            List<int> dimension = means.ConvertAll(v => v.Size);
-            List<List<Vector>> r = new List<List<Vector>>();
-            for (int i = 0; i < count; i++)
-                r.Add(this.gaussian.Sample().fromMathVector(dimension));
-            return r;
+            try
+            {
+                List<int> dimension = means.ConvertAll(v => v.Size);
+                List<List<Vector>> r = new List<List<Vector>>();
+                for (int i = 0; i < count; i++)
+                    r.Add(this.gaussian.Sample().fromMathVector(dimension));
+                return r;
+            }catch(Exception e)
+            {
+                //这里异常一般是协方差矩阵是奇异矩阵造成的，修改协方差矩阵
+                logger.Error(e.Message);
+                for (int i = 0; i < this.covariance.GetLength(0); i++)
+                    this.covariance[i, i] += 0.01;
+                this.gaussian = null;
+                this.initGaussian();
+                return sample(count);
+            }
         }
 
         public void initGaussian()
@@ -68,18 +80,24 @@ namespace NWSELib.net
                 gaussian = VectorGaussian.FromMeanAndVariance(mean, covar);
             }catch(Exception e)
             {
+                //这里异常的主要原因是得到的协方差矩阵不是正定矩阵。
+                //This happens if the diagonal values of the covariance matrix are (very close to) zero. 
+                //A simple fix is add a very small constant number to c.
                 logger.Error(e.Message);
                 for(int i=0;i<covariance.GetLength(0); i++)
                 {
                     for(int j=0;j<covariance.GetLength(1);j++)
                     {
-                        if (i != j) covariance[i,j] = 0;
+                        if (i == j) covariance[i, j] += 0.001;
+                        //if (i == j && covariance[i, j] < 0) covariance[i, j] += 0.01;
+                        //if (i != j) covariance[i,j] = 0;
                     }
                 }
                 covar = new Microsoft.ML.Probabilistic.Math.PositiveDefiniteMatrix(covariance);
-
+                gaussian = VectorGaussian.FromMeanAndVariance(mean, covar);
             }
-            gaussian = VectorGaussian.FromMeanAndVariance(mean, covar);
+
+
         }
         
         internal double prob(List<Vector> values)
@@ -109,14 +127,8 @@ namespace NWSELib.net
                 values.Add(this.acceptRecords[i]);
             List<Vector> flatten = values.ConvertAll(v => v.flatten()).ConvertAll(p=>p.Item1);
             Vector flatten_mean = flatten.average();
-            Vector variance = Vector.variance(flatten.ToArray());
-            this.means = flatten_mean.split(dimensions);
-            this.covariance = new double[totaldimension, totaldimension];
-            for(int i=0;i<totaldimension;i++)
-            {
-                this.covariance[i, i] = variance[i];
-            }
-
+            this.covariance = Vector.covariance(flatten.ToArray());
+            
             this.gaussian = null;
             this.initGaussian();
 
@@ -173,8 +185,6 @@ namespace NWSELib.net
             if (!inputs.All(n => n.IsActivate(time)))
                 return null;
 
-            
-
             //根据基因定义的顺序，将输入值组成List<Vector>
             List<Vector> values = new List<Vector>();
             int totaldimesion = 0;
@@ -193,7 +203,7 @@ namespace NWSELib.net
                 InferenceRecord record = new InferenceRecord();
                 record.means = values;
                 record.covariance = new double[totaldimesion, totaldimesion];
-                for (int i = 0; i < totaldimesion; i++)
+                for (int i = 0; i < totaldimesion; i++) //缺省协方差矩阵为单位阵
                     record.covariance[i, i] = 1.0;
                 record.weight = 1.0;
                 this.records.Add(record);
@@ -268,7 +278,8 @@ namespace NWSELib.net
                 //从样本集中移除该点
                 this.newsamples.RemoveAt(maxindex);
                 this.density.RemoveAt(maxindex);
-                //计算样本集中所有点与该点的剧烈
+                if (this.newsamples.Count <= 0) break;
+                //计算样本集中所有点与该点的距离
                 List<double> ds = this.newsamples.ConvertAll(s => s.distance(sample));
                 //对距离从小到大排序
                 List<int> sortedindex = ds.argsort();
@@ -296,10 +307,10 @@ namespace NWSELib.net
                     this.newsamples.Remove(classes[i]);
                     this.density.RemoveAt(t3);
                 }
+                if (this.newsamples.Count <= 0) break;
 
-                
 
-                
+
             }
 
             return r;
@@ -321,9 +332,8 @@ namespace NWSELib.net
             List<Vector> flatten = vs.ConvertAll(v => v.flatten()).ConvertAll(v => v.Item1);
             r.means = flatten.average().split(dimensions);
             r.covariance = new double[totaldimension, totaldimension];
-            Vector variance = Vector.variance(flatten.ToArray());
-            for (int i = 0; i < totaldimension; i++)
-                r.covariance[i, i] = variance[i];
+            r.covariance = Vector.covariance(flatten.ToArray());
+            
             r.initGaussian();
             return r;
 
@@ -359,8 +369,9 @@ namespace NWSELib.net
             List<double> dis = new List<double>();
             for(int i=0;i<samples.Count;i++)
             {
-                samples[i].RemoveAt(varindex);
-                Vector d1 = new Vector(samples[i].toDoubleArray());
+                List<Vector>  t = new List<Vector>(samples[i]);
+                t.RemoveAt(varindex);
+                Vector d1 = new Vector(t.toDoubleArray());
                 List<Vector> temp = new List<Vector>(condvalues);
                 Vector d2 = new Vector(temp.toDoubleArray());
                 dis.Add(d1.distance(d2));
@@ -398,23 +409,10 @@ namespace NWSELib.net
         private List<List<Vector>> samples(int inferencesamples)
         {
             this.records.ForEach(r => r.initGaussian());
-            Range k = new Range(this.records.Count);
-            VariableArray<Microsoft.ML.Probabilistic.Math.Vector> means = Variable.Array<Microsoft.ML.Probabilistic.Math.Vector>(k);
-            means.ObservedValue = this.records.ConvertAll(r => r.gaussian.GetMean()).ToArray();
-
             
-            VariableArray<Microsoft.ML.Probabilistic.Math.PositiveDefiniteMatrix> variances = Variable.Array<Microsoft.ML.Probabilistic.Math.PositiveDefiniteMatrix>(k);
-            variances.ObservedValue = this.records.ConvertAll(r => r.gaussian.GetVariance()).ToArray();
-
-            Range n = new Range(inferencesamples);
-            VariableArray<Microsoft.ML.Probabilistic.Math.Vector> data = Variable.Array<Microsoft.ML.Probabilistic.Math.Vector>(n);
-            VariableArray<int> z = Variable.Array<int>(n);
             double[] ws = this.records.ConvertAll(r => r.weight).ToArray();
-            //Microsoft.ML.Probabilistic.Models.Math.Vector weights = Variable.Vector(ws);
-            //z[n].ObservedValue = ws;
-
+            
             Discrete zt = new Discrete(ws);
-            //Variable<int> zt = Variable.Discrete(new Range(ws.Length),ws);
             List<List<Vector>> result = new List<List<Vector>>();
             for (int i=0;i< inferencesamples;i++)
             {

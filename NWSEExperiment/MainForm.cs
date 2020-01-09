@@ -12,6 +12,7 @@ using System.Windows.Forms;
 using log4net;
 
 using NWSELib.net;
+using NWSELib.genome;
 
 namespace NWSEExperiment
 {
@@ -114,6 +115,15 @@ namespace NWSEExperiment
             }else if(eventName == Session.EVT_NAME_MESSAGE)
             {
                 txtMsg.Text += states[0].ToString() + System.Environment.NewLine;
+            }else if(eventName == Session.EVT_NAME_INVAILD_GENE)
+            {
+                NodeGene gene = (NodeGene)states[0];
+                int generation = (int)states[1];
+                txtMilestone.Text += "gene(" + gene.Id + ") was eliminated in generation" + generation.ToString() + ":" + System.Environment.NewLine;
+                txtMilestone.Text += gene.Text;
+            }else if(eventName == Session.EVT_NAME_IND_COUNT)
+            {
+                this.lblindcount.Text = "size of population:"+states[1].ToString() + "(Preceding " + states[0].ToString()+")";
             }
         }
 
