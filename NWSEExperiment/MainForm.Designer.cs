@@ -34,6 +34,7 @@
             this.toolStripButton2 = new System.Windows.Forms.ToolStripButton();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.statusXY = new System.Windows.Forms.ToolStripStatusLabel();
+            this.lblindcount = new System.Windows.Forms.ToolStripStatusLabel();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.panel = new System.Windows.Forms.Panel();
@@ -46,7 +47,9 @@
             this.pnlMaze = new System.Windows.Forms.Panel();
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.txtMilestone = new System.Windows.Forms.TextBox();
-            this.lblindcount = new System.Windows.Forms.ToolStripStatusLabel();
+            this.tabPage5 = new System.Windows.Forms.TabPage();
+            this.panel1 = new System.Windows.Forms.Panel();
+            this.txtLog = new System.Windows.Forms.TextBox();
             this.toolStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.tabControl1.SuspendLayout();
@@ -57,6 +60,8 @@
             this.tabPage3.SuspendLayout();
             this.tabPage4.SuspendLayout();
             this.tabPage2.SuspendLayout();
+            this.tabPage5.SuspendLayout();
+            this.panel1.SuspendLayout();
             this.SuspendLayout();
             // 
             // toolStrip1
@@ -107,10 +112,17 @@
             this.statusXY.Size = new System.Drawing.Size(26, 17);
             this.statusXY.Text = "X;Y";
             // 
+            // lblindcount
+            // 
+            this.lblindcount.Name = "lblindcount";
+            this.lblindcount.Size = new System.Drawing.Size(62, 17);
+            this.lblindcount.Text = "ind count";
+            // 
             // tabControl1
             // 
             this.tabControl1.Controls.Add(this.tabPage1);
             this.tabControl1.Controls.Add(this.tabPage2);
+            this.tabControl1.Controls.Add(this.tabPage5);
             this.tabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tabControl1.Location = new System.Drawing.Point(0, 25);
             this.tabControl1.Name = "tabControl1";
@@ -230,11 +242,34 @@
             this.txtMilestone.Size = new System.Drawing.Size(786, 371);
             this.txtMilestone.TabIndex = 0;
             // 
-            // lblindcount
+            // tabPage5
             // 
-            this.lblindcount.Name = "lblindcount";
-            this.lblindcount.Size = new System.Drawing.Size(62, 17);
-            this.lblindcount.Text = "ind count";
+            this.tabPage5.Controls.Add(this.panel1);
+            this.tabPage5.Location = new System.Drawing.Point(4, 22);
+            this.tabPage5.Name = "tabPage5";
+            this.tabPage5.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage5.Size = new System.Drawing.Size(792, 377);
+            this.tabPage5.TabIndex = 2;
+            this.tabPage5.Text = "Log";
+            this.tabPage5.UseVisualStyleBackColor = true;
+            // 
+            // panel1
+            // 
+            this.panel1.Controls.Add(this.txtLog);
+            this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panel1.Location = new System.Drawing.Point(3, 3);
+            this.panel1.Name = "panel1";
+            this.panel1.Size = new System.Drawing.Size(786, 371);
+            this.panel1.TabIndex = 0;
+            // 
+            // txtLog
+            // 
+            this.txtLog.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.txtLog.Location = new System.Drawing.Point(0, 0);
+            this.txtLog.Multiline = true;
+            this.txtLog.Name = "txtLog";
+            this.txtLog.Size = new System.Drawing.Size(786, 371);
+            this.txtLog.TabIndex = 0;
             // 
             // MainForm
             // 
@@ -262,6 +297,9 @@
             this.tabPage4.PerformLayout();
             this.tabPage2.ResumeLayout(false);
             this.tabPage2.PerformLayout();
+            this.tabPage5.ResumeLayout(false);
+            this.panel1.ResumeLayout(false);
+            this.panel1.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -287,6 +325,9 @@
         private System.Windows.Forms.TextBox txtMsg;
         private System.Windows.Forms.TextBox txtMilestone;
         private System.Windows.Forms.ToolStripStatusLabel lblindcount;
+        private System.Windows.Forms.TabPage tabPage5;
+        private System.Windows.Forms.Panel panel1;
+        private System.Windows.Forms.TextBox txtLog;
     }
 }
 

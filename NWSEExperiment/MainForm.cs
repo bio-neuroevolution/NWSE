@@ -28,6 +28,7 @@ namespace NWSEExperiment
 
         public MainForm()
         {
+            Form.CheckForIllegalCrossThreadCalls = false;
             InitializeComponent();
 
             log4net.Config.XmlConfigurator.Configure();
@@ -79,8 +80,8 @@ namespace NWSEExperiment
             if (evolutionSession != null) return;
             try
             {
-                evolutionSession = new Session();
-                evolutionSession.run(this.maze, EventHandler);
+                evolutionSession = new Session(this.maze, EventHandler);
+                evolutionSession.run();
             }
             catch(Exception ex)
             {
@@ -92,7 +93,7 @@ namespace NWSEExperiment
             }
         }
 
-        public void EventHandler(String eventName, params Object[] states)
+        public void EventHandler(String eventName, int generation,params Object[] states)
         {
             if(eventName == Session.EVT_NAME_DO_ACTION)
             {
@@ -111,19 +112,35 @@ namespace NWSEExperiment
                 this.Refresh();
             }else if(eventName == Session.EVT_NAME_OPTIMA_IND)
             {
-
+                this.optima_generation = generation;
+                this.optima_net = (Network)states[0];
             }else if(eventName == Session.EVT_NAME_MESSAGE)
             {
-                txtMsg.Text += states[0].ToString() + System.Environment.NewLine;
+                txtLog.Text += states[0].ToString() + System.Environment.NewLine;
             }else if(eventName == Session.EVT_NAME_INVAILD_GENE)
             {
-                NodeGene gene = (NodeGene)states[0];
-                int generation = (int)states[1];
-                txtMilestone.Text += "gene(" + gene.Id + ") was eliminated in generation" + generation.ToString() + ":" + System.Environment.NewLine;
-                txtMilestone.Text += gene.Text;
-            }else if(eventName == Session.EVT_NAME_IND_COUNT)
+                Network net = (Network)states[0];
+                NodeGene gene = (NodeGene)states[1];
+                txtMilestone.Text += "########" + generation.ToString() + "########" + System.Environment.NewLine;
+                txtMilestone.Text += "gene was eliminated in generation" + generation.ToString() + ":" + System.Environment.NewLine;
+                txtMilestone.Text += gene.ToString() + System.Environment.NewLine;
+            }
+            else if(eventName == Session.EVT_NAME_VAILD_GENE)
+            {
+                Network net = (Network)states[0];
+                NodeGene gene = (NodeGene)states[1];
+                txtMilestone.Text += "########" + generation.ToString() + "########" + System.Environment.NewLine;
+                txtMilestone.Text += "gene was considered valid in generation" + generation.ToString() + ":" + System.Environment.NewLine;
+                txtMilestone.Text += gene.ToString() + System.Environment.NewLine;
+            }
+            else if(eventName == Session.EVT_NAME_REABILITY)
+            {
+                txtLog.Text += "reablity=" + states[0].ToString() + "," + states[1].ToString() + System.Environment.NewLine;
+            }
+            else if(eventName == Session.EVT_NAME_IND_COUNT)
             {
                 this.lblindcount.Text = "size of population:"+states[1].ToString() + "(Preceding " + states[0].ToString()+")";
+                txtLog.Text += "Elimination stat:" + states[1].ToString() + "(Preceding " + states[0].ToString() + ")" + ",reability limit=" + states[2].ToString();
             }
         }
 

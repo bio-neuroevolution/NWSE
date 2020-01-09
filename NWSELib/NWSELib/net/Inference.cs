@@ -61,7 +61,7 @@ namespace NWSELib.net
                 //这里异常一般是协方差矩阵是奇异矩阵造成的，修改协方差矩阵
                 logger.Error(e.Message);
                 for (int i = 0; i < this.covariance.GetLength(0); i++)
-                    this.covariance[i, i] += 0.01;
+                    this.covariance[i, i] += 0.001;
                 this.gaussian = null;
                 this.initGaussian();
                 return sample(count);

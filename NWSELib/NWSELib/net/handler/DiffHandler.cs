@@ -17,10 +17,13 @@ namespace NWSELib.net.handler
             if (!inputs.All(n => n.IsActivate(time)))
                 return null;
             int t = (int)((HandlerGene)this.gene).param[0];
-            if (inputs[0] == inputs[1] && t == 0) t = 1;
 
-            Vector fv1 = inputs[0].Value;
-            Vector fv2 = inputs[1].GetValue(time - t);
+            Node input1 = inputs[0];
+            Node input2 = inputs.Count <= 1 ? inputs[0] : inputs[1];
+            if (input1 == input2 && t == 0) t = 1;
+
+            Vector fv1 = input1.Value;
+            Vector fv2 = input2.GetValue(time - t);
             Vector r = fv1 - fv2;
             base.activate(net, time, r);
             return r;

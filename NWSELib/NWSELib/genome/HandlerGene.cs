@@ -11,6 +11,7 @@ namespace NWSELib.genome
         public readonly String function;
         public List<int> inputs = new List<int>();
         public List<double> param = new List<double>();
+        Random rng = new Random();
 
         /// <summary>
         /// 显示文本
@@ -36,6 +37,11 @@ namespace NWSELib.genome
             this.function = function;
             this.inputs.AddRange(inputs);
             if (ps != null || ps.Length <= 0) param.AddRange(ps);
+        }
+
+        public void sortInput()
+        {
+            this.inputs.Sort();
         }
 
         /// <summary>
@@ -82,16 +88,17 @@ namespace NWSELib.genome
 
         public void mutate()
         {
+
             if(function == "avg")
             {
                 int valueTime = (int)param[0];
                 if (valueTime == 0)
                 {
-                    if (new Random().NextDouble() <= 0.5) valueTime = 1;
+                    if (rng.NextDouble() <= 0.5) valueTime = 1;
                 }
                 else
                 {
-                    if (new Random().NextDouble() <= 0.8) valueTime -= 1;
+                    if (rng.NextDouble() <= 0.8) valueTime -= 1;
                 }
                 param[0] = valueTime;
             }else if(function == "diff")
@@ -99,11 +106,11 @@ namespace NWSELib.genome
                 int valueTime = (int)param[0];
                 if (valueTime == 0)
                 {
-                    if (new Random().NextDouble() <= 0.5) valueTime = 1;
+                    if (rng.NextDouble() <= 0.5) valueTime = 1;
                 }
                 else
                 {
-                    if (new Random().NextDouble() <= 0.8) valueTime -= 1;
+                    if (rng.NextDouble() <= 0.8) valueTime -= 1;
                 }
                 param[0] = valueTime;
             }else if(function == "direction")
@@ -112,16 +119,16 @@ namespace NWSELib.genome
             }else if(function == "variance")
             {
                 List<double> ts = param;
-                int index = new Random().Next(0, ts.Count);
+                int index = rng.Next(0, ts.Count);
 
                 int valueTime = (int)param[index];
                 if (valueTime == 0)
                 {
-                    if (new Random().NextDouble() <= 0.5) valueTime = 1;
+                    if (rng.NextDouble() <= 0.5) valueTime = 1;
                 }
                 else
                 {
-                    if (new Random().NextDouble() <= 0.8) valueTime -= 1;
+                    if (rng.NextDouble() <= 0.8) valueTime -= 1;
                 }
                 param[index] = valueTime;
             }

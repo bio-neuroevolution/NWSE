@@ -93,5 +93,25 @@ namespace NWSELib.common
             }
             return index;
         }
+
+        /// <summary>
+        /// 给定概率，计算对应的x值
+        /// </summary>
+        /// <param name="mean"></param>
+        /// <param name="variance"></param>
+        /// <param name="prob"></param>
+        /// <returns></returns>
+        public static double[] getGaussianByProb(double mean,double variance,double prob)
+        {
+            double t1 = System.Math.Log(System.Math.Sqrt(2 * System.Math.PI * variance)* prob)
+                    * -2 * variance;
+            double t2 = Math.Sqrt(t1);
+            double t3 = -t2;
+
+            t2 += mean;
+            t3 += mean;
+            return t2 < t3 ? new double[] { t2,t3}: new double[] { t3,t2};
+   
+        }
     }
 }

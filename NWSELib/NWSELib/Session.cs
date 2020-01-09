@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Xml.Serialization;
 using System.IO;
 using System.Linq;
+using System.Threading;
+    
 
 using log4net;
 
@@ -14,7 +16,7 @@ using NWSELib.env;
 
 namespace NWSELib
 {
-    public delegate void EventHandler(String eventName, params Object[] states);
+    public delegate void EventHandler(String eventName, int generation,params Object[] states);
 
     /// <summary>
     /// 执行任务
@@ -102,6 +104,11 @@ namespace NWSELib
         /// </summary>
         public IEnv Env { get=> env; }
         
+        public Session(IEnv env,EventHandler handler)
+        {
+            this.env = env;
+            this.handler = handler;
+        }
 
         /// <summary>
         /// 事件触发函数
@@ -110,18 +117,24 @@ namespace NWSELib
         /// <param name="values"></param>
         public void triggerEvent(String eventName,params Object[] values)
         {
-
             if (handler == null) return;
-            handler(eventName,values);
+            handler(eventName,this.generation,values);
         }
 
         #endregion
 
         #region 执行
-        public void run(IEnv env,EventHandler handler)
+        private Thread thread;
+        public void run()
+        {
+            if (thread != null) return;
+            thread = new Thread(new ThreadStart(do_run));
+            thread.Start();
+        }
+        public void do_run()
         {
             //初始化
-            this.handler = handler;
+            
             logger = LogManager.GetLogger(typeof(Session));
             this.generation = 1;
             
@@ -157,6 +170,7 @@ namespace NWSELib
                         net.setReward(reward);
                         this.triggerEvent(Session.EVT_NAME_MESSAGE, "time="+time.ToString()+",action=" + actions.ConvertAll(x => x.ToString()).Aggregate((a, b) => String.Format("{0:##.###}", a) + "," + String.Format("{0:##.###}", b))
                             + ",reward = " + reward.ToString());
+                        this.triggerEvent(Session.EVT_NAME_MESSAGE," mental process:"+net.getInferenceChainText())
 
                         traces.Add((actions,obs, reward));
                         logger.Info("gamerun ind=" + net.Genome.id +",time="+time+ ",action"+actions+ ",obs=" + curobs+",reward="+reward);
@@ -168,7 +182,7 @@ namespace NWSELib
                         }
                     }
                     this.triggerEvent(Session.EVT_NAME_END_ACTION, net,this.generation);
-
+                    this.triggerEvent(Session.EVT_NAME_MESSAGE, "Network(" + net.Id + ") end"+System.Environment.NewLine);
                 }
                 this.triggerEvent(Session.EVT_NAME_CLEAR_AGENT);
 
@@ -176,18 +190,20 @@ namespace NWSELib
                 int indIndex = this.inds.ConvertAll(ind => ind.Reability).argmax();
                 this.triggerEvent(Session.EVT_NAME_OPTIMA_IND, this.inds[indIndex]);
 
-                //进化过程
-                Evolution evolution = new Evolution();
-                evolution.execute(inds, this);
-
-                //是否达到最大迭代次数
                 this.generation += 1;
-                if(this.generation >= Session.GetConfiguration().evolution.iter_count)
+                //是否达到最大迭代次数
+                if (this.generation >= Session.GetConfiguration().evolution.iter_count)
                 {
                     logger.Info("evolution_end reason=max_iter_count");
                     triggerEvent("evolution_end", "max_iter_count");
                     return;
                 }
+
+                //进化过程
+                Evolution evolution = new Evolution();
+                evolution.execute(inds, this);
+
+                
             }
 
         }
@@ -197,8 +213,10 @@ namespace NWSELib
         public const String EVT_NAME_CLEAR_AGENT = "clear_agent";
         public const String EVT_NAME_OPTIMA_IND = "optima_ind";
         public const String EVT_NAME_MESSAGE = "message";
-        public const String EVT_NAME_INVAILD_GENE = "invail_gene";
+        public const String EVT_NAME_INVAILD_GENE = "invaild_gene";
+        public const String EVT_NAME_VAILD_GENE = "vaild_gene";
         public const String EVT_NAME_IND_COUNT = "ind_count";
+        public const String EVT_NAME_REABILITY = "reability";
     }
     #endregion
 }

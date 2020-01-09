@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
+using System.Text;
 using NWSELib.common;
 using NWSELib.env;
 using NWSELib.genome;
@@ -306,6 +306,40 @@ namespace NWSELib.net
         /// 推理发生时间
         /// </summary>
         private int judgeTime;
+
+        /// <summary>
+        /// 显示推理过程
+        /// </summary>
+        /// <returns></returns>
+        public String getInferenceChainText()
+        {
+            if (currentInferenceChain == null) return "";
+            StringBuilder str = new StringBuilder();
+            str.Append("...1.JudgeMent:" + currentInferenceChain.juegeItem.Text+System.Environment.NewLine);
+            Inference inf = (Inference)this.getNode(currentInferenceChain.head.referenceNode);
+            str.Append("...2.For achieving the judgment goal,the inference " + inf.Id + " was uesed and the expection value is "+ currentInferenceChain.varValue.ToString()+":" + inf.Gene.Text+System.Environment.NewLine);
+            int xh = 3;
+            for(int i=0;i<this.ActionReceptors.Count;i++)
+            {
+                Receptor receptor = (Receptor)this.ActionReceptors[i];
+                (double, int[]) trace = currentActionTraces[receptor.Id];
+                if(trace.Item2 == null || trace.Item2.Length<=0)
+                {
+                    str.Append("..." + (xh + i).ToString() + ". action " + receptor.Gene.Text + "'s fitness value is " + trace.Item1.ToString()+System.Environment.NewLine);
+                    continue;
+                        
+                }
+                str.Append("..." + (xh + i).ToString() + ". action " + receptor.Gene.Text + "'s inference trace is:"+ System.Environment.NewLine);
+                List<InferenceChain.Item> items = currentInferenceChain.getItemsFromTrace(trace.Item2);
+                foreach(InferenceChain.Item item in items)
+                {
+                    str.Append("        " + this.getNode(item.referenceNode).Gene.Text);
+                }
+                str.Append("        action " + receptor.Gene.Text + "'s fitness value is " + trace.Item1.ToString() + System.Environment.NewLine);
+
+            }
+            return str.ToString();
+        }
         #endregion
 
         #region 评价信息

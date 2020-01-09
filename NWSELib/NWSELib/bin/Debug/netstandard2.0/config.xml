@@ -63,10 +63,10 @@
   </evolution>
 
   <handlers>
-    <handler name="avg" paramcount="1" ParamRange="[1,10]" typename="NWSELib.net.handler.AverageHandler" selection_prob_range="[0-1+0.01]"></handler>
-    <handler name="variance" paramcount="1" ParamRange="[1,10]" typename="NWSELib.net.handler.VarianceHandler" selection_prob_range="[0-1+0.01]"></handler>
-    <handler name="diff" paramcount="2" ParamRange="[1,10];[1,10]" typename="NWSELib.net.handler.DiffHandler" selection_prob_range="[0-1+0.01]"></handler>
-    <handler name="direction" paramcount="0" ParamRange="" typename="NWSELib.net.handler.DirectionHandler" selection_prob_range="[0-1+0.01]"></handler>
+    <handler name="avg" paramcount="1" paramrange="[1,10]" typename="NWSELib.net.handler.AverageHandler" selection_prob_range="[0-1+0.01]"></handler>
+    <handler name="variance" paramcount="1" paramrange="[1,10]" typename="NWSELib.net.handler.VarianceHandler" selection_prob_range="[0-1+0.01]"></handler>
+    <handler name="diff" paramcount="2" paramrange="[1,10];[1,10]" typename="NWSELib.net.handler.DiffHandler" selection_prob_range="[0-1+0.01]"></handler>
+    <handler name="direction" paramcount="0" paramrange="" typename="NWSELib.net.handler.DirectionHandler" selection_prob_range="[0-1+0.01]"></handler>
   </handlers>
 
   <view width="1300" height="800"></view>

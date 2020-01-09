@@ -10,4 +10,16 @@ D:\gitlib\NWSE\NWSELib\NWSELib\bin\Debug\netstandard2.0\NWSELib.pdb
 D:\gitlib\NWSE\NWSELib\NWSELib\obj\Debug\netstandard2.0\NWSELib.dll
 D:\gitlib\NWSE\NWSELib\NWSELib\obj\Debug\netstandard2.0\NWSELib.pdb
 D:\gitlib\NWSE\NWSELib\NWSELib\bin\Debug\netstandard2.0\config.xml
+D:\gitlib\NWSE\NWSELib\NWSELib\bin\Debug\netstandard2.0\lib\Microsoft.ML.Probabilistic.Compiler.dll
+D:\gitlib\NWSE\NWSELib\NWSELib\bin\Debug\netstandard2.0\lib\Microsoft.ML.Probabilistic.Compiler.pdb
+D:\gitlib\NWSE\NWSELib\NWSELib\bin\Debug\netstandard2.0\lib\Microsoft.ML.Probabilistic.Compiler.xml
+D:\gitlib\NWSE\NWSELib\NWSELib\bin\Debug\netstandard2.0\lib\Microsoft.ML.Probabilistic.dll
+D:\gitlib\NWSE\NWSELib\NWSELib\bin\Debug\netstandard2.0\lib\Microsoft.ML.Probabilistic.Learners.Classifier.dll
+D:\gitlib\NWSE\NWSELib\NWSELib\bin\Debug\netstandard2.0\lib\Microsoft.ML.Probabilistic.Learners.Classifier.xml
+D:\gitlib\NWSE\NWSELib\NWSELib\bin\Debug\netstandard2.0\lib\Microsoft.ML.Probabilistic.Learners.dll
+D:\gitlib\NWSE\NWSELib\NWSELib\bin\Debug\netstandard2.0\lib\Microsoft.ML.Probabilistic.Learners.Recommender.dll
+D:\gitlib\NWSE\NWSELib\NWSELib\bin\Debug\netstandard2.0\lib\Microsoft.ML.Probabilistic.Learners.Recommender.xml
+D:\gitlib\NWSE\NWSELib\NWSELib\bin\Debug\netstandard2.0\lib\Microsoft.ML.Probabilistic.Learners.xml
+D:\gitlib\NWSE\NWSELib\NWSELib\bin\Debug\netstandard2.0\lib\Microsoft.ML.Probabilistic.pdb
+D:\gitlib\NWSE\NWSELib\NWSELib\bin\Debug\netstandard2.0\lib\Microsoft.ML.Probabilistic.xml
 D:\gitlib\NWSE\NWSELib\NWSELib\obj\Debug\netstandard2.0\NWSELib.csprojAssemblyReference.cache

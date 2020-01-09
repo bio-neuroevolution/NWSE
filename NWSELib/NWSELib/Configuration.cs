@@ -210,9 +210,9 @@ namespace NWSELib
             [XmlAttribute]
             public String name;
             [XmlAttribute]
-            public int paramCount;
+            public int paramcount;
             [XmlAttribute]
-            public String paramRange;
+            public String paramrange;
             [XmlIgnore]
             private List<ValueRange> _paramRange;
             [XmlIgnore]
@@ -221,8 +221,8 @@ namespace NWSELib
                 get
                 {
                     if (_paramRange != null) return _paramRange;
-                    if (paramRange == null || paramRange.Trim() == "") return _paramRange;
-                    String[] s1 = paramRange.Trim().Split(';');
+                    if (paramrange == null || paramrange.Trim() == "") return _paramRange;
+                    String[] s1 = paramrange.Trim().Split(';');
                     if (s1 == null || s1.Length <= 0) return null;
                     _paramRange = new List<ValueRange>();
                     for (int i=0;i<s1.Length;i++)
@@ -245,7 +245,7 @@ namespace NWSELib
             }
             public double[] randomParam()
             {
-                double[] r = new double[this.paramCount];
+                double[] r = new double[this.paramcount];
                 for(int i=0;i<r.Length;i++)
                 {
                     r[i] = ParamRange[i].random();
