@@ -7,6 +7,7 @@ using Microsoft.ML.Probabilistic.Distributions;
 using Microsoft.ML.Probabilistic.Models;
 using Microsoft.ML;
 using log4net;
+using System.Text;
 
 namespace NWSELib.net
 {
@@ -16,6 +17,7 @@ namespace NWSELib.net
     /// </summary>
     public class InferenceRecord
     {
+        
         /// <summary>
         /// 对应每个维的均值
         /// </summary>
@@ -115,7 +117,12 @@ namespace NWSELib.net
 
             return Math.Sqrt((m.Transpose() * this.gaussian.GetVariance().Inverse() * m)[0,0]);
         }
-
+        /// <summary>
+        /// 对推理记录的均值和协方差矩阵进行调整
+        /// Adjust the mean and covariance matrix of the record of inference node
+        /// </summary>
+        /// <param name="net"></param>
+        /// <param name="inf"></param>
         internal void do_adjust(Network net,Inference inf)
         {
             List<int> dimensions = inf.getDimensionList(net);
@@ -139,6 +146,7 @@ namespace NWSELib.net
     
     public class Inference : Node
     {
+        static ILog logger = LogManager.GetLogger(typeof(Inference));
         /// <summary>
         /// 推理节点存储的记录
         /// </summary>
@@ -147,7 +155,7 @@ namespace NWSELib.net
         /// <summary>
         /// 新样本
         /// </summary>
-        public List<List<Vector>> newsamples = new List<List<Vector>>();
+        public List<List<Vector>> unclassified_samples = new List<List<Vector>>();
         /// <summary>
         /// 新样本的密度值
         /// </summary>
@@ -181,23 +189,42 @@ namespace NWSELib.net
         /// <returns></returns>
         public override Object activate(Network net, int time, Object value = null)
         {
-            List<Node> inputs = net.getInputNodes(this.Id);
-            if (!inputs.All(n => n.IsActivate(time)))
+            //所有的输入节点都已经被激活
+            //All input nodes have already been activated
+            List<(int,int)> conds = ((InferenceGene)this.Gene).getConditions();
+            List<(Node, int)> condNodes = conds.ConvertAll(c => (net.getNode(c.Item1), c.Item2));
+            if (!condNodes.All(n => n.Item1.IsActivate(time - n.Item2)))
                 return null;
+           
+                      
+            (int varid, int vartime) = ((InferenceGene)this.Gene).getVariable();
+            Node varNode = net.getNode(varid);
+            if (!varNode.IsActivate(time - vartime))
+                return null;
+            List<Node> inputs = net.getInputNodes(this.Id);
+
+            Vector activeValue = null;
+            //确保推理基因的各维度的顺序正确（前置条件在前，后置变量在后，且前置条件id按从小到大排列）
+            //Make sure that the dimensions of the inference gene are in the correct order
+            ((InferenceGene)this.Gene).sort_dimension();
 
             //根据基因定义的顺序，将输入值组成List<Vector>
+            //Put the input values into the List according to the order of the input dimensions
             List<Vector> values = new List<Vector>();
             int totaldimesion = 0;
             for(int i=0;i<((InferenceGene)this.gene).dimensions.Count;i++)
             {
                 (int id,int t) = ((InferenceGene)this.gene).dimensions[i];
                 Node input = inputs.FirstOrDefault(n => n.Id == id);
-                values.Add(input.Value);
+                Vector tValue = input.GetValue(time - t);
+                if (tValue == null) { base.activate(net,time, activeValue); return null; }
+                values.Add(tValue);
                 totaldimesion += input.Dimension;
             }
-           
+
 
             //如果没有任何节点记录，则生成第一个
+            //Create a new record if there are no nodes in current inference node, 
             if (this.records.Count <= 0)
             {
                 InferenceRecord record = new InferenceRecord();
@@ -207,13 +234,16 @@ namespace NWSELib.net
                     record.covariance[i, i] = 1.0;
                 record.weight = 1.0;
                 this.records.Add(record);
-                return null;
+                activeValue = values.flatten().Item1;
+                base.activate(net, time, activeValue);
+                return activeValue;
             }
 
             //计算输入值的归属
+            //Calculate which record the input value belongs to
             List<double> probs = this.records.ConvertAll(r => r.prob(values)/r.prob(r.means));
-            double sumprobs = probs.Sum();
-            probs = probs.ConvertAll(p => p / sumprobs);
+            //double sumprobs = probs.Sum();
+            //probs = probs.ConvertAll(p => p / sumprobs);
             int pindex = probs.argmax();
             if(probs.Max()>=Session.GetConfiguration().learning.inference.accept_prob)
             {
@@ -223,14 +253,20 @@ namespace NWSELib.net
                 {
                     this.records[pindex].do_adjust(net,this);
                 }
-                return null;
+                activeValue = this.records[pindex].means.flatten().Item1;
+                base.activate(net, time, activeValue);
+                return activeValue;
 
             }
 
-            //计算每个节点的密度值，以及样本的密度值
+            //计算每个记录的密度值，以及样本的密度值
+            //If the new sample is not classified into any records, calculate the density values for each record and for all unclassified samples
+            //1.Calculate the Euclidean distance from each record to the new sample and all unclassified samples to the new sample
+            //2.Take the ratio of the above distances as the density increment of each record and unclassified sample
+            //3.The density of the new sample is equal to that of the nearest record or unclassified sample
             List<List<Vector>> allValues = new List<List<Vector>>();
             this.records.ForEach(r => allValues.Add(r.means));
-            allValues.AddRange(this.newsamples);
+            allValues.AddRange(this.unclassified_samples);
             List<double> distances = allValues.ConvertAll(v => v.distance(values));
             double dissum = distances.Sum();
             List<double> delta_diensity = distances.ConvertAll(d => (dissum - d) / dissum);
@@ -242,48 +278,86 @@ namespace NWSELib.net
             {
                 this.density[i - this.records.Count] += delta_diensity[i];
             }
-            this.newsamples.Add(values);
+            this.unclassified_samples.Add(values);
             int ti = distances.argmin();
             double td = ti < this.records.Count ? this.records[ti].density : this.density[ti - this.records.Count];
             this.density.Add(td);
 
             //如果新样本的最大密度接近原有高斯分量中心的最小密度，则启动新样本聚类过程
+            //If the maximum density of the unclassified samples is close to the minimum density of the original Gaussian records, the clustering process of the the unclassified samples will be started
             double max_newsample_density = this.density.Max();
             double min_record_density = this.records.ConvertAll(r => r.density).Min();
+            int newCount = 0;
             if(max_newsample_density >= min_record_density*2/3)
             {
-                List<List<List<Vector>>> clusters = do_newsamples_cluster();
+                (List<List<List<Vector>>> clusters,List<List<double>> des) = do_unclassfied_cluster();
                 for(int i=0;i<clusters.Count;i++)
                 {
-                    create_newrecord_bysamples(net,clusters[i]);
+                    
+                    create_newrecord_bysamples(clusters[i], des[i]);
                 }
+                newCount = clusters.Count;
             }
+            //如果两个节点的距离太近，则合并节点
+            //If two records are too close, merge nodes
+            int mergeCount = try_merge_records();
             //重新调整权重
             adjust_weights();
 
-            return null;
+            //输出
+            logger.Debug(net.Id.ToString()+".inference" + this.Id.ToString() +"'records are adjusted:count of new="
+                + newCount.ToString()
+                + ",count of merge="
+                + mergeCount.ToString()
+                +",count of record="+this.records.Count
+                +",accept counts =" + this.records.ConvertAll(r=>r.acceptCount.ToString()).Aggregate((x,y)=>x+","+y));
+
+            activeValue = this.records[this.records.ConvertAll(r => r.prob(values) / r.prob(r.means)).argmax()].means.flatten().Item1;
+            base.activate(net, time, activeValue);
+            return activeValue;
 
         }
-
-        private List<List<List<Vector>>> do_newsamples_cluster()
+        /// <summary>
+        /// 对未归类样本进行聚类操作
+        /// Cluster unclassified samples
+        /// </summary>
+        /// <returns></returns>
+        private (List<List<List<Vector>>>,List<List<double>>) do_unclassfied_cluster()
         {
+            logger.Debug("do_unclassfied_cluster....");
+            int count = this.unclassified_samples.Count;
             List<List<List<Vector>>> r = new List<List<List<Vector>>>();
-            while (this.newsamples.Count > 0)
+            List<List<double>> dens = new List<List<double>>();
+            while (this.unclassified_samples.Count > 0)
             {
                 //取最大密度点，作为一个新分类
+                //Take the maximum density point as a new classification
                 int maxindex = this.density.argmax();
-                List<Vector> sample = this.newsamples[maxindex];
+                List<Vector> sample = this.unclassified_samples[maxindex];
                 List<List<Vector>> classes = new List<List<Vector>>();
+                List<double> den = new List<double>();
                 classes.Add(sample);
+                den.Add(this.density[maxindex]);
+                r.Add(classes);
+                dens.Add(den);
+
                 //从样本集中移除该点
-                this.newsamples.RemoveAt(maxindex);
+                //Remove the sample from the unclassified samples
+                this.unclassified_samples.RemoveAt(maxindex);
                 this.density.RemoveAt(maxindex);
-                if (this.newsamples.Count <= 0) break;
-                //计算样本集中所有点与该点的距离
-                List<double> ds = this.newsamples.ConvertAll(s => s.distance(sample));
+                if (this.unclassified_samples.Count <= 0) break;
+
+                //计算未归类样本集中所有样本与该样本的距离
+                //Calculate the distance between all samples in the unclassified sample set and the sample
+                List<double> ds = this.unclassified_samples.ConvertAll(s => s.distance(sample));
+                
                 //对距离从小到大排序
+                //sort the distances in ascending order
                 List<int> sortedindex = ds.argsort();
+
+
                 //对排列后的距离寻找最小方差分裂点
+                //Finding the minimum variance split point
                 List<double> disvar = new List<double>();
                 for(int i=2;i<ds.Count;i++)
                 {
@@ -295,48 +369,94 @@ namespace NWSELib.net
                     disvar.Add(t2);
                 }
                 int argminvar = disvar.argmin()+2;
+
                 //将能够使方差最小的样本归属同一类
                 for(int i=0;i<argminvar;i++)
                 {
-                    classes.Add(this.newsamples[sortedindex[i]]);
+                    classes.Add(this.unclassified_samples[sortedindex[i]]);
+                    den.Add(this.density[sortedindex[i]]);
+                    this.unclassified_samples.RemoveAt(sortedindex[i]);
+                    this.density.RemoveAt(sortedindex[i]);
                 }
-                //移除已经归类的样本
-                for(int i=0;i<classes.Count;i++)
-                {
-                    int t3 = this.newsamples.IndexOf(classes[i]);
-                    this.newsamples.Remove(classes[i]);
-                    this.density.RemoveAt(t3);
-                }
-                if (this.newsamples.Count <= 0) break;
+                
 
-
+                if (this.unclassified_samples.Count <= 0) break;
 
             }
 
-            return r;
-
-
+            logger.Debug("do_unclassfied_cluster:count = "+count.ToString()
+                +",cluster="+r.Count.ToString()+",size of per cluster="+
+                r.ConvertAll(e=>e.Count.ToString()).Aggregate((a,b)=>a+","+b));
+            return (r,dens);
         }
         /// <summary>
-        /// 
+        /// 将vs中的所有样本作为新的高斯分量记录
+        /// All samples in vs are recorded as new Gaussian components
         /// </summary>
         /// <param name="vs"></param>
         /// <returns></returns>
-        public InferenceRecord create_newrecord_bysamples(Network net,List<List<Vector>> vs)
+        public InferenceRecord create_newrecord_bysamples(List<List<Vector>> vs,List<double> densitys=null)
         {
             InferenceRecord r = new InferenceRecord();
             r.acceptCount = vs.Count;
 
-            List<int> dimensions = this.getDimensionList(net);
+            List<int> dimensions = vs.ConvertAll(v => v.Count);
             int totaldimension = dimensions.Sum();
             List<Vector> flatten = vs.ConvertAll(v => v.flatten()).ConvertAll(v => v.Item1);
             r.means = flatten.average().split(dimensions);
             r.covariance = new double[totaldimension, totaldimension];
             r.covariance = Vector.covariance(flatten.ToArray());
-            
+            r.acceptCount = vs.Count;
+            if(densitys != null || densitys.Count>0) r.density = densitys.Average();
             r.initGaussian();
             return r;
 
+        }
+        /// <summary>
+        /// 合并靠的太近的记录
+        /// Merge too close records
+        /// </summary>
+        protected int try_merge_records()
+        {
+            List<(InferenceRecord, InferenceRecord)> needMergeRecordPair = new List<(InferenceRecord, InferenceRecord)>();
+            for(int i=0;i<this.records.Count;i++)
+            {
+                bool merged = false;
+                for(int j=i+1;j<this.records.Count;j++)
+                {
+                    double d1 = this.records[i].prob(this.records[j].means) / this.records[i].prob(this.records[i].means);
+                    double d2 = this.records[j].prob(this.records[i].means) / this.records[j].prob(this.records[j].means);
+                    if (d1 >= Session.GetConfiguration().learning.inference.accept_prob || d2 >= Session.GetConfiguration().learning.inference.accept_prob)
+                    {
+                        needMergeRecordPair.Add((this.records[i], this.records[j]));
+                        merged = true;
+                        this.records.RemoveAt(j);
+                        break;
+                    }
+                }
+                if(merged)
+                {
+                    this.records.RemoveAt(i);i--;
+                }
+            }
+            if (needMergeRecordPair.Count <= 0) return 0;
+            for(int i=0;i< needMergeRecordPair.Count;i++)
+            {
+                InferenceRecord r1 = needMergeRecordPair[i].Item1;
+                InferenceRecord r2 = needMergeRecordPair[i].Item2;
+                List<List<Vector>> samples = new List<List<Vector>>();
+                for (int j = 0; j < r1.acceptCount; j++)
+                    samples.Add(r1.means);
+                samples.AddRange(r1.acceptRecords);
+                for (int j = 0; j < r2.acceptCount; j++)
+                    samples.Add(r2.means);
+                samples.AddRange(r2.acceptRecords);
+
+                InferenceRecord newRecord = this.create_newrecord_bysamples(samples);
+                newRecord.density = (r1.density + r2.density) / 2;
+                this.records.Add(newRecord);
+            }
+            return needMergeRecordPair.Count;
         }
 
         public void adjust_weights()
@@ -491,6 +611,7 @@ namespace NWSELib.net
             return (values, varindex, value);
             
         }
+        
 
         #endregion
     }

@@ -393,7 +393,7 @@ namespace NWSELib.net
             //初始化
             Reset();
             //初始化所有感知节点
-            for (int i = 0; i < this.Receptors.Count; i++)
+            for (int i = 0; i < obs.Count; i++)
             {
                 this.Receptors[i].activate(this, time, obs[i]);
             }
@@ -414,14 +414,19 @@ namespace NWSELib.net
 
 
             //取出输出节点
-            return this.Effectors.ConvertAll<double>(n => (double)n.Value);
-
+            List<double> actions = this.Effectors.ConvertAll<double>(n => (double)n.Value);
+            for(int i=0;i< this.ActionReceptors.Count;i++)
+            {
+                this.ActionReceptors[i].activate(this, time, actions[i]);
+            }
+            return actions;
         }
         /// <summary>
         /// 评判
         /// </summary>
         private void judge(int time)
         {
+            //这是该函数将得到的结果，第一项是推理链，第二项是对每一个动作Id，其选择的值和推理路径
             List<(InferenceChain chain, Dictionary<int, (double, int[])>)> judgeResultList = new List<(InferenceChain chain, Dictionary<int, (double, int[])>)>();
 
             
@@ -456,11 +461,10 @@ namespace NWSELib.net
             List<double> errors = new List<double>();
             for(int i=0;i<judgeResultList.Count;i++)
             {
-
                 double error = 0;
                 if(judgeResultList[i].chain == null)
                 {
-                    errors.Add(1000);
+                    errors.Add(10000);
                     continue;
                 }
                 for(int j=0;j< judgeResultList.Count;j++)
@@ -579,7 +583,7 @@ namespace NWSELib.net
             for(int k=0;k<actionSensorIds.Count;k++)
             {
                 List<List<int>> traces = chain.findActionTrace(actionSensorIds[k]);
-                if(traces == null) //没有推理到该动作，给一个随机值
+                if(traces == null || traces.Count<=0) //没有推理到该动作，给一个随机值
                 {
                     double min = Session.GetConfiguration().agent.receptors.actions[k].Range.Min;
                     double max = Session.GetConfiguration().agent.receptors.actions[k].Range.Max;
@@ -591,6 +595,9 @@ namespace NWSELib.net
                     //随机选择一个推理迹
                     int traceIndex = new Random().Next(0,traces.Count);
                     double value = chain.getValueFromTrace(actionSensorIds[k], 0, traces[traceIndex]);
+                    double min = Session.GetConfiguration().agent.receptors.actions[k].Range.Min;
+                    double max = Session.GetConfiguration().agent.receptors.actions[k].Range.Max;
+                    value = Math.Min(Math.Max(value, min), max);
                     actionValues.Add(actionSensorIds[k], (value, traces[traceIndex].ToArray()));
                 }
             }

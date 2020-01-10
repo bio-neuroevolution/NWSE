@@ -46,6 +46,20 @@ namespace NWSEExperiment.maze
         private ConcurrentDictionary<int, RobotAgent> agents = new ConcurrentDictionary<int, RobotAgent>();
         List<List<Point2D>> optimaTraces = new List<List<Point2D>>();
         public bool AgentVisible { get; set; }
+
+        List<RobotAgent> Agents { get => agents.Values.ToList(); }
+
+        RobotAgent currentAgent = null;
+        RobotAgent CurrentAgent { 
+            get
+            {
+                if (agents.Count == 1)
+                    return currentAgent = this.agents.Values.ToList()[0];
+                return currentAgent;
+            }
+        }
+
+        public bool ShowTrail { get; set; }
         #endregion
 
         #region Constructors
@@ -139,6 +153,23 @@ namespace NWSEExperiment.maze
             initOptimaTraces();
         }
 
+        /// <summary>
+        /// Tests collision between the specified robot and all walls and other robots in the CurrentEnvironment.
+        /// </summary>
+		public bool robotCollide(Point2D robotLocation)
+        {
+            foreach (Wall wall in walls)
+            {
+                if (EngineUtilities.collide(wall, robotLocation))
+                {
+                    return true;
+                }
+            }
+            
+
+            return false;
+        }
+
 
         /// <summary>
         /// Draws the CurrentEnvironment to the screen.
@@ -184,11 +215,12 @@ namespace NWSEExperiment.maze
             List<RobotAgent> agents = this.agents.Values.ToList();
             foreach(RobotAgent agent in agents)
             {
-                agent.draw(g, frame);
+               
+                agent.draw(g, frame,agent==CurrentAgent?ShowTrail:false);
             }
         }
 
-        List<double> IEnv.reset(Network net)
+        (List<double>, List<double>) IEnv.reset(Network net)
         {
             RobotAgent agent = this.agents.Values.ToList().FirstOrDefault(a => a.getId() == net.Id);
             if (agent == null)
@@ -196,19 +228,25 @@ namespace NWSEExperiment.maze
                 agent = new RobotAgent(net, this);
                 this.agents.TryAdd(agent.getId(), agent);
             }
+            agent.reset(this.start_point);
             List<double> obs =agent.getObserve();
-            obs.Add(0.0);obs.Add(0.0);
-            return obs;
+            List<double> gesture = new List<double>();
+            gesture.Add(agent.Heading);
+            return (obs,gesture);
         }
 
-        (List<double>, double) IEnv.action(Network net, List<double> actions)
+
+        (List<double>, List<double>, List<double>, double) IEnv.action(Network net, List<double> actions)
         {
-            IAgent agent = this.agents.Values.ToList().FirstOrDefault(a => a.getId() == net.Id);
+            RobotAgent agent = this.agents.Values.ToList().FirstOrDefault(a => a.getId() == net.Id);
             agent.doAction(actions.ToArray());
+            
             List<double> obs = agent.getObserve();
-            obs.AddRange(actions);
+            List<double> gesture = new List<double>();
+            gesture.Add(agent.Heading);
+           
             double reward = this.compute_reward(agent);
-            return (obs, reward);
+            return (obs, gesture, actions,reward);
         }
 
         private void initOptimaTraces()

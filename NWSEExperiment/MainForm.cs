@@ -103,12 +103,12 @@ namespace NWSEExperiment
             }else if(eventName == Session.EVT_NAME_END_ACTION)
             {
                 Network net = (Network)states[0];
-                maze.removeAgent(net);
+                //maze.removeAgent(net);
                 this.Refresh();
             }
             else if(eventName == Session.EVT_NAME_CLEAR_AGENT)
             {
-                maze.clearAgent();
+                //maze.clearAgent();
                 this.Refresh();
             }else if(eventName == Session.EVT_NAME_OPTIMA_IND)
             {
@@ -148,6 +148,12 @@ namespace NWSEExperiment
         {
             if (this.evolutionSession == null) return;
             this.evolutionSession.paused = !this.evolutionSession.paused;
+        }
+
+        private void btnshowTrail_Click(object sender, EventArgs e)
+        {
+            if (this.maze == null) return;
+            this.maze.ShowTrail = btnshowTrail.Checked ;
         }
     }
 }

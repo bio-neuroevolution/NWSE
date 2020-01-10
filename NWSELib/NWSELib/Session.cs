@@ -157,29 +157,22 @@ namespace NWSELib
                 {
                     logger.Info("gamebegin ind=" + net.Genome.id);
                     this.triggerEvent(Session.EVT_NAME_MESSAGE, "Network("+net.Id+") begin" );
-                    List<double> curobs = env.reset(net);
-
-                    List<(List<double>, List<double>,double)> traces = new List<(List<double>, List<double>,double)>();
-                    traces.Add((null, curobs, 0));
-                    logger.Info("gamereset ind=" + net.Genome.id + ",obs="+ curobs);
+                    (List<double> obs,List<double> gesture) = env.reset(net);
+                    double reward = 0.0;
                     for (int time = 0; time <= Session.GetConfiguration().evaluation.run_count; time++) 
                     {
-                        List<double> actions = net.activate(curobs, time);
-                        (List<double> obs,double reward) = env.action(net,actions);
-
-                        curobs = obs;
+                        List<double> actions = net.activate(obs, time);
+                        (obs, gesture, actions,reward) = env.action(net,actions);
                         net.setReward(reward);
                         this.triggerEvent(Session.EVT_NAME_MESSAGE, "time="+time.ToString()+",action=" + actions.ConvertAll(x => x.ToString()).Aggregate((a, b) => String.Format("{0:##.###}", a) + "," + String.Format("{0:##.###}", b))
-                            + ",reward = " + reward.ToString() + ", obs="+Utility.toString(curobs));
+                            + ",reward = " + reward.ToString() + ", obs="+Utility.toString(obs));
                         this.triggerEvent(Session.EVT_NAME_MESSAGE, " mental process:" + net.getInferenceChainText());
-                        
 
-                        traces.Add((actions,obs, reward));
-                        logger.Info("gamerun ind=" + net.Genome.id +",time="+time+ ",action"+actions+ ",obs=" + curobs+",reward="+reward);
+                        logger.Info("gamerun ind=" + net.Genome.id +",time="+time+ ",action"+actions+ ",obs=" + obs+",reward="+reward);
                         if (reward >= Session.GetConfiguration().evaluation.max_reward)
                         {
                             logger.Info("evolution_end reason=maxreward ind="+net.Genome.id+",generation="+Generation);
-                            triggerEvent("evolution_end", "maxreward",net,traces);
+                            triggerEvent("evolution_end", "maxreward",net);
                             return;
                         }
                     }
@@ -204,8 +197,8 @@ namespace NWSELib
                 }
 
                 //进化过程
-                Evolution evolution = new Evolution();
-                evolution.execute(inds, this);
+                //Evolution evolution = new Evolution();
+                //evolution.execute(inds, this);
 
                 judgePaused();
 

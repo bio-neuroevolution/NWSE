@@ -8,8 +8,8 @@ namespace NWSELib.env
 {
     public interface IEnv
     {
-        List<double> reset(Network net);
-        (List<double>, double) action(Network net, List<double> actions);
+        (List<double>, List<double>) reset(Network net);
+        (List<double>, List<double>, List<double>, double) action(Network net, List<double> actions);
         
     }
 }

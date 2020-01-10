@@ -115,7 +115,7 @@ namespace NWSEExperiment.maze
             Point2D location = new Point2D(Owner.Location.X, Owner.Location.Y);
             Wall hit;
             DistanceToClosestObject = this.raycast(env,Angle, MaxRange, location, Owner, out hit);
-            
+           
         }
 
         
@@ -249,13 +249,21 @@ namespace NWSEExperiment.maze
         public const double RADIUS = 10;
         protected double velocity;
         protected double heading;
-        protected Point2D location;
-        protected Point2D oldLocation;
+        List<Point2D> traces = new List<Point2D>();
         protected Circle2D areaOfImpact;
         public double Velocity { get => velocity; set => velocity = value; }
         public double Heading { get => heading; set => heading = value; }
-        public Point2D Location { get { return location; } set { OldLocation = location; location = value;  } }
-        public Point2D OldLocation { get => oldLocation; set => oldLocation = value; }
+        public Point2D Location { get { return traces==null|| traces.Count<=0?null: traces[traces.Count-1]; } set { traces.Add(value);  } }
+        public Point2D OldLocation 
+        { 
+            get 
+            {
+                if (traces == null || traces.Count <= 0) return null;
+                else if (traces.Count == 1) return this.traces[0];
+                else return this.traces[this.traces.Count-2];
+            }  
+        }
+    
         public Circle2D AreaOfImpact { get => areaOfImpact; set => areaOfImpact = value; }
         
         public bool Stopped;
@@ -299,22 +307,12 @@ namespace NWSEExperiment.maze
             return Heading + 0.1 * (rng.NextDouble()<=0.5 ? 1 : -1) * rng.Next(0, (int)HeadingNoise) / 100.0;
         }
 
-        public void updatePosition(double Timestep)
-        {
-            
-            OldLocation.X = Location.X;
-            OldLocation.Y = Location.Y;
+        
 
-            //update current coordinates (may be revoked if new position forces collision)
-            if (!Stopped)
-            {
-                double tempHeading = noisyHeading();
-                Heading = tempHeading;
-                double dx = Math.Cos(tempHeading) * Velocity * Timestep;
-                double dy = Math.Sin(tempHeading) * Velocity * Timestep;
-                Location.X += dx;
-                Location.Y += dy;
-            }
+        public void reset(Point2D initpos)
+        {
+            this.traces.Clear();
+            Location = initpos;
         }
 
 
@@ -336,7 +334,7 @@ namespace NWSEExperiment.maze
 
             Location = new Point2D(locationX, locationY);
             AreaOfImpact = new Circle2D(Location, RADIUS);
-            OldLocation = new Point2D(Location);
+            
 
             Heading = heading;
             Velocity = 0.0;
@@ -512,28 +510,63 @@ namespace NWSEExperiment.maze
         public void doAction(double[] actions)
         {
             double timeStep = this.Timestep;
-            Velocity += (actions[1] - 0.5) * 2.0;
+
+            double tempVelocity = Velocity+(actions[0] - 0.5) * 2.0;
+            if (tempVelocity > 6.0) tempVelocity = 6.0;
+            if (tempVelocity < -6.0) tempVelocity = (-6.0);
+            double tempHeading = Heading+(actions[1] - 0.5) * 0.2094395104 * 2;
+
+            //double tempHeading = noisyHeading();
+            //Heading = tempHeading;
+            double dx = Math.Cos(tempHeading) * tempVelocity * Timestep;
+            double dy = Math.Sin(tempHeading) * tempVelocity * Timestep;
+            Point2D tempLocation = new Point2D(Location.X + dx, Location.Y + dy);
+
+            if (this.maze.robotCollide(tempLocation))
+                return;
+
+            Velocity += (actions[0] - 0.5) * 2.0;
             if (Velocity > 6.0) Velocity = 6.0;
             if (Velocity < -6.0) Velocity = (-6.0);
-            Heading += (actions[0] - 0.5) * 0.2094395104 * 2;
+            Heading += (actions[1] - 0.5) * 0.2094395104 * 2;
 
             
-            // Update current coordinates (may be revoked if new position forces collision)
+            
+            updatePosition(timeStep);
+            updateSensors();
+            
+        }
+        public void updatePosition(double Timestep)
+        {
+
+            OldLocation.X = Location.X;
+            OldLocation.Y = Location.Y;
+
+            //update current coordinates (may be revoked if new position forces collision)
             if (!Stopped)
             {
-                double dx = Math.Cos(Heading) * Velocity * timeStep;
-                double dy = Math.Sin(Heading) * Velocity * timeStep;
-                Location.X += dx;
-                Location.Y += dy;
+                double tempHeading = noisyHeading();
+                Heading = tempHeading;
+                double dx = Math.Cos(tempHeading) * Velocity * Timestep;
+                double dy = Math.Sin(tempHeading) * Velocity * Timestep;
+                Location = new Point2D(Location.X + dx, Location.Y + dy);
             }
-            updateSensors();
         }
 
-        internal void draw(Graphics g, CoordinateFrame frame)
+        internal void draw(Graphics g, CoordinateFrame frame,bool showtrail=false)
         {
-            Point2D p2 = frame.convertToDisplay(this.location);
+            Point2D p2 = frame.convertToDisplay(this.Location);
             g.FillEllipse(System.Drawing.Brushes.Red, new Rectangle((int)p2.X - 3, (int)p2.Y - 3, 6, 6));
             
+            if(showtrail)
+            {
+                for(int i=0;i<this.traces.Count-1;i++)
+                {
+                    Point2D l1 = frame.convertToDisplay(this.traces[i]);
+                    Point2D l2 = frame.convertToDisplay(this.traces[i+1]);
+                    g.DrawLine(System.Drawing.Pens.Black, (float)l1.X, (float)l1.Y, (float)l2.X, (float)l2.Y);
+                }
+            }
         }
     }
 }

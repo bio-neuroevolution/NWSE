@@ -38,24 +38,21 @@ namespace NWSELib.net
 
         #region 状态信息
 
-        protected readonly Queue<Vector> values;
-        protected readonly Queue<int> times;
+        protected readonly List<Vector> values = new List<Vector>();
+        protected readonly List<int> times = new List<int>();
         public int BeginTime
         {
-            get => times.Peek();
+            get => (times == null || times.Count<=0)?0: times[0];
         }
         public int CurTime
         {
-            get { return times.Count<=0?-1:times.ToArray()[times.Count - 1]; }
+            get { return times.Count<=0?-1:times[times.Count - 1]; }
         }
         public int TimeCapacity
         {
-            get => this.times.Count;
+            get => Session.GetConfiguration().agent.shorttermcapacity;
         }
-        public int TimeScale
-        {
-            get => (CurTime - BeginTime) / TimeCapacity;
-        }
+        
 
         public Vector Value
         {
@@ -64,49 +61,42 @@ namespace NWSELib.net
 
         public int Dimension
         {
-            get => Value.Size;
+            get => values.Count<=0?0:values[0].Size;
         }
 
         public List<Vector> ValueList
         {
-            get => this.values.ToList();
+            get => new List<Vector>(this.values);
         }
 
         public List<Vector> GetValues(int new_time, int count)
         {
-            
             List<int> ts = this.times.ToList();
-            int tindex = ts.IndexOf(new_time);
+            int tindex = times.IndexOf(new_time);
             if (tindex < 0) return null;
 
-            List<Vector> vs = this.values.ToList();
+            
             List<Vector> r = new List<Vector>();
             for (int i=0;i<count;i++)
             {
-                tindex -= i;
-                if (tindex >= 0)
-                    r.Add(vs[tindex]);
-                else
-                    r.Add(r[r.Count-1]);
-
+                if (tindex >= values.Count) return r;
+                r.Add(values[tindex++]);
             }
             return r;
         }
 
         public Vector GetValue(int time, int backIndex)
         {
-            List<int> ts = this.times.ToList();
-            int tindex = ts.IndexOf(time);
+            int tindex = times.IndexOf(time);
             if (tindex < 0) return null;
             if (tindex - backIndex < 0) return null;
             return this.ValueList[tindex - backIndex];
         }
         public Vector GetValue(int time)
         {
-            List<int> ts = this.times.ToList();
-            int tindex = ts.IndexOf(time);
+            int tindex = times.IndexOf(time);
             if (tindex < 0) return null;
-            return this.ValueList[tindex];
+            return this.values[time];
         }
 
 
@@ -116,9 +106,6 @@ namespace NWSELib.net
         {
             this.gene = gene;
 
-            int memoryCapacity = Session.GetConfiguration().agent.shorttermcapacity;
-            values = new Queue<Vector>(memoryCapacity);
-            times = new Queue<int>(memoryCapacity);
         }
         #endregion
 
@@ -146,11 +133,38 @@ namespace NWSELib.net
         public virtual Object activate(Network net, int time, Object value = null)
         {
             if (value != null && value is double) value = new Vector(new double[] { (double)value });
-            if (CurTime == time) return this.Value;
-            Object prev = this.Value;
+            
+            if(times == null || times.Count<=0)
+            {
+                times.Add(time);
+                values.Add((Vector)value);
+                return null;
+            }
 
-            this.values.Enqueue((Vector)value);
-            this.times.Enqueue(time);
+            Object prev = null;
+            int index = times.IndexOf(time);
+            if(index >= 0)
+            {
+                times[index] = time;
+                prev = values[index];
+                values[index] = (Vector)value;
+                return prev;
+
+            }
+            int lastime = times.Last();
+            if(time > lastime)
+            {
+                times.Add(time);
+                values.Add((Vector)value);
+                return null;
+            }
+            else
+            {
+                index = 0;
+                while (times[index++] < time) ;
+                times.Insert(index - 1, time);
+                values.Insert(index-1, (Vector)value);
+            }
 
             return prev;
         }
@@ -159,7 +173,8 @@ namespace NWSELib.net
         /// </summary>
         public void Reset()
         {
-
+            //this.times.Clear();
+            //this.values.Clear();
         }
         /// <summary>
         /// 是否已经完成过计算
@@ -167,7 +182,7 @@ namespace NWSELib.net
         /// <returns></returns>
         public bool IsActivate(int time)
         {
-            return this.CurTime == time;
+            return this.times.Contains(time);
         }
 
         internal void randomValue(Network net,int time)

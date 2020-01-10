@@ -313,44 +313,35 @@ namespace NWSELib.genome
                 receptorGene.Generation = session.Generation;
                 receptorGene.Group = sensors[i].group;
                 receptorGene.Name = sensors[i].name;
+                receptorGene.SectionCount = (int)sensors[i].Level.random();
                 receptorGene.Id = session.GetIdGenerator().getGeneId(receptorGene);
                 genome.receptorGenes.Add(receptorGene);
             }
-            //生成感受器的分段数
-            for (int i = 0; i < genome.receptorGenes.Count; i++)
-            {
-                if (genome.isVaildGene(genome.receptorGenes[i])) continue;
-                Configuration.Sensor sensor = Session.GetConfiguration().agent.receptors.GetSensor(genome.receptorGenes[i].Name);
-                int min1 = (int)sensor.Level.Min;
-                int max1 = (int)sensor.Level.Max;
-                if (new Random().NextDouble() <= 0.5)
-                    genome.receptorGenes[i].SectionCount = new Random().Next(min1, max1 + 1);
-            }
+
 
             //生成缺省推理节点
-            for (int i = 0; i < genome.receptorGenes.Count; i++)
-            {
-                if (genome.receptorGenes[i].Group.StartsWith("action")) continue;
-
-                InferenceGene inferenceGene = new InferenceGene(genome);
-                inferenceGene.Generation = session.Generation;
-                inferenceGene.dimensions = new List<(int, int)>();
-                for (int j = 0; j < genome.receptorGenes.Count; j++)
-                {
-                    inferenceGene.dimensions.Add((genome.receptorGenes[j].Id, 1));
-                    
-                }
-                inferenceGene.dimensions.Add((genome.receptorGenes[i].Id, 0));
-                inferenceGene.Id = Session.idGenerator.getGeneId(inferenceGene);
-                genome.infrernceGenes.Add(inferenceGene);
+            InferenceGene inferenceGene = new InferenceGene(genome);
+            inferenceGene.Generation = session.Generation;
 
 
-            }
+            inferenceGene.dimensions = new List<(int, int)>();
+            inferenceGene.dimensions.Add((genome["d1"].Id, 1));
+            inferenceGene.dimensions.Add((genome["d2"].Id, 1));
+            inferenceGene.dimensions.Add((genome["d3"].Id, 1));
+            inferenceGene.dimensions.Add((genome["d4"].Id, 1));
+            inferenceGene.dimensions.Add((genome["d5"].Id, 1));
+            inferenceGene.dimensions.Add((genome["d6"].Id, 1));
+            inferenceGene.dimensions.Add((genome["_a2"].Id, 1));
 
-            
+            inferenceGene.dimensions.Add((genome["d3"].Id, 0));
+            inferenceGene.sort_dimension();
+            inferenceGene.Id = Session.idGenerator.getGeneId(inferenceGene);
+            genome.infrernceGenes.Add(inferenceGene);
+
+
 
             //生成判定基因
-            
+
             JudgeGene judgeItem = new JudgeGene(genome);
             judgeItem.conditions.Add(genome["_a2"].Id);
             judgeItem.variable = genome["d3"].Id;

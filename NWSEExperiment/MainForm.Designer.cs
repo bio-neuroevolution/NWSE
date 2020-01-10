@@ -32,6 +32,7 @@
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.toolStripButton1 = new System.Windows.Forms.ToolStripButton();
             this.toolStripButton2 = new System.Windows.Forms.ToolStripButton();
+            this.toolStripButton3 = new System.Windows.Forms.ToolStripButton();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.statusXY = new System.Windows.Forms.ToolStripStatusLabel();
             this.lblindcount = new System.Windows.Forms.ToolStripStatusLabel();
@@ -50,7 +51,8 @@
             this.tabPage5 = new System.Windows.Forms.TabPage();
             this.panel1 = new System.Windows.Forms.Panel();
             this.txtLog = new System.Windows.Forms.TextBox();
-            this.toolStripButton3 = new System.Windows.Forms.ToolStripButton();
+            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            this.btnshowTrail = new System.Windows.Forms.ToolStripButton();
             this.toolStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.tabControl1.SuspendLayout();
@@ -70,7 +72,9 @@
             this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripButton1,
             this.toolStripButton2,
-            this.toolStripButton3});
+            this.toolStripButton3,
+            this.toolStripSeparator1,
+            this.btnshowTrail});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
             this.toolStrip1.Size = new System.Drawing.Size(800, 25);
@@ -96,6 +100,17 @@
             this.toolStripButton2.Size = new System.Drawing.Size(23, 22);
             this.toolStripButton2.Text = "toolStripButton2";
             this.toolStripButton2.Click += new System.EventHandler(this.toolStripButton2_Click);
+            // 
+            // toolStripButton3
+            // 
+            this.toolStripButton3.CheckOnClick = true;
+            this.toolStripButton3.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.toolStripButton3.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButton3.Image")));
+            this.toolStripButton3.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripButton3.Name = "toolStripButton3";
+            this.toolStripButton3.Size = new System.Drawing.Size(23, 22);
+            this.toolStripButton3.Text = "toolStripButton3";
+            this.toolStripButton3.Click += new System.EventHandler(this.toolStripButton3_Click);
             // 
             // statusStrip1
             // 
@@ -270,19 +285,25 @@
             this.txtLog.Location = new System.Drawing.Point(0, 0);
             this.txtLog.Multiline = true;
             this.txtLog.Name = "txtLog";
+            this.txtLog.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.txtLog.Size = new System.Drawing.Size(786, 371);
             this.txtLog.TabIndex = 0;
             // 
-            // toolStripButton3
+            // toolStripSeparator1
             // 
-            this.toolStripButton3.CheckOnClick = true;
-            this.toolStripButton3.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.toolStripButton3.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButton3.Image")));
-            this.toolStripButton3.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.toolStripButton3.Name = "toolStripButton3";
-            this.toolStripButton3.Size = new System.Drawing.Size(23, 22);
-            this.toolStripButton3.Text = "toolStripButton3";
-            this.toolStripButton3.Click += new System.EventHandler(this.toolStripButton3_Click);
+            this.toolStripSeparator1.Name = "toolStripSeparator1";
+            this.toolStripSeparator1.Size = new System.Drawing.Size(6, 25);
+            // 
+            // btnshowTrail
+            // 
+            this.btnshowTrail.CheckOnClick = true;
+            this.btnshowTrail.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.btnshowTrail.Image = ((System.Drawing.Image)(resources.GetObject("btnshowTrail.Image")));
+            this.btnshowTrail.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnshowTrail.Name = "btnshowTrail";
+            this.btnshowTrail.Size = new System.Drawing.Size(23, 22);
+            this.btnshowTrail.Text = "showTrail";
+            this.btnshowTrail.Click += new System.EventHandler(this.btnshowTrail_Click);
             // 
             // MainForm
             // 
@@ -342,6 +363,8 @@
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.TextBox txtLog;
         private System.Windows.Forms.ToolStripButton toolStripButton3;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
+        private System.Windows.Forms.ToolStripButton btnshowTrail;
     }
 }
 
