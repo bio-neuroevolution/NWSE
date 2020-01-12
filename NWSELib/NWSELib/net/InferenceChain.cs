@@ -14,8 +14,10 @@ namespace NWSELib.net
     /// </summary>
     public class InferenceChain
     {
+        #region 基本信息
         /// <summary>评判项</summary>
         public JudgeGene juegeItem;
+
         /// <summary>链头</summary>
         public Item head;
         
@@ -23,22 +25,13 @@ namespace NWSELib.net
         public Item current;
         /// <summary>变量值</summary>
         public double varValue;
+        /// <summary>
+        /// 动作轨迹：key是动作感知Id，Value是动作值和推理轨迹
+        /// </summary>
+        public Dictionary<int, (Vector, int[])> actionTraces = new Dictionary<int, (Vector, int[])>();
+        #endregion
 
-        public Item addItem(int referenceNode, (int, Vector) variable, List<(int, Vector)> conditionValues)
-        {
-            Item item = new Item()
-            {
-                referenceNode = referenceNode,
-                variable = variable,
-                conditions = conditionValues,
-                prev = current
-            };
-            if (current == null) current = item;
-            else
-                current.next.Add(item);
-            if (head == null) head = item;
-            return item;
-        }
+        #region 推理项
         public class Item
         {
             /// <summary>
@@ -46,13 +39,22 @@ namespace NWSELib.net
             /// </summary>
             public int referenceNode;
             /// <summary>
-            /// 推理结果：对变量的取值
+            /// 推理过程选择的记忆记录索引
             /// </summary>
-            public (int, Vector) variable;
+            public int referenceRecordIndex;
             /// <summary>
-            /// 推理结果：对条件的取值
+            /// 推理结果
             /// </summary>
-            public List<(int, Vector)> conditions = new List<(int, Vector)>();
+            public List<Vector> values;
+            /// <summary>
+            /// referenceNode的推理变量索引
+            /// </summary>
+            public int varIndex;
+            /// <summary>
+            /// 变量时间
+            /// </summary>
+            public int varTime;
+            
             /// <summary>
             /// 前一个推理项
             /// </summary>
@@ -62,6 +64,8 @@ namespace NWSELib.net
             /// </summary>
             public List<Item> next = new List<Item>();
         }
+
+        #endregion
         /// <summary>
         /// 寻找包含特定动感知Id的所有路径
         /// </summary>
@@ -81,10 +85,13 @@ namespace NWSELib.net
         /// <param name="traces"></param>
         /// <param name="curTrace"></param>
         /// <returns></returns>
-        private List<List<int>> findActionTrace(Item item,int actionSensorId, List<List<int>> traces,List<int> curTrace)
+        private List<List<int>> findActionTrace(Network net,Item item,int actionSensorId, List<List<int>> traces,List<int> curTrace)
         {
             if (curTrace == null) curTrace = new List<int>();
             if (traces == null) traces = new List<List<int>>();
+
+            Inference inf = (Inference)net.getNode(item.referenceNode);
+
             int p = item.conditions.ConvertAll(i => i.Item1).IndexOf(actionSensorId);
             if (p >= 0)
             {

@@ -514,7 +514,8 @@ namespace NWSEExperiment.maze
             double tempVelocity = Velocity+(actions[0] - 0.5) * 2.0;
             if (tempVelocity > 6.0) tempVelocity = 6.0;
             if (tempVelocity < -6.0) tempVelocity = (-6.0);
-            double tempHeading = Heading+(actions[1] - 0.5) * 0.2094395104 * 2;
+            //double tempHeading = Heading+(actions[1] - 0.5) * 0.2094395104 * 2;
+            double tempHeading = Heading + (actions[1] - 0.5) * 3.1415925;
 
             //double tempHeading = noisyHeading();
             //Heading = tempHeading;
@@ -528,10 +529,10 @@ namespace NWSEExperiment.maze
             Velocity += (actions[0] - 0.5) * 2.0;
             if (Velocity > 6.0) Velocity = 6.0;
             if (Velocity < -6.0) Velocity = (-6.0);
-            Heading += (actions[1] - 0.5) * 0.2094395104 * 2;
+            //Heading += (actions[1] - 0.5) * 0.2094395104 * 2;
+            Heading += (actions[1] - 0.5) * 3.1415925;
 
-            
-            
+
             updatePosition(timeStep);
             updateSensors();
             
@@ -555,10 +556,19 @@ namespace NWSEExperiment.maze
 
         internal void draw(Graphics g, CoordinateFrame frame,bool showtrail=false)
         {
+            //画位置
             Point2D p2 = frame.convertToDisplay(this.Location);
             g.FillEllipse(System.Drawing.Brushes.Red, new Rectangle((int)p2.X - 3, (int)p2.Y - 3, 6, 6));
-            
-            if(showtrail)
+
+            //画方向
+            double dx = Math.Cos(Heading) * 30;
+            double dy = Math.Sin(Heading) * 30;
+            Point2D dLocation = new Point2D(Location.X + dx, Location.Y + dy);
+            dLocation = frame.convertToDisplay(dLocation);
+            g.DrawLine(System.Drawing.Pens.Red, (float)p2.X, (float)p2.Y, (float)dLocation.X, (float)dLocation.Y);
+
+            //画轨迹
+            if (showtrail)
             {
                 for(int i=0;i<this.traces.Count-1;i++)
                 {

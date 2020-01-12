@@ -124,9 +124,9 @@ namespace NWSEExperiment.maze
         }
 
         /// <summary>
-        /// Resets the CurrentEnvironment to a small, blank square.
+        /// Resets the CurrentEnvronment to a small, blank square.
         /// </summary>
-        public void reset()
+        public void reload()
         {
 
             HardMaze newMaze = HardMaze.loadEnvironment(this.name);
@@ -220,7 +220,7 @@ namespace NWSEExperiment.maze
             }
         }
 
-        (List<double>, List<double>) IEnv.reset(Network net)
+        public (List<double>, List<double>) reset(Network net)
         {
             RobotAgent agent = this.agents.Values.ToList().FirstOrDefault(a => a.getId() == net.Id);
             if (agent == null)

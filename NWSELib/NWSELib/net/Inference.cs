@@ -101,6 +101,8 @@ namespace NWSELib.net
 
 
         }
+
+        
         
         internal double prob(List<Vector> values)
         {
@@ -151,7 +153,10 @@ namespace NWSELib.net
         /// 推理节点存储的记录
         /// </summary>
         protected List<InferenceRecord> records = new List<InferenceRecord>();
-
+        /// <summary>
+        /// 推理节点存储的记录
+        /// </summary>
+        public List<InferenceRecord> Records { get => this.records; }
         /// <summary>
         /// 新样本
         /// </summary>
@@ -169,6 +174,10 @@ namespace NWSELib.net
         {
         }
 
+        public InferenceGene getGene()
+        {
+            return (InferenceGene)gene;
+        }
         public List<int> getDimensionList(Network net)
         {
             List<int> dimension = new List<int>();
@@ -458,6 +467,27 @@ namespace NWSELib.net
             }
             return needMergeRecordPair.Count;
         }
+        /// <summary>
+        /// 将所有值中的环境部分（非动作部分）用envValues替换
+        /// </summary>
+        /// <param name="allValue"></param>
+        /// <param name="envValues"></param>
+        /// <returns></returns>
+        internal List<Vector> replaceEnvValue(List<Vector> allValue, List<Vector> envValues)
+        {
+            (int t1, int t2) = this.getGene().getTimeDiff();
+            int index = 0;
+            List<Vector> r = new List<Vector>(allValue);
+            for (int i=0;i<this.getGene().dimensions.Count;i++)
+            {
+                if (this.getGene().dimensions[i].Item2 != t1) continue;
+                NodeGene gene = this.getGene().owner[this.getGene().dimensions[i].Item1];
+                if (gene.Group.Contains("action")) continue;
+                r[i] = envValues[index++];
+
+            }
+            return r;
+        }
 
         public void adjust_weights()
         {
@@ -563,17 +593,29 @@ namespace NWSELib.net
         /// 求变量最大或者最小推理
         /// </summary>
         /// <param name="arg">argmin还是argmax</param>
-        /// <returns></returns>
-        public (List<Vector>, int,double) arginference(string arg)
+        /// <returns>
+        /// 记忆值（推理的依据）
+        /// 变量索引位置
+        /// 推理结果：得到的变量值
+        /// 所使用的记录索引
+        /// </returns>
+        public (List<Vector>, int,double,int) arginference(string arg)
         {
+            //当前记忆推理节点还没有任何记录
+            if (this.records.Count <= 0)
+            {
+                return (null, -1, double.NaN, -1);
+            }
+            
             //根据arg选择varId最大或者最小的那个节点
             InferenceRecord argRecord = null;
+            int argRecordIndex = -1;
             double value = arg == "argmin" ? double.MaxValue - 1 : double.MinValue + 1;
             int varindex = ((InferenceGene)this.gene).getVariableIndex();
 
             if(this.records.Count<=0)
             {
-                return (null,-1,double.NaN);
+                return (null,-1,double.NaN,-1);
             }
             for(int i=0;i<this.records.Count;i++)
             {
@@ -588,6 +630,8 @@ namespace NWSELib.net
                     value = len;
                 }
             }
+            argRecordIndex = this.records.IndexOf(argRecord);
+
             //对这个节点根据分布进行采样
             List<List<Vector>> samples = argRecord.sample(Session.GetConfiguration().agent.inferencesamples);
             //选择采样中使得varId最大或者最小的那个节点
@@ -607,11 +651,36 @@ namespace NWSELib.net
                     value = len;
                 }
             }
+
             //返回该节点的条件和变量的值
-            return (values, varindex, value);
+            return (values, varindex, value, argRecordIndex);
             
         }
-        
+
+        /// <summary>
+        /// 查找第index维与varValue最接近的记忆记录
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="varValue"></param>
+        /// <returns></returns>
+        public InferenceRecord getNearestRecord(int index,Vector value)
+        {
+            if (this.records == null || this.records.Count <= 0) return null;
+            double dis = double.MaxValue;
+            InferenceRecord r = null;
+            for (int i=0;i<this.records.Count;i++)
+            {
+                Vector v = this.records[i].means[index];
+                double d = v.distance(value);
+                if (v < dis)
+                {
+                    r = this.records[i];
+                    dis = v;
+                }
+            }
+            return r;
+        }
+
 
         #endregion
     }

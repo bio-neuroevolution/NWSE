@@ -47,7 +47,7 @@
   </agent>
 
   <learning>
-    <inference accept_prob="0.7" accept_max_count="3"></inference>
+    <inference accept_prob="0.7" accept_max_count="3" inference_distance="0.1"></inference>
   </learning>
 
   

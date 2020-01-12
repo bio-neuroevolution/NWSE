@@ -13,6 +13,9 @@ using log4net;
 
 using NWSELib.net;
 using NWSELib.genome;
+using NWSELib.evolution;
+using NWSELib.env;
+using NWSELib.common;
 
 namespace NWSEExperiment
 {
@@ -154,6 +157,56 @@ namespace NWSEExperiment
         {
             if (this.maze == null) return;
             this.maze.ShowTrail = btnshowTrail.Checked ;
+        }
+
+        private int interactive_time = 0;
+        private List<double> obs;
+        private List<double> gesture;
+        private List<double> actions;
+        private void toolStripButton4_Click(object sender, EventArgs e)
+        {
+            this.maze = new HardMaze();
+            this.evolutionSession = new Session(maze,null);
+            this.optima_net = new Network(NWSEGenome.create(evolutionSession));
+            evolutionSession.root = new EvolutionTreeNode(optima_net);
+            interactive_time = 0;
+            (obs, gesture) = maze.reset(optima_net);
+
+            this.txtMsg.Text = "第" + interactive_time.ToString() + "次交互" + System.Environment.NewLine;
+            this.txtMsg.Text += "障碍=" + Utility.toString(obs.GetRange(0, 6)) + System.Environment.NewLine; ;
+            this.txtMsg.Text += "目标=" + Utility.toString(obs.GetRange(6, 4)) + System.Environment.NewLine; ;
+            this.txtMsg.Text += "朝向=" + gesture[0].ToString("F3") + System.Environment.NewLine;
+            this.txtMsg.Text += System.Environment.NewLine;
+        }
+
+        private void toolStripButton5_Click(object sender, EventArgs e)
+        {
+            //网络执行
+            actions = this.optima_net.activate(obs, interactive_time);
+            //打印推理记忆节点现状
+            List<Node> infs = this.optima_net.Inferences;
+            for(int i=0;i<infs.Count;i++)
+            {
+                Inference inf = (Inference)infs[i];
+                this.txtMsg.Text += "记忆节点=" + inf.Gene.Text+ System.Environment.NewLine;
+                this.txtMsg.Text += "   记录数=" + inf.Records.Count.ToString() + System.Environment.NewLine;
+                for(int j=0;j< inf.Records.Count;j++)
+                {
+                    this.txtMsg.Text += "   mean" + j.ToString() + "=" + Utility.toString(inf.Records[j].means.flatten().Item1.ToList()) + System.Environment.NewLine;
+                }
+                
+            }
+            this.txtMsg.Text += System.Environment.NewLine;
+
+            //打印推理过程
+            if (this.optima_net.currentInferenceChain == null)
+            {
+                this.txtMsg.Text += "随机动作=" + Utility.toString(actions) + System.Environment.NewLine;
+                return;
+            }
+            this.txtMsg.Text += "推理动作=" + Utility.toString(actions) + System.Environment.NewLine;
+            this.txtMsg.Text += "评判依据=" + this.optima_net.currentInferenceChain.juegeItem.Text + System.Environment.NewLine;
+            this.txtMsg.Text += "预期值=" + this.optima_net.currentInferenceChain.varValue.ToString() + System.Environment.NewLine;
         }
     }
 }

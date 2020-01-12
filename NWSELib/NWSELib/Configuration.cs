@@ -150,6 +150,8 @@ namespace NWSELib
             public double accept_prob;
             [XmlAttribute]
             public int accept_max_count;
+            [XmlAttribute]
+            public double inference_distance;
         }
 
         

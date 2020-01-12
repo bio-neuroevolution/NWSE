@@ -121,6 +121,33 @@ namespace NWSELib.common
    
         }
 
-        
+        internal static bool intersection<T>(List<T> l1, List<T> l2)
+        {
+            for(int i=0;i<l1.Count;i++)
+            {
+                for(int j = 0;j<l2.Count;j++)
+                {
+                    if (l1[i].Equals(l2[j])) return true;
+                }
+            }
+            return false;
+        }
+        /// <summary>
+        /// v1是否全部包含v2
+        /// </summary>
+        /// <param name="v1"></param>
+        /// <param name="v2"></param>
+        /// <returns></returns>
+        public static bool ContainsAll(List<int> v1, List<int> v2)
+        {
+            if (v1 == null || v1.Count <= 0) return false;
+            if (v2 == null || v2.Count <= 0) return false;
+
+            for(int i=0;i<v2.Count;i++)
+            {
+                if (!v1.Contains(v2[i])) return false;
+            }
+            return true;
+        }
     }
 }

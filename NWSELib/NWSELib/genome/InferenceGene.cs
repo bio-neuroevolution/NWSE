@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NWSELib.common;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -137,6 +138,26 @@ namespace NWSELib.genome
 
         }
         
+        /// <summary>
+        /// 后置变量数
+        /// </summary>
+        public int VariableCount
+        {
+            get
+            {
+                return this.dimensions.FindAll(d => d.Item2 == 0).Count;
+            }
+        }
+        /// <summary>
+        /// 前置条件数
+        /// </summary>
+        public int ConditionCount
+        {
+            get
+            {
+                return this.dimensions.FindAll(d => d.Item2 == 1).Count;
+            }
+        }
 
         /// <summary>
         /// 得到推理变量Id对应的索引
@@ -208,32 +229,53 @@ namespace NWSELib.genome
         public bool matchVariable(params int[] conditions)
         {
             (int t1, int t2) = this.getTimeDiff();
-            List<int> conds = conditions.ToList();
-            int varid = this.getVariable().Item1;
-            if (!conds.Contains(varid)) return false;
-            return true;
+            if(t1 == t2) //该节点各项无时间差异，属于关联记忆节点
+            {
+                List<int> conds = conditions.ToList();
+                return Utility.intersection<int>(conditions.ToList(), conds);
+            }
+            else
+            {
+                int varid = this.getVariable().Item1;
+                return conditions.Contains(varid);
+            }
+            
         }
 
-        /// <summary>
-        /// 条件是否匹配
-        /// </summary>
-        /// <param name="allmatched">要求全部匹配</param>
-        /// <param name="conditions">条件Id</param>
-        /// <returns></returns>
-        public bool matchCondition(bool allmatched, params int[] conditions)
+        public List<int> getVariables()
         {
             (int t1, int t2) = this.getTimeDiff();
-            List<int> conds = conditions.ToList();
-            List<int> condids = this.getConditions().ConvertAll(x=>x.Item1);
-            for (int i = 0; i < condids.Count; i++)
-            {
-                if (!conds.Contains(condids[i])) continue;
-                conds.Remove(condids[i]);
-            }
-            return allmatched ? conds.Count <= 0 : conds.Count < conditions.Length;
+            return this.dimensions.FindAll(d => d.Item2 == t2).ConvertAll(d => d.Item1);
         }
 
+        public List<int> getConditionsExcludeActionSensor()
+        {
+            List<int> r = new List<int>();
+            (int t1, int t2) = this.getTimeDiff();
+            for (int i=0;i<dimensions.Count;i++)
+            {
+                if (dimensions[i].Item2 != t1) continue;
+                if (this.owner[dimensions[i].Item1].Group.Contains("action"))
+                    continue;
+                r.Add(dimensions[i].Item1);
 
+            }
+            return r;
+        }
 
+        public List<int> getActionSensorsConditions()
+        {
+            List<int> r = new List<int>();
+            (int t1, int t2) = this.getTimeDiff();
+            for (int i = 0; i < dimensions.Count; i++)
+            {
+                if (dimensions[i].Item2 != t1) continue;
+                if (!this.owner[dimensions[i].Item1].Group.Contains("action"))
+                    continue;
+                r.Add(dimensions[i].Item1);
+
+            }
+            return r;
+        }
     }
 }
