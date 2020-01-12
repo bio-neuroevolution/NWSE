@@ -144,6 +144,17 @@ namespace NWSELib.net
             this.acceptRecords.Clear();
 
         }
+
+        public List<Vector> forward_inference(Inference inf, List<Vector> allCondValues)
+        {
+            int[] index = inf.getGene().getVariableIndexs();
+            List<Vector> r = new List<Vector>();
+            for(int i=0;i<index.Length;i++)
+            {
+                r.Add(this.means[index[i]]);
+            }
+            return r;
+        }
     }
     
     public class Inference : Node
@@ -398,6 +409,33 @@ namespace NWSELib.net
                 r.ConvertAll(e=>e.Count.ToString()).Aggregate((a,b)=>a+","+b));
             return (r,dens);
         }
+        /// <summary>
+        /// 给定环境条件值和动作值，组合成全部前置条件值
+        /// </summary>
+        /// <param name="conditions"></param>
+        /// <param name="actions"></param>
+        /// <returns></returns>
+        public List<Vector> createConditions(List<Vector> conditions, List<Vector> actions)
+        {
+            List<Vector> r = new List<Vector>();
+            int x = 0;
+            (int t1, int t2) = this.getGene().getTimeDiff();
+            for(int i=0;i<this.getGene().dimensions.Count;i++)
+            {
+                if (this.getGene().dimensions[i].Item1 != t1) continue;
+                NodeGene nodeGene = this.getGene().owner[this.getGene().dimensions[i].Item1];
+                if(nodeGene.Group.Contains("action"))
+                {
+                    r.AddRange(actions);
+                }
+                else
+                {
+                    r.Add(conditions[x++]);
+                }
+            }
+            return r;
+        }
+
         /// <summary>
         /// 将vs中的所有样本作为新的高斯分量记录
         /// All samples in vs are recorded as new Gaussian components

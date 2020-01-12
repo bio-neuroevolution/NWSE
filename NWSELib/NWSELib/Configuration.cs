@@ -152,6 +152,8 @@ namespace NWSELib
             public int accept_max_count;
             [XmlAttribute]
             public double inference_distance;
+            [XmlAttribute]
+            public double env_distance;
         }
 
         

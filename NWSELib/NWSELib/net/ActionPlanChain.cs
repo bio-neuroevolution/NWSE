@@ -1,7 +1,11 @@
 ﻿using NWSELib.common;
+using NWSELib.genome;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Linq;
+
+using NWSELib.common;
 
 namespace NWSELib.net
 {
@@ -110,6 +114,10 @@ namespace NWSELib.net
             /// 对这个行动计划的预期评价
             /// </summary>
             public double evaulation;
+            /// <summary>
+            /// 评价用到的评判
+            /// </summary>
+            internal List<JudgeGene> judgeItems = new List<JudgeGene>();
 
             /// <summary>
             /// 上一个行动计划
@@ -123,6 +131,19 @@ namespace NWSELib.net
             /// 行动选择标记，指示选择childs中的哪一个
             /// </summary>
             public int selected = 0;
+
+            public string printCurrentItem()
+            {
+                StringBuilder str = new StringBuilder();
+                str.Append("    inference=" + this.owner.inference.Gene.Text + System.Environment.NewLine);
+                str.Append("    recall=" + this.owner.conditions.toString() + System.Environment.NewLine);
+                str.Append("    record=" + this.owner.record.means.toString() + System.Environment.NewLine);
+                str.Append("    expect=" + this.expects.toString() + System.Environment.NewLine);
+                str.Append("    evulation=" + this.evaulation.ToString("F3") + System.Environment.NewLine);
+                if(this.judgeItems.Count>0)
+                    str.Append("    judgeitem=" + this.judgeItems.ConvertAll(x=>x.Text).Aggregate((a,b)=>a+";"+b) + System.Environment.NewLine);
+                return str.ToString();
+            }
         }
         
 

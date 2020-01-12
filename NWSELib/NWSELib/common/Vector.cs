@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -90,6 +91,14 @@ namespace NWSELib.common
             v.maxCapacity = this.maxCapacity;
             v.values.AddRange(this.values);
             return v;
+        }
+
+        public override String ToString()
+        {
+            Vector v = this;
+            if (v == null || v.Size <= 0) return "";
+            return v.ToList().ConvertAll(x => x.ToString("F3"))
+                .Aggregate((a, b) => a + "," + b);
         }
         #endregion
 
@@ -241,6 +250,23 @@ namespace NWSELib.common
             }
             return (avg, System.Math.Sqrt(s));
         }
+        public double manhantan_distance(Vector v)
+        {
+            int size = Math.Max(this.Size, v.Size);
+            double d = 0;
+            for(int i=0;i<size;i++)
+            {
+                if (i >= this.Size) d += v[i];
+                else if (i >= v.Size) d += this[i];
+                else d += Math.Abs(v[i]-this[i]);
+            }
+            return d;
+        }
+        public static double manhantan_distance(List<Vector> v1, List<Vector> v2)
+        {
+            return v1.flatten().Item1.manhantan_distance(v2.flatten().Item1);
+        }
+
         #endregion
     }
     public static class VectorExtender
@@ -339,6 +365,12 @@ namespace NWSELib.common
             return vv1.distance(vv2);
 
         }
+
+        public static String toString(this List<Vector> vs)
+        {
+            if (vs == null || vs.Count <= 0) return "";
+            return vs.ConvertAll(v => v.ToString()).Aggregate((a, b) => a + ";" + b);
+        }
         #endregion
 
         #region ×ª»»
@@ -374,6 +406,6 @@ namespace NWSELib.common
         }
         #endregion
 
-
+        
     }
 }

@@ -22,4 +22,3 @@ D:\gitlib\NWSE\NWSELib\NWSELib\bin\Debug\netstandard2.0\lib\Microsoft.ML.Probabi
 D:\gitlib\NWSE\NWSELib\NWSELib\bin\Debug\netstandard2.0\lib\Microsoft.ML.Probabilistic.Learners.xml
 D:\gitlib\NWSE\NWSELib\NWSELib\bin\Debug\netstandard2.0\lib\Microsoft.ML.Probabilistic.pdb
 D:\gitlib\NWSE\NWSELib\NWSELib\bin\Debug\netstandard2.0\lib\Microsoft.ML.Probabilistic.xml
-D:\gitlib\NWSE\NWSELib\NWSELib\obj\Debug\netstandard2.0\NWSELib.csprojAssemblyReference.cache

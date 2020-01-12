@@ -174,6 +174,21 @@ namespace NWSELib.genome
             }
             return -1;
         }
+
+        public int[] getVariableIndexs()
+        {
+            (int t1, int t2) = this.getTimeDiff();
+            
+            List<int> r = new List<int>();
+            
+            for (int i = 0; i < dimensions.Count; i++)
+            {
+                if (dimensions[i].Item2 == t2)
+                    r.Add(i);
+            }
+            return r.ToArray();
+        }
+
         /// <summary>
         /// 得到条件Id对应的索引
         /// </summary>

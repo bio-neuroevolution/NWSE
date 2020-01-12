@@ -403,7 +403,8 @@ namespace NWSELib.net
                     {
                         ActionPlan nextPlan = actionPlanChain.curPlanItem.childs[actionPlanChain.curPlanItem.selected];
                         actionPlanChain.curPlanItem = nextPlan.items[nextPlan.selected];
-                        setEffectValue();
+                        setEffectValue(time);
+                        return;
                     }
                     else
                     {
@@ -420,8 +421,88 @@ namespace NWSELib.net
             //选择行动记录评估值最高的
             doSelectActionPlan(this.actionPlanChain);
             //根据行动计划设置输出
-            createEffectorValue();
+            setEffectValue(time);
 
+        }
+
+        private void doSelectActionPlan(ActionPlanChain chain)
+        {
+            if (chain == null) return;
+            double max = double.MinValue;
+            ActionPlan.Item item = null;
+            for (int i=0;i<chain.roots.Count;i++)
+            {
+               doSelectActionPlan(chain, chain.roots[i],ref max,ref item);
+            }
+
+            
+            
+        }
+        private void setSelectedIndex(ActionPlanChain chain,ActionPlan.Item item)
+        {
+            if (item == null) return;
+            item.selected = -1;
+            item.owner.selected = item.owner.items.IndexOf(item);
+
+            if(item.owner.prev == null)
+            {
+                chain.selected = chain.roots.IndexOf(item.owner);
+                return;
+            }
+            for(int i=0;i< item.owner.prev.items.Count;i++)
+            {
+                int index = item.owner.prev.items[i].childs.IndexOf(item.owner);
+                if(index>=0)
+                {
+                    setSelectedIndex(chain, item.owner.prev.items[i]);
+                    break;
+                }
+            }
+        }
+        private void doSelectActionPlan(ActionPlanChain chain, ActionPlan plan, ref double max,ref  ActionPlan.Item maxitem)
+        {
+            
+            if (plan == null) return;
+            if (plan.items.Count <= 0) return;
+            
+            for(int i=0;i<plan.items.Count;i++)
+            {
+                if(plan.items[i].evaulation > max)
+                {
+                    max = plan.items[i].evaulation;
+                    maxitem = plan.items[i];
+                }
+            }
+            for(int i=0;i<plan.items.Count;i++)
+            {
+                if (plan.items[i].childs.Count <= 0) continue;
+                for(int j=0;j< plan.items[i].childs.Count;j++)
+                {
+                    doSelectActionPlan(chain, plan.items[i].childs[j], ref max, ref maxitem);
+                }
+            }
+
+        }
+        /// <summary>
+        /// 根据行动计划设定输出
+        /// </summary>
+        private void setEffectValue(int time)
+        {
+            //没有行动计划，设置随机动作
+            if(this.actionPlanChain == null)
+            {
+                for (int i = 0; i < this.Effectors.Count; i++)
+                    this.Effectors[i].randomValue(this, time);
+            }else if(this.actionPlanChain.curPlanItem == null)
+            {
+                ActionPlan plan = this.actionPlanChain.roots[this.actionPlanChain.selected];
+                this.actionPlanChain.curPlanItem = plan.items[plan.selected];
+                
+            }
+            for (int i = 0; i < this.Effectors.Count; i++)
+            {
+                this.Effectors[i].activate(this, time, this.actionPlanChain.curPlanItem.actions[i]);
+            }
         }
         private ActionPlanChain doActionPlan(int time)
         {
@@ -429,11 +510,11 @@ namespace NWSELib.net
             for (int i=0;i<this.Inferences.Count;i++)
             {
                 //取得推理节点的真实环境输入
-                List<Vector> inputValues = this.getInputValues(this.Inferences[i],time);
+                List<Vector> inputValues = this.getInputValues((Inference)this.Inferences[i],time);
                 if (inputValues == null || inputValues.Count <= 0) continue;
 
                 //根据真实输入找到最相似的记录（记录，相似度）
-                (InferenceRecord record,double similarity) = recall(this.Inferences[i], inputValues);
+                (InferenceRecord record,double similarity) = recall((Inference)this.Inferences[i], inputValues);
                 if (record == null) continue;
                 if (similarity < Session.GetConfiguration().learning.inference.inference_distance)
                     continue;
@@ -451,6 +532,18 @@ namespace NWSELib.net
                 
             }
             return chain;
+        }
+        /// <summary>
+        /// 取得推理节点的输入
+        /// </summary>
+        /// <param name="inf"></param>
+        /// <param name="time"></param>
+        /// <returns></returns>
+        private List<Vector> getInputValues(Inference inf, int time)
+        {
+            List<Node> inputs = this.getInputNodes(inf.Id);
+            List<Vector> r = inputs.ConvertAll(i => i.GetValue(time));
+            return r.Contains(null) ? null : r;
         }
         private ActionPlanChain doForcast(int time,ActionPlanChain chain,ActionPlan plan)
         {
@@ -471,8 +564,8 @@ namespace NWSELib.net
                 ActionPlan.Item actionItem = new ActionPlan.Item();
                 actionItem.actions = actions;
                 actionItem.expects = results;
-                actionItem.evaulation = doEvaulation(plan,actionItem);
                 actionItem.owner = plan;
+                actionItem.evaulation = doEvaulation(plan,actionItem);
                 plan.items.Add(actionItem);
 
                 if (nextinfs == null || nextinfs.Count <= 0) continue;
@@ -498,8 +591,68 @@ namespace NWSELib.net
             }
             return chain;
         }
+        /// <summary>
+        /// 判断执行这组动作得到的预期评判
+        /// </summary>
+        /// <param name="plan"></param>
+        /// <param name="actionItem"></param>
+        /// <returns></returns>
+        private double doEvaulation(ActionPlan plan, ActionPlan.Item actionItem)
+        {
+            List<int> varIds = plan.inference.getGene().getVariables();
+            List<double> evualtions = new List<double>();
+            for(int i=0;i<this.Genome.judgeGenes.Count;i++)
+            {
+                int index = varIds.IndexOf(this.Genome.judgeGenes[i].variable);
+                //预期结果中不包含评判项，
+                if (index<0)
+                {
+                    continue;
+                }
+                Vector v = actionItem.expects[index];
+                double value = v.length();
+                double expect = 0;
+                if (this.Genome.judgeGenes[i].expression == "argmax")
+                    expect = 1.0;
+                evualtions.Add((1 - Math.Abs(expect - value))* this.Genome.judgeGenes[i].weight);
+                actionItem.judgeItems.Add(this.Genome.judgeGenes[i]);
+            }
+            return evualtions.Sum();
+        }
+        /// <summary>
+        /// 计算所有的动作组合
+        /// </summary>
+        /// <param name="actionReceptors"></param>
+        /// <returns></returns>
         public List<List<Vector>> createActionComposites(List<Node> actionReceptors)
         {
+            List<int> counts = actionReceptors.ConvertAll(a => (int)Session.GetConfiguration().agent.receptors.GetSensor(a.Name).Level.Min);
+            List<double> units = actionReceptors.ConvertAll(a => (Session.GetConfiguration().agent.receptors.GetSensor(a.Name).Range.Distance)/(Session.GetConfiguration().agent.receptors.GetSensor(a.Name).Level.Min));
+            List<List<Vector>> r = new List<List<Vector>>();
+
+
+            if(actionReceptors.Count == 1)
+            {
+                for(int i=0;i<counts[0];i++)
+                {
+                    List<Vector> t1 = new List<Vector>();
+                    t1.Add(new Vector((i* units[0]+(i+1)*units[0])/2));
+                    r.Add(t1);
+                }
+            }else
+            {
+                for (int i = 0; i < counts[0]; i++)
+                {
+                    for(int j=0;j<counts[1];j++)
+                    {
+                        List<Vector> t1 = new List<Vector>();
+                        t1.Add(new Vector((i * units[0] + (i + 1) * units[0]) / 2));
+                        t1.Add(new Vector((j * units[1] + (j + 1) * units[1]) / 2));
+                        r.Add(t1);
+                    }
+                }
+            }
+            return r;
 
         }
         /// <summary>
@@ -773,7 +926,7 @@ namespace NWSELib.net
 
             for(int k=0;k<actionSensorIds.Count;k++)
             {
-                List<List<int>> traces = chain.findActionTrace(actionSensorIds[k]);
+                List<List<int>> traces = chain.findActionTrace(this,actionSensorIds[k]);
                 if(traces == null || traces.Count<=0) //没有推理到该动作，给一个随机值
                 {
                     double min = Session.GetConfiguration().agent.receptors.actions[k].Range.Min;
@@ -785,7 +938,7 @@ namespace NWSELib.net
                 {
                     //随机选择一个推理迹
                     int traceIndex = new Random().Next(0,traces.Count);
-                    double value = chain.getValueFromTrace(actionSensorIds[k], 0, traces[traceIndex]);
+                    double value = chain.getValueFromTrace(this,actionSensorIds[k], 0, traces[traceIndex]);
                     double min = Session.GetConfiguration().agent.receptors.actions[k].Range.Min;
                     double max = Session.GetConfiguration().agent.receptors.actions[k].Range.Max;
                     value = Math.Min(Math.Max(value, min), max);

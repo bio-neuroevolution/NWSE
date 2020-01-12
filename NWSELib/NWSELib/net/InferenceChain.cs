@@ -71,11 +71,11 @@ namespace NWSELib.net
         /// </summary>
         /// <param name="actionSensorId"></param>
         /// <returns></returns>
-        public List<List<int>> findActionTrace(int actionSensorId)
+        public List<List<int>> findActionTrace(Network net, int actionSensorId)
         {
             List<List<int>> traces = new List<List<int>>();
 
-            return findActionTrace(head, actionSensorId, traces, null);
+            return findActionTrace(net,head, actionSensorId, traces, null);
         }
         /// <summary>
         /// 递归寻找包含特定动感知Id的所有路径
@@ -92,7 +92,7 @@ namespace NWSELib.net
 
             Inference inf = (Inference)net.getNode(item.referenceNode);
 
-            int p = item.conditions.ConvertAll(i => i.Item1).IndexOf(actionSensorId);
+            int p = inf.getGene().getConditions().ConvertAll(i => i.Item1).IndexOf(actionSensorId);
             if (p >= 0)
             {
                 traces.Add(curTrace);
@@ -102,7 +102,7 @@ namespace NWSELib.net
             for(int i=0;i<item.next.Count;i++)
             {
                 curTrace.Add(i);
-                traces = findActionTrace(item.next[i], actionSensorId, traces, curTrace);
+                traces = findActionTrace(net,item.next[i], actionSensorId, traces, curTrace);
             }
             return traces;
             
@@ -114,10 +114,12 @@ namespace NWSELib.net
         /// <param name="index"></param>
         /// <param name="trace"></param>
         /// <returns></returns>
-        public double getValueFromTrace(int nodeid,int index,List<int> trace)
+        public double getValueFromTrace(Network net,int nodeid,int index,List<int> trace)
         {
+
             Item item = do_trace(trace, 0, head);
-            (int id,Vector value) = item.conditions.FirstOrDefault(x => x.Item1 == nodeid);
+            Inference inf = (Inference)net.getNode(item.referenceNode);
+            (int id,Vector value) = inf.getGene().getConditions().FirstOrDefault(x => x.Item1 == nodeid);
             return value[index];
         }
 

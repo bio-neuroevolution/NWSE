@@ -38,7 +38,7 @@
       </gestures>
       <actions>
         <sensor name="_a1" cataory="speed" group="action"  range="[0 - 1]" level="[5-5]"/>
-        <sensor name="_a2" cataory="omege" group="action"  range="[0 - 1]" level="[8-8]"/>
+        <sensor name="_a2" cataory="omege" group="action"  range="[0 - 1]" level="[5-5]"/>
       </actions>
     </receptors>
 
@@ -47,7 +47,7 @@
   </agent>
 
   <learning>
-    <inference accept_prob="0.7" accept_max_count="3"></inference>
+    <inference accept_prob="0.7" accept_max_count="3" inference_distance="0.1" env_distance="0.6"></inference>
   </learning>
 
   

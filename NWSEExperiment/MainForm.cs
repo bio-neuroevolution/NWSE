@@ -163,6 +163,11 @@ namespace NWSEExperiment
         private List<double> obs;
         private List<double> gesture;
         private List<double> actions;
+        /// <summary>
+        /// 交互式环境重置
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void toolStripButton4_Click(object sender, EventArgs e)
         {
             this.maze = new HardMaze();
@@ -178,7 +183,11 @@ namespace NWSEExperiment
             this.txtMsg.Text += "朝向=" + gesture[0].ToString("F3") + System.Environment.NewLine;
             this.txtMsg.Text += System.Environment.NewLine;
         }
-
+        /// <summary>
+        /// 接收输入
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void toolStripButton5_Click(object sender, EventArgs e)
         {
             //网络执行
@@ -188,7 +197,7 @@ namespace NWSEExperiment
             for(int i=0;i<infs.Count;i++)
             {
                 Inference inf = (Inference)infs[i];
-                this.txtMsg.Text += "记忆节点=" + inf.Gene.Text+ System.Environment.NewLine;
+                this.txtMsg.Text += "推理节点=" + inf.Gene.Text+ System.Environment.NewLine;
                 this.txtMsg.Text += "   记录数=" + inf.Records.Count.ToString() + System.Environment.NewLine;
                 for(int j=0;j< inf.Records.Count;j++)
                 {
@@ -197,16 +206,32 @@ namespace NWSEExperiment
                 
             }
             this.txtMsg.Text += System.Environment.NewLine;
-
-            //打印推理过程
-            if (this.optima_net.currentInferenceChain == null)
+        }
+        /// <summary>
+        /// 查看执行规划
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void toolStripButton6_Click(object sender, EventArgs e)
+        {
+            this.txtMsg.Text += "执行规划:" + System.Environment.NewLine;
+            if (this.optima_net.actionPlanChain == null)
             {
-                this.txtMsg.Text += "随机动作=" + Utility.toString(actions) + System.Environment.NewLine;
+                this.txtMsg.Text += "随机动作=" +
+                this.optima_net.Effectors.ConvertAll(x => x.Value[0].ToString("F3")).Aggregate((a, b) => a + "," + b)
+                + System.Environment.NewLine;
+
                 return;
             }
-            this.txtMsg.Text += "推理动作=" + Utility.toString(actions) + System.Environment.NewLine;
-            this.txtMsg.Text += "评判依据=" + this.optima_net.currentInferenceChain.juegeItem.Text + System.Environment.NewLine;
-            this.txtMsg.Text += "预期值=" + this.optima_net.currentInferenceChain.varValue.ToString() + System.Environment.NewLine;
+            this.txtMsg.Text += this.optima_net.actionPlanChain.curPlanItem.printCurrentItem() + System.Environment.NewLine;
+
+
+        }
+
+        private void toolStripButton7_Click(object sender, EventArgs e)
+        {
+            ((IEnv)this.maze).action(this.optima_net,
+                this.optima_net.Effectors.ConvertAll(x => x.Value[0]));
         }
     }
 }
