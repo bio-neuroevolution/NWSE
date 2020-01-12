@@ -239,13 +239,15 @@ namespace NWSEExperiment.maze
         (List<double>, List<double>, List<double>, double) IEnv.action(Network net, List<double> actions)
         {
             RobotAgent agent = this.agents.Values.ToList().FirstOrDefault(a => a.getId() == net.Id);
-            agent.doAction(actions.ToArray());
-            
+            bool noncollision = agent.doAction(actions.ToArray());
+
             List<double> obs = agent.getObserve();
             List<double> gesture = new List<double>();
-            gesture.Add(agent.Heading);
-           
-            double reward = this.compute_reward(agent);
+            gesture.Add(agent.Heading/(2*Math.PI));
+
+            double reward = noncollision? this.compute_reward(agent):-100;
+            if(noncollision)
+                reward = this.compute_reward(agent);
             return (obs, gesture, actions,reward);
         }
 

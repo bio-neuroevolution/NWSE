@@ -215,6 +215,7 @@ namespace NWSEExperiment.maze
 
             angle *= 57.297f;
             angle -= (float)Owner.Heading * 57.297f;
+            
 
             while (angle > 360)
                 angle -= 360;
@@ -334,9 +335,10 @@ namespace NWSEExperiment.maze
 
             Location = new Point2D(locationX, locationY);
             AreaOfImpact = new Circle2D(Location, RADIUS);
-            
 
-            Heading = heading;
+
+            //Heading =EngineUtilities.angletoradian(heading);
+            Heading = heading/ EngineUtilities.DRScale;
             Velocity = 0.0;
             HasCollided = false;
             this.Timestep = timeStep;
@@ -358,8 +360,8 @@ namespace NWSEExperiment.maze
             // Set up the 5 front-facing rangefinders
             WallSensors = new List<IAgentSensor>();
             double delta = 180.0 / 4; // in degrees
-            delta /= 57.29578f; // convert degrees to radians because that is what RangeFinders take
-            double startAngle = 4.71239f; // start the first rangefinder facing due left
+            delta /= 57.29578f; //45 /=(180/pi) convert degrees to radians because that is what RangeFinders take
+            double startAngle = 4.71239f; //270 start the first rangefinder facing due left
             for (int j = 0; j < numWallSensors; j++)
             {
                 WallSensors.Add(new RangeFinder(startAngle, this, RangefinderRange, 0.0));
@@ -368,15 +370,16 @@ namespace NWSEExperiment.maze
 
             // Set up the single rear-facing rangefinder
             startAngle -= delta; // Set the StartAngle to facing due right
-            startAngle += (90 / 57.29578f); // (convert 90 degrees to radians)
+            startAngle += (90 / 57.29578f); //1.57 (convert 90 degrees to radians)
             WallSensors.Add(new RangeFinder(startAngle, this, RangefinderRange, 0.0));
 
             // Set up the POI radars
             GoalSensors = new List<IAgentSensor>();
-            GoalSensors.Add(new Radar(45, 135, this, "goal", PiesliceRange)); // front
-            GoalSensors.Add(new Radar(135, 225, this, "goal", PiesliceRange)); // right
-            GoalSensors.Add(new Radar(225, 315, this, "goal", PiesliceRange)); // rear
-            GoalSensors.Add(new Radar(315, 45, this, "goal", PiesliceRange)); // left
+            GoalSensors.Add(new Radar(315, 45, this, "goal", PiesliceRange)); // front
+            GoalSensors.Add(new Radar(45, 135, this, "goal", PiesliceRange)); // right
+            GoalSensors.Add(new Radar(135, 225, this, "goal", PiesliceRange)); // rear
+            GoalSensors.Add(new Radar(225, 315, this, "goal", PiesliceRange)); // left
+            
 
             // Set up the Northstar GoalSensors
             CompassSensors = new List<IAgentSensor>();
@@ -415,8 +418,10 @@ namespace NWSEExperiment.maze
             double angle = 0;
             Point2D temp;
             temp = new Point2D(maze.goal_point.X, maze.goal_point.Y);
-            temp.X -= (float)AreaOfImpact.Position.X;
-            temp.Y -= (float)AreaOfImpact.Position.Y;
+            temp.X -= (float)Location.X;
+            temp.Y -= (float)Location.Y;
+            //temp.X -= (float)AreaOfImpact.Position.X;
+            //temp.Y -= (float)AreaOfImpact.Position.Y;
 
             angle = (float)temp.angle();
             angle -= Heading;
@@ -446,7 +451,7 @@ namespace NWSEExperiment.maze
 
             // Update the compass/northstar GoalSensors
             // Note: This is trivial compared to rangefinder updates, which check against all walls for collision. No need to gate it to save CPU.
-            double northstarangle = Heading;
+            double northstarangle = Heading/ 57.297;
             northstarangle *= 57.297f; // convert radians to degrees
 
             while (northstarangle > 360)
@@ -500,22 +505,23 @@ namespace NWSEExperiment.maze
             return obs.ToList();
         }
 
-        
 
+        public const double Max_Rotate_Action = Math.PI / 2;
+        public const double Max_Speed_Action = 40;
         /// <summary>
         /// Enacts agent behavior based on neural network outputs. Movement uses instant/reactive turning and acceleration-based movement (hybrid approach) to encourage robots to move at the same (maximum) Velocity.
         /// </summary>
         /// <param name="outputs">Neural network outputs.</param>
         /// <param name="Timestep">The current timestep.</param>
-        public void doAction(double[] actions)
+        public bool doAction(double[] actions)
         {
             double timeStep = this.Timestep;
 
-            double tempVelocity = Velocity+(actions[0] - 0.5) * 2.0;
-            if (tempVelocity > 6.0) tempVelocity = 6.0;
-            if (tempVelocity < -6.0) tempVelocity = (-6.0);
-            //double tempHeading = Heading+(actions[1] - 0.5) * 0.2094395104 * 2;
-            double tempHeading = Heading + (actions[1] - 0.5) * 3.1415925;
+            double tempVelocity = Velocity+(actions[0] - 0.5) * Max_Speed_Action;
+            //if (tempVelocity > 6.0) tempVelocity = 6.0;
+            //if (tempVelocity < -6.0) tempVelocity = (-6.0);
+            double tempHeading = Heading+(actions[1] - 0.5) * Max_Rotate_Action * 2;
+           
 
             //double tempHeading = noisyHeading();
             //Heading = tempHeading;
@@ -524,17 +530,19 @@ namespace NWSEExperiment.maze
             Point2D tempLocation = new Point2D(Location.X + dx, Location.Y + dy);
 
             if (this.maze.robotCollide(tempLocation))
-                return;
+                return false;
 
-            Velocity += (actions[0] - 0.5) * 2.0;
-            if (Velocity > 6.0) Velocity = 6.0;
-            if (Velocity < -6.0) Velocity = (-6.0);
-            //Heading += (actions[1] - 0.5) * 0.2094395104 * 2;
-            Heading += (actions[1] - 0.5) * 3.1415925;
+            Velocity += (actions[0] - 0.5) * Max_Speed_Action;
+            //if (Velocity > 6.0) Velocity = 6.0;
+            //if (Velocity < -6.0) Velocity = (-6.0);
+            Heading += (actions[1] - 0.5) * Max_Rotate_Action * 2;
+            
 
 
             updatePosition(timeStep);
             updateSensors();
+
+            return true;
             
         }
         public void updatePosition(double Timestep)

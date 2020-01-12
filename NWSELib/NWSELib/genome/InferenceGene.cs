@@ -80,8 +80,8 @@ namespace NWSELib.genome
 
         private int comp_dimension((int,int) t1,(int,int) t2)
         {
-            if (t1.Item2 > t2.Item2) return 1;
-            else if (t1.Item2 < t2.Item2) return -1;
+            if (t1.Item2 > t2.Item2) return -1;
+            else if (t1.Item2 < t2.Item2) return 1;
             else
             {
                 if (t1.Item1 > t2.Item1) return 1;

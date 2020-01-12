@@ -9,26 +9,7 @@ using NWSELib.common;
 
 namespace NWSELib.net
 {
-    /// <summary>
-    /// 行动规划
-    /// </summary>
-    public class ActionPlanChain
-    {
-        /// <summary>
-        /// 当前已经实施的行动计划
-        /// </summary>
-        public ActionPlan.Item curPlanItem;
-        /// <summary>
-        /// 行动选择标记，指示选择roots中的哪一个
-        /// </summary>
-        public int selected = -1;
-        /// <summary>
-        /// 行动计划集
-        /// </summary>
-        public readonly List<ActionPlan> roots = new List<ActionPlan>();
-        
-
-    }
+    
     /// <summary>
     /// 行动规划项
     /// </summary>
@@ -40,9 +21,33 @@ namespace NWSELib.net
         public Inference inference;
 
         /// <summary>
-        /// 行动条件
+        /// 前一个行动计划
         /// </summary>
-        public List<Vector> conditions;
+        public ActionPlan parent;
+        /// <summary>
+        /// 后序行动
+        /// </summary>
+        public List<ActionPlan> childs = new List<ActionPlan>();
+
+        public int Depth
+        {
+            get
+            {
+                return getDepth(this);
+                
+            }
+        }
+        private static int getDepth(ActionPlan plan, int d=0)
+        {
+            if (plan == null) return d;
+            d += 1;
+            if (plan.childs.Count <= 0) return d;
+            return getDepth(plan.childs[0], d);
+        }
+        /// <summary>
+        /// 行动选择标记，指示选择childs中的哪一个
+        /// </summary>
+        public int selected = -1;
 
         /// <summary>
         /// 与行动条件最匹配的记录
@@ -52,18 +57,39 @@ namespace NWSELib.net
         /// 相似度
         /// </summary>
         public double similarity;
+
+
+        /// <summary>
+        /// 行动条件
+        /// </summary>
+        public List<Vector> conditions;
+
         /// <summary>
         /// 行动
         /// </summary>
-        public List<Item> items = new List<Item>();
+        public List<Vector> actions;
         /// <summary>
-        /// 前一个行动计划
+        /// 预期结果
         /// </summary>
-        public ActionPlan prev;
+        public List<Vector> expects;
+
         /// <summary>
-        /// 行动选择标记，指示选择items中的哪一个
+        /// 真实结果
         /// </summary>
-        public int selected = -1;
+        public List<Vector> reals;
+        /// <summary>
+        /// 真实结果和预期结果的距离
+        /// </summary>
+        public double distance;
+
+
+        public ActionPlan() { }
+        public ActionPlan(Inference inf,InferenceRecord record,double similarity)
+        {
+            this.inference = inf;
+            this.record = record;
+            this.similarity = similarity;
+        }
 
         /// <summary>
         /// 在当前行动计划向上回溯的计划链条中，是否包含inf
@@ -83,75 +109,28 @@ namespace NWSELib.net
         private bool exist(ActionPlan plan, Inference inf)
         {
             if (plan.inference == inf) return true;
-            if (plan.prev == null) return false;
-            return exist(plan.prev, inf);
+            if (plan.parent == null) return false;
+            return exist(plan.parent, inf);
         }
 
-        /// <summary>
-        /// Item
-        /// </summary>
-        public class Item
+        public string print()
         {
-            /// <summary>
-            /// 行动
-            /// </summary>
-            public List<Vector> actions;
-            /// <summary>
-            /// 预期结果
-            /// </summary>
-            public List<Vector> expects;
-
-            /// <summary>
-            /// 真实结果
-            /// </summary>
-            public List<Vector> reals;
-            /// <summary>
-            /// 真实结果和预期结果的距离
-            /// </summary>
-            public double distance;
-
-            /// <summary>
-            /// 对这个行动计划的预期评价
-            /// </summary>
-            public double evaulation;
-            /// <summary>
-            /// 评价用到的评判
-            /// </summary>
-            internal List<JudgeGene> judgeItems = new List<JudgeGene>();
-
-            /// <summary>
-            /// 上一个行动计划
-            /// </summary>
-            public ActionPlan owner;
-            /// <summary>
-            /// 下面的行动
-            /// </summary>
-            public List<ActionPlan> childs = new List<ActionPlan>();
-            /// <summary>
-            /// 行动选择标记，指示选择childs中的哪一个
-            /// </summary>
-            public int selected = 0;
-
-            public string printCurrentItem()
-            {
-                StringBuilder str = new StringBuilder();
-                str.Append("    inference=" + this.owner.inference.Gene.Text + System.Environment.NewLine);
-                str.Append("    recall=" + this.owner.conditions.toString() + System.Environment.NewLine);
-                str.Append("    record=" + this.owner.record.means.toString() + System.Environment.NewLine);
-                str.Append("    expect=" + this.expects.toString() + System.Environment.NewLine);
-                str.Append("    evulation=" + this.evaulation.ToString("F3") + System.Environment.NewLine);
-                if(this.judgeItems.Count>0)
-                    str.Append("    judgeitem=" + this.judgeItems.ConvertAll(x=>x.Text).Aggregate((a,b)=>a+";"+b) + System.Environment.NewLine);
-                return str.ToString();
-            }
+            StringBuilder str = new StringBuilder();
+            str.Append("    inference=" + this.inference.Gene.Text + System.Environment.NewLine);
+            str.Append("    recall=" + this.conditions.toString() + System.Environment.NewLine);
+            str.Append("    record=" + this.record.means.toString() + System.Environment.NewLine);
+            str.Append("    expect=" + this.expects.toString() + System.Environment.NewLine);
+            str.Append("    accuracy=" + this.record.accuracy.ToString("F3") + System.Environment.NewLine);
+            
+            return str.ToString();
         }
-        
 
-       
 
-        
 
-        
-             
+
+
+
+
+
     }
 }

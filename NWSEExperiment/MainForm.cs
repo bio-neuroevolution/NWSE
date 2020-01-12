@@ -163,6 +163,7 @@ namespace NWSEExperiment
         private List<double> obs;
         private List<double> gesture;
         private List<double> actions;
+        private double reward;
         /// <summary>
         /// 交互式环境重置
         /// </summary>
@@ -170,7 +171,7 @@ namespace NWSEExperiment
         /// <param name="e"></param>
         private void toolStripButton4_Click(object sender, EventArgs e)
         {
-            this.maze = new HardMaze();
+            //this.maze = new HardMaze();
             this.evolutionSession = new Session(maze,null);
             this.optima_net = new Network(NWSEGenome.create(evolutionSession));
             evolutionSession.root = new EvolutionTreeNode(optima_net);
@@ -180,18 +181,38 @@ namespace NWSEExperiment
             this.txtMsg.Text = "第" + interactive_time.ToString() + "次交互" + System.Environment.NewLine;
             this.txtMsg.Text += "障碍=" + Utility.toString(obs.GetRange(0, 6)) + System.Environment.NewLine; ;
             this.txtMsg.Text += "目标=" + Utility.toString(obs.GetRange(6, 4)) + System.Environment.NewLine; ;
-            this.txtMsg.Text += "朝向=" + gesture[0].ToString("F3") + System.Environment.NewLine;
+            this.txtMsg.Text += "朝向=" + (gesture[0]* EngineUtilities.DRScale).ToString("F3") + System.Environment.NewLine;
             this.txtMsg.Text += System.Environment.NewLine;
+
+            this.Refresh();
+            
         }
         /// <summary>
         /// 接收输入
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
+        private void toolStripButton8_Click(object sender, EventArgs e)
+        {
+            this.txtMsg.Text += "第" + interactive_time.ToString() + "次交互" + System.Environment.NewLine;
+            this.txtMsg.Text += "障碍=" + Utility.toString(obs.GetRange(0, 6)) + System.Environment.NewLine; ;
+            this.txtMsg.Text += "目标=" + Utility.toString(obs.GetRange(6, 4)) + System.Environment.NewLine; ;
+            this.txtMsg.Text += "朝向=" + ((gesture[0]*EngineUtilities.DRScale)%360).ToString("F3") + System.Environment.NewLine;
+            this.txtMsg.Text += "奖励=" + this.reward;
+            this.txtMsg.Text += System.Environment.NewLine;
+
+            this.Refresh();
+            
+        }
+        /// <summary>
+        /// 推理
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void toolStripButton5_Click(object sender, EventArgs e)
         {
             //网络执行
-            actions = this.optima_net.activate(obs, interactive_time);
+            actions = this.optima_net.activate(obs, interactive_time,evolutionSession);
             //打印推理记忆节点现状
             List<Node> infs = this.optima_net.Inferences;
             for(int i=0;i<infs.Count;i++)
@@ -201,11 +222,15 @@ namespace NWSEExperiment
                 this.txtMsg.Text += "   记录数=" + inf.Records.Count.ToString() + System.Environment.NewLine;
                 for(int j=0;j< inf.Records.Count;j++)
                 {
-                    this.txtMsg.Text += "   mean" + j.ToString() + "=" + Utility.toString(inf.Records[j].means.flatten().Item1.ToList()) + System.Environment.NewLine;
+                    this.txtMsg.Text += "   mean" + j.ToString() + "=" + Utility.toString(inf.Records[j].means.flatten().Item1.ToList()) + 
+                        ",evulation="+ inf.Records[j].evulation.ToString("F3") + 
+                        ",accuracy="+ inf.Records[j].accuracy.ToString("F3")+
+                        System.Environment.NewLine;
                 }
                 
             }
             this.txtMsg.Text += System.Environment.NewLine;
+            interactive_time += 1;
         }
         /// <summary>
         /// 查看执行规划
@@ -215,23 +240,33 @@ namespace NWSEExperiment
         private void toolStripButton6_Click(object sender, EventArgs e)
         {
             this.txtMsg.Text += "执行规划:" + System.Environment.NewLine;
-            if (this.optima_net.actionPlanChain == null)
+            if (this.optima_net.rootActionPlan == null)
             {
                 this.txtMsg.Text += "随机动作=" +
-                this.optima_net.Effectors.ConvertAll(x => x.Value[0].ToString("F3")).Aggregate((a, b) => a + "," + b)
-                + System.Environment.NewLine;
+                showActionText(this.optima_net.Effectors.ConvertAll(x => x.Value[0]))+
+                System.Environment.NewLine;
 
                 return;
             }
-            this.txtMsg.Text += this.optima_net.actionPlanChain.curPlanItem.printCurrentItem() + System.Environment.NewLine;
+            this.txtMsg.Text +=
+                showActionText(this.optima_net.curActionPlan.actions.ConvertAll(x=>x[0]))
+                + System.Environment.NewLine;
 
 
         }
 
+        private String showActionText(List<double> values)
+        {
+            double delta_speed = (values[0] - 0.5) *RobotAgent.Max_Speed_Action;
+            double delta_degree = (((values[1] - 0.5) * RobotAgent.Max_Rotate_Action * 2) * EngineUtilities.DRScale) % 360;
+            return delta_speed.ToString("F3") + "," + delta_degree.ToString("F3");
+        }
+
         private void toolStripButton7_Click(object sender, EventArgs e)
         {
-            ((IEnv)this.maze).action(this.optima_net,
+            (obs,gesture,actions,reward) = ((IEnv)this.maze).action(this.optima_net,
                 this.optima_net.Effectors.ConvertAll(x => x.Value[0]));
+            this.Refresh();
         }
     }
 }

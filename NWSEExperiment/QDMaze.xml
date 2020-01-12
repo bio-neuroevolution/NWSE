@@ -1064,7 +1064,7 @@
   </goal_point>
   <group_orientation>0</group_orientation>
   <robot_spacing>30</robot_spacing>
-  <robot_heading>270</robot_heading>
+  <robot_heading>90</robot_heading>
   <seed>0</seed>
   <view_X>-133.283722</view_X>
   <view_Y>600.518</view_Y>

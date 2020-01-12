@@ -248,16 +248,17 @@ namespace NWSELib.common
             }
         }
 
+        static Random rng = new Random();
         public double random()
         {
             if(cataory == Cataory.Enum)
             {
-                int index = new Random().Next(0, this.values.Count);
+                int index = rng.Next(0, this.values.Count);
                 return this.values[index];
             }
             else
             {
-                return new Random().NextDouble() * (Max - Min) + Min;
+                return rng.NextDouble() * (Max - Min) + Min;
             }
         }
         #endregion

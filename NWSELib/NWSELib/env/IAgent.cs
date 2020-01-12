@@ -9,7 +9,7 @@ namespace NWSELib.env
     {
         int getId();
         List<double> getObserve();
-        void doAction(double[] actions);
+        bool doAction(double[] actions);
 
         Point2D Location { get; }
         Point2D OldLocation { get; }

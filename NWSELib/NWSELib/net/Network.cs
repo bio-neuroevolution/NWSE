@@ -268,7 +268,11 @@ namespace NWSELib.net
         /// <summary>
         /// 行动计划链
         /// </summary>
-        public ActionPlanChain actionPlanChain;
+        public ActionPlan rootActionPlan;
+        /// <summary>
+        /// 当前正在执行的行动计划
+        /// </summary>
+        public ActionPlan curActionPlan;
 
         /// <summary>
         /// 显示推理过程
@@ -351,7 +355,7 @@ namespace NWSELib.net
         /// </summary>
         /// <param name="obs"></param>
         /// <returns></returns>
-        public List<double> activate(List<double> obs, int time)
+        public List<double> activate(List<double> obs, int time,Session session)
         {
             //初始化
             Reset();
@@ -373,7 +377,7 @@ namespace NWSELib.net
                 this.Inferences[i].activate(this, time);
             }
             //进行评判
-            judge(time);
+            judge2(session,time);
 
 
             //取出输出节点
@@ -386,23 +390,23 @@ namespace NWSELib.net
         }
 
         #region 回忆和推理
-        private void judge2(int time)
+        private void judge2(Session session,int time)
         {
             //如果当前行动计划不空
-            if(actionPlanChain != null && actionPlanChain.curPlanItem != null)
+            if(this.curActionPlan != null)
             {
                 //检查行动实际结果与预期的匹配程度
-                actionPlanChain.curPlanItem.reals = this.getOutputValues(actionPlanChain.curPlanItem.owner.inference,time);
-                actionPlanChain.curPlanItem.distance = Vector.manhantan_distance(actionPlanChain.curPlanItem.reals, actionPlanChain.curPlanItem.expects);
-                if(actionPlanChain.curPlanItem.distance <= Session.GetConfiguration().learning.inference.env_distance)
+                curActionPlan.reals = this.getOutputValues(curActionPlan.inference, time);
+                curActionPlan.distance = Vector.manhantan_distance(curActionPlan.reals, curActionPlan.expects);
+                if(curActionPlan.distance <= Session.GetConfiguration().learning.inference.env_distance)
                 {
                     //两者接近，本次行动成功，设置奖励
-                    actionPlanChain.curPlanItem.owner.inference.Reability += 0.1;
+                    curActionPlan.record.accuracy += 0.1;
                     //进行下一次行动
-                    if (actionPlanChain.curPlanItem.selected >=0)
+                    if (curActionPlan.selected >=0)
                     {
-                        ActionPlan nextPlan = actionPlanChain.curPlanItem.childs[actionPlanChain.curPlanItem.selected];
-                        actionPlanChain.curPlanItem = nextPlan.items[nextPlan.selected];
+                        ActionPlan nextPlan = curActionPlan.childs[curActionPlan.selected];
+                        curActionPlan = nextPlan;
                         setEffectValue(time);
                         return;
                     }
@@ -414,74 +418,61 @@ namespace NWSELib.net
                 else
                 {
                     //执行与预期出入较大
+                    curActionPlan.record.accuracy -= 0.1;
                 }
             }
             //计算行动计划链
-            this.actionPlanChain = doActionPlan(time);
+            this.rootActionPlan = doActionPlan(time);
+            if (this.rootActionPlan == null)
+                return;
+
             //选择行动记录评估值最高的
-            doSelectActionPlan(this.actionPlanChain);
+            doSelectActionPlan(this.rootActionPlan);
+
             //根据行动计划设置输出
             setEffectValue(time);
 
         }
 
-        private void doSelectActionPlan(ActionPlanChain chain)
+        private void doSelectActionPlan(ActionPlan plan)
         {
-            if (chain == null) return;
-            double max = double.MinValue;
-            ActionPlan.Item item = null;
-            for (int i=0;i<chain.roots.Count;i++)
+            if (plan == null) return;
+            double max = plan.record.evulation;
+            ActionPlan maxplan = plan;
+            for (int i=0;i< plan.childs.Count; i++)
             {
-               doSelectActionPlan(chain, chain.roots[i],ref max,ref item);
+               doSelectActionPlan(plan.childs[i],ref max,ref maxplan);
             }
-
-            
-            
-        }
-        private void setSelectedIndex(ActionPlanChain chain,ActionPlan.Item item)
-        {
-            if (item == null) return;
-            item.selected = -1;
-            item.owner.selected = item.owner.items.IndexOf(item);
-
-            if(item.owner.prev == null)
+            if (maxplan == null) return;
+            ActionPlan temp = maxplan;
+            while(temp.parent != null)
             {
-                chain.selected = chain.roots.IndexOf(item.owner);
-                return;
-            }
-            for(int i=0;i< item.owner.prev.items.Count;i++)
-            {
-                int index = item.owner.prev.items[i].childs.IndexOf(item.owner);
-                if(index>=0)
-                {
-                    setSelectedIndex(chain, item.owner.prev.items[i]);
-                    break;
-                }
+                temp.parent.selected = temp.parent.childs.IndexOf(temp);
+                temp = temp.parent;
             }
         }
-        private void doSelectActionPlan(ActionPlanChain chain, ActionPlan plan, ref double max,ref  ActionPlan.Item maxitem)
+        
+        private void doSelectActionPlan(ActionPlan plan, ref double max,ref  ActionPlan maxPlan)
         {
             
             if (plan == null) return;
-            if (plan.items.Count <= 0) return;
+            if(plan.record.evulation > max)
+            {
+                max = plan.record.evulation;
+                maxPlan = plan;
+            }
+            if (plan.childs.Count <= 0) return;
             
-            for(int i=0;i<plan.items.Count;i++)
+            for(int i=0;i<plan.childs.Count;i++)
             {
-                if(plan.items[i].evaulation > max)
+                if(plan.childs[i].record.evulation > max)
                 {
-                    max = plan.items[i].evaulation;
-                    maxitem = plan.items[i];
+                    max = plan.childs[i].record.evulation;
+                    maxPlan = plan.childs[i];
                 }
-            }
-            for(int i=0;i<plan.items.Count;i++)
-            {
-                if (plan.items[i].childs.Count <= 0) continue;
-                for(int j=0;j< plan.items[i].childs.Count;j++)
-                {
-                    doSelectActionPlan(chain, plan.items[i].childs[j], ref max, ref maxitem);
-                }
-            }
 
+                doSelectActionPlan(plan.childs[i], ref max, ref maxPlan);
+            }
         }
         /// <summary>
         /// 根据行动计划设定输出
@@ -489,28 +480,35 @@ namespace NWSELib.net
         private void setEffectValue(int time)
         {
             //没有行动计划，设置随机动作
-            if(this.actionPlanChain == null)
+            if(this.rootActionPlan == null)
             {
                 for (int i = 0; i < this.Effectors.Count; i++)
                     this.Effectors[i].randomValue(this, time);
-            }else if(this.actionPlanChain.curPlanItem == null)
+                return;
+            }else if(this.curActionPlan == null)
             {
-                ActionPlan plan = this.actionPlanChain.roots[this.actionPlanChain.selected];
-                this.actionPlanChain.curPlanItem = plan.items[plan.selected];
-                
+                this.curActionPlan = this.rootActionPlan;
             }
             for (int i = 0; i < this.Effectors.Count; i++)
             {
-                this.Effectors[i].activate(this, time, this.actionPlanChain.curPlanItem.actions[i]);
+                this.Effectors[i].activate(this, time, this.curActionPlan.actions[i]);
             }
         }
-        private ActionPlanChain doActionPlan(int time)
+
+        private ActionPlan doActionPlan(int time, ActionPlan root = null,ActionPlan plan =null)
         {
-            ActionPlanChain chain = null;
+            Inference select_inf = null;
+            InferenceRecord select_record = null;
+            double select_record_similarity = double.MinValue;
+            double select_record_evulation = double.MinValue;
             for (int i=0;i<this.Inferences.Count;i++)
             {
                 //取得推理节点的真实环境输入
-                List<Vector> inputValues = this.getInputValues((Inference)this.Inferences[i],time);
+                List<Vector> inputValues = null;
+                if (plan == null)
+                    inputValues = this.getInputValuesFromEnv((Inference)this.Inferences[i], time);
+                else
+                    inputValues = this.getInputValuesFromInferenceOuput(plan.inference,plan.record, (Inference)this.Inferences[i], time);
                 if (inputValues == null || inputValues.Count <= 0) continue;
 
                 //根据真实输入找到最相似的记录（记录，相似度）
@@ -519,19 +517,36 @@ namespace NWSELib.net
                 if (similarity < Session.GetConfiguration().learning.inference.inference_distance)
                     continue;
 
-                if (chain == null) chain = new ActionPlanChain();
+                if(plan != null)
+                {
+                    ActionPlan cplan = new ActionPlan((Inference)this.Inferences[i], record, similarity);
+                    plan.childs.Add(cplan);
+                    continue;
+                }
 
-                ActionPlan plan = new ActionPlan();
-                plan.inference = (Inference)Inferences[i];
-                plan.conditions = inputValues;
-                plan.record = record;
-                plan.similarity = similarity;
-                chain.roots.Add(plan);
-
-                doForcast(time, chain, plan);
-                
+                if(select_record_evulation < record.evulation)
+                {
+                    select_inf = (Inference)this.Inferences[i];
+                    select_record = record;
+                    select_record_similarity = similarity;
+                    select_record_evulation = record.evulation;
+                }
             }
-            return chain;
+
+            if(root == null)
+            {
+                if (select_inf == null) return root;
+                root = new ActionPlan(select_inf, select_record, select_record_similarity);
+                return doActionPlan(time, root, root);
+            }
+
+            if (root.Depth >= 3) return root;
+            if (plan.childs.Count <= 0) return root;
+            for(int i=0;i<plan.childs.Count;i++)
+            {
+                root = doActionPlan(time, root, plan.childs[i]);
+            }
+            return root;
         }
         /// <summary>
         /// 取得推理节点的输入
@@ -539,12 +554,32 @@ namespace NWSELib.net
         /// <param name="inf"></param>
         /// <param name="time"></param>
         /// <returns></returns>
-        private List<Vector> getInputValues(Inference inf, int time)
+        private List<Vector> getInputValuesFromEnv(Inference inf, int time)
         {
             List<Node> inputs = this.getInputNodes(inf.Id);
             List<Vector> r = inputs.ConvertAll(i => i.GetValue(time));
             return r.Contains(null) ? null : r;
         }
+
+        private List<Vector> getInputValuesFromInferenceOuput(Inference previnf, InferenceRecord prevrecord,Inference inf, int time)
+        {
+            List<int> previnfvarIds = previnf.getGene().getVariables();
+            List<int> infcondids = inf.getGene().getConditions().ConvertAll(x => x.Item1);
+            if (!Utility.ContainsAll(previnfvarIds, infcondids))
+                return null;
+
+            
+            List<Vector> prevValues = prevrecord.means;
+            List<Vector> r = new List<Vector>();
+            for(int i=0;i< infcondids.Count;i++)
+            {
+                int index = previnf.getGene().getVariableIndex(infcondids[i]);
+                r.Add(prevValues[index]);
+            }
+            return r;
+        }
+
+        /*
         private ActionPlanChain doForcast(int time,ActionPlanChain chain,ActionPlan plan)
         {
             List<Inference> nextinfs = this.getNextInferences(plan.inference);
@@ -655,6 +690,7 @@ namespace NWSELib.net
             return r;
 
         }
+        */
         /// <summary>
         /// 取得inf中动作感知部分的节点
         /// </summary>
@@ -751,6 +787,25 @@ namespace NWSELib.net
             List<int> varIds = inference.getGene().getVariables();
             List<Vector> vs = varIds.ConvertAll(id => this.getNode(id).GetValue(time));
             return vs.Contains(null) ? null : vs;
+        }
+
+        public void setReward(double reward)
+        {
+            if (this.curActionPlan == null)
+                return;
+            //int count = this.actionPlanChain.getTraceLength(this.actionPlanChain.curPlanItem);
+            //达到最大负奖励
+            if(reward <= -1*Session.GetConfiguration().evaluation.max_reward)
+            {
+                this.curActionPlan.record.evulation += reward;
+                return;
+            }
+            ActionPlan item = this.curActionPlan;
+            while(item != null)
+            {
+                item.record.evulation += reward;
+                item = item.parent;
+            }
         }
         #endregion
 
@@ -1046,7 +1101,7 @@ namespace NWSELib.net
         /// 根据适应度，设定推理路径上的各个推断节点和处理节点的可靠度
         /// </summary>
         /// <param name="reward"></param>
-        public void setReward(double reward)
+        public void setRewardInInferenceChain(double reward)
         {
             if (currentInferenceChain == null) return;
             foreach(int key in currentActionTraces.Keys)

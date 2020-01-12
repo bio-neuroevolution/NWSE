@@ -39,6 +39,14 @@ namespace NWSELib.net
         /// </summary>
         public int acceptCount;
         /// <summary>
+        /// 评估值（表示按此记录做出行动的结果好坏）
+        /// </summary>
+        public double evulation;
+        /// <summary>
+        /// 表示该前置条件和后置变量映射关系的准确程度
+        /// </summary>
+        public double accuracy;
+        /// <summary>
         /// 接收记录
         /// </summary>
         public List<List<Vector>> acceptRecords = new List<List<Vector>>();

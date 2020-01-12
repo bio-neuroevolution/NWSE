@@ -100,7 +100,7 @@ namespace NWSEExperiment.maze
 			oy = iy*Scale;
         }
 
-
+        
     }
 	
     /// <summary>
@@ -254,7 +254,12 @@ namespace NWSEExperiment.maze
             
             return val;
         }
+        public const double DRScale = 57.29578;
 
+        public static double angletoradian(double value)
+        {
+            return value <= 180 ? (Math.PI / 180) * value : -(Math.PI / 180) * value;
+        }
         #endregion
     }
 }
