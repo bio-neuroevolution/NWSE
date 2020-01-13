@@ -328,7 +328,7 @@ namespace NWSELib.net
             }
             //如果两个节点的距离太近，则合并节点
             //If two records are too close, merge nodes
-            int mergeCount = try_merge_records();
+            int mergeCount = 0;// try_merge_records();
             //重新调整权重
             adjust_weights();
 

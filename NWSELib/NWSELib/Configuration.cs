@@ -143,6 +143,8 @@ namespace NWSELib
         {
             [XmlElement]
             public LearningInfernece inference = new LearningInfernece();
+            [XmlElement]
+            public LearningJudge judge = new LearningJudge();
         }
         public class LearningInfernece
         {
@@ -154,6 +156,12 @@ namespace NWSELib
             public double inference_distance;
             [XmlAttribute]
             public double env_distance;
+        }
+
+        public class LearningJudge
+        {
+            [XmlAttribute]
+            public double tolerable_similarity;
         }
 
         

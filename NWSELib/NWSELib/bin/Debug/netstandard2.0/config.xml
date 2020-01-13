@@ -48,6 +48,7 @@
 
   <learning>
     <inference accept_prob="0.7" accept_max_count="3" inference_distance="0.1" env_distance="0.6"></inference>
+    <judge tolerable_similarity="0.1"></judge>
   </learning>
 
   

@@ -423,12 +423,12 @@ namespace NWSELib.net
             }
             //计算行动计划链
             this.rootActionPlan = doActionPlan(time);
-            if (this.rootActionPlan == null)
-                return;
-
-            //选择行动记录评估值最高的
-            doSelectActionPlan(this.rootActionPlan);
-
+            if (this.rootActionPlan != null)
+            {
+                //选择行动记录评估值最高的
+                doSelectActionPlan(this.rootActionPlan);
+            }
+                
             //根据行动计划设置输出
             setEffectValue(time);
 
@@ -722,9 +722,6 @@ namespace NWSELib.net
             }
             return r;
         }
-            
-
-
 
         /// <summary>
         /// 查找与envValues输入相似的节点
@@ -735,21 +732,36 @@ namespace NWSELib.net
         public (InferenceRecord record, double similarity) recall(Inference inference, List<Vector> envValues)
         {
             if (inference == null || inference.Records.Count<=0) return (null,0);
-            InferenceRecord r = null;
-            double maxsimilarity = double.MinValue;
+            List<double> similarities = new List<double>();
+            int envcondCount = envValues.Count;
+            //计算相似度
             for (int i=0;i< inference.Records.Count;i++)
             {
                 List<Vector> center = inference.Records[i].means;
                 List<Vector> clone = new List<Vector>(center);
                 clone = inference.replaceEnvValue(clone, envValues);
-                double similarity = inference.Records[i].prob(clone) / inference.Records[i].prob(center);
-                if(similarity > maxsimilarity)
+                double sim = inference.Records[i].prob(clone) / inference.Records[i].prob(center);
+                similarities.Add(sim);
+            }
+            //相似度从大到小排序
+            List<int> index = similarities.argsort();
+            index.Reverse();
+            //相似度上界
+            double tolerable_similarity = Session.GetConfiguration().learning.judge.tolerable_similarity;
+            //寻找满足相似度上界，且评价最高的
+            InferenceRecord record = null;
+            double similarity = 0;
+            double evulation = double.MinValue;
+            for(int i=0;i<index.Count;i++)
+            {
+                if (similarities[index[i]] < envcondCount*tolerable_similarity) break;
+                if(inference.Records[index[i]].evulation > evulation)
                 {
-                    maxsimilarity = similarity;
-                    r = inference.Records[i];
+                    record = inference.Records[index[i]];
+                    similarity = similarities[index[i]];
                 }
             }
-            return (r, maxsimilarity);
+            return (record, similarity);
         }
 
         /// <summary>

@@ -27,3 +27,6 @@ D:\gitlib\NWSE\NWSEExperiment\bin\Debug\lib\Microsoft.ML.Probabilistic.Learners.
 D:\gitlib\NWSE\NWSEExperiment\bin\Debug\lib\Microsoft.ML.Probabilistic.Learners.xml
 D:\gitlib\NWSE\NWSEExperiment\bin\Debug\lib\Microsoft.ML.Probabilistic.pdb
 D:\gitlib\NWSE\NWSEExperiment\bin\Debug\lib\Microsoft.ML.Probabilistic.xml
+D:\gitlib\NWSE\NWSEExperiment\bin\Debug\Microsoft.ML.Probabilistic.dll
+D:\gitlib\NWSE\NWSEExperiment\bin\Debug\Microsoft.ML.Probabilistic.pdb
+D:\gitlib\NWSE\NWSEExperiment\bin\Debug\Microsoft.ML.Probabilistic.xml
