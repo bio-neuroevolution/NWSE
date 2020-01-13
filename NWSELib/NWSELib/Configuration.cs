@@ -141,6 +141,8 @@ namespace NWSELib
 
         public class Learning
         {
+            [XmlAttribute]
+            public double eplison;
             [XmlElement]
             public LearningInfernece inference = new LearningInfernece();
             [XmlElement]

@@ -116,7 +116,7 @@ namespace NWSELib.net
         {
             this.initGaussian();
             Microsoft.ML.Probabilistic.Math.Vector v = values.toMathVector();
-            return gaussian.GetLogProb(v);
+            return Math.Exp(gaussian.GetLogProb(v));
         }
         public double mahalanobis_distance(List<Vector> values)
         {
@@ -167,6 +167,7 @@ namespace NWSELib.net
     
     public class Inference : Node
     {
+        #region 成员
         static ILog logger = LogManager.GetLogger(typeof(Inference));
         /// <summary>
         /// 推理节点存储的记录
@@ -185,6 +186,9 @@ namespace NWSELib.net
         /// </summary>
         public List<double> density = new List<double>();
 
+        #endregion
+
+        #region 初始化
         /// <summary>
         /// 构造函数
         /// </summary>
@@ -192,13 +196,16 @@ namespace NWSELib.net
         public Inference(NodeGene gene) : base(gene)
         {
         }
+        #endregion
 
+        #region 信息查询
         public InferenceGene getGene()
         {
             return (InferenceGene)gene;
         }
         public List<int> getDimensionList(Network net)
         {
+            
             List<int> dimension = new List<int>();
             for (int i = 0; i < ((InferenceGene)this.gene).dimensions.Count; i++)
             {
@@ -208,6 +215,57 @@ namespace NWSELib.net
             }
             return dimension;
         }
+        /// <summary>
+        /// 取得所有维度的节点id
+        /// </summary>
+        /// <returns></returns>
+        public List<int> getIdList()
+        {
+            return this.getGene().dimensions.ConvertAll(d => d.Item1);
+        }
+
+        /// <summary>
+        /// 将各维度的id分解为环境类、动作类、后置变量类
+        /// </summary>
+        /// <returns></returns>
+        public (List<int>, List<int>, List<int>) splitIds()
+        {
+            List<int> e = new List<int>();
+            List<int> a = new List<int>();
+            List<int> v = new List<int>();
+
+            (int t1, int t2) = this.getGene().getTimeDiff();
+            List<(int, int)> ds = this.getGene().dimensions;
+            for (int i = 0; i < ds.Count; i++)
+            {
+                if (ds[i].Item2 == t2) v.Add(ds[i].Item1);
+                else
+                {
+                    NodeGene g = this.getGene().owner[ds[i].Item1];
+                    if (g.Group.Contains("action"))
+                        a.Add(ds[i].Item1);
+                    else
+                        e.Add(ds[i].Item1);
+                }
+            }
+            return (e, a, v);
+        }
+
+        #endregion
+
+        #region 值管理
+        /// <summary>
+        /// 根据推理节点的维定义（依据时间要求）取得所有输入值
+        /// </summary>
+        /// <param name="net"></param>
+        /// <returns></returns>
+        public List<Vector> getInputValues(Network net,int time)
+        {
+            return this.getGene().dimensions.ConvertAll(d => net.getNode(d.Item1).GetValue(time - d.Item2));
+        }
+
+
+        #endregion
 
         /// <summary>
         /// 设置当前值
@@ -223,12 +281,12 @@ namespace NWSELib.net
             List<(Node, int)> condNodes = conds.ConvertAll(c => (net.getNode(c.Item1), c.Item2));
             if (!condNodes.All(n => n.Item1.IsActivate(time - n.Item2)))
                 return null;
-           
-                      
-            (int varid, int vartime) = ((InferenceGene)this.Gene).getVariable();
-            Node varNode = net.getNode(varid);
-            if (!varNode.IsActivate(time - vartime))
+
+            List<(int, int)> vars = this.getGene().getVariables();
+            List<(Node, int)> varNodes = vars.ConvertAll(v => (net.getNode(v.Item1), v.Item2));
+            if (!varNodes.All(n => n.Item1.IsActivate(time - n.Item2)))
                 return null;
+
             List<Node> inputs = net.getInputNodes(this.Id);
 
             Vector activeValue = null;
@@ -238,17 +296,13 @@ namespace NWSELib.net
 
             //根据基因定义的顺序，将输入值组成List<Vector>
             //Put the input values into the List according to the order of the input dimensions
-            List<Vector> values = new List<Vector>();
-            int totaldimesion = 0;
-            for(int i=0;i<((InferenceGene)this.gene).dimensions.Count;i++)
+            List<Vector> values = this.getInputValues(net,time);
+            if(values == null)
             {
-                (int id,int t) = ((InferenceGene)this.gene).dimensions[i];
-                Node input = inputs.FirstOrDefault(n => n.Id == id);
-                Vector tValue = input.GetValue(time - t);
-                if (tValue == null) { base.activate(net,time, activeValue); return null; }
-                values.Add(tValue);
-                totaldimesion += input.Dimension;
+                base.activate(net, time, null);
+                return null;
             }
+            int totaldimesion = values.flatten().Item1.Size;
 
 
             //如果没有任何节点记录，则生成第一个
@@ -261,6 +315,7 @@ namespace NWSELib.net
                 for (int i = 0; i < totaldimesion; i++) //缺省协方差矩阵为单位阵
                     record.covariance[i, i] = 1.0;
                 record.weight = 1.0;
+                record.acceptCount = 1;
                 this.records.Add(record);
                 activeValue = values.flatten().Item1;
                 base.activate(net, time, activeValue);
@@ -286,6 +341,30 @@ namespace NWSELib.net
                 return activeValue;
 
             }
+            //判断是否需要加入到未归类样本中:如果节点中记录非常少，则尽量增加记录
+            if(this.records.Count<=30)
+            {
+                InferenceRecord record = new InferenceRecord();
+                record.means = values;
+                record.covariance = new double[totaldimesion, totaldimesion];
+                for (int i = 0; i < totaldimesion; i++) //缺省协方差矩阵为单位阵
+                    record.covariance[i, i] = 1.0;
+                record.acceptCount = 1;
+                this.records.Add(record);
+                activeValue = values.flatten().Item1;
+                base.activate(net, time, activeValue);
+
+                adjust_weights();
+                return activeValue;
+            }
+            unclassified_samples.Add(values);
+            //未归类样本很少，暂不进行聚类
+            if(unclassified_samples.Count<=10)
+            {
+                base.activate(net, time, values);
+                return values;
+            }
+
 
             //计算每个记录的密度值，以及样本的密度值
             //If the new sample is not classified into any records, calculate the density values for each record and for all unclassified samples
@@ -513,6 +592,8 @@ namespace NWSELib.net
             }
             return needMergeRecordPair.Count;
         }
+       
+        
         /// <summary>
         /// 将所有值中的环境部分（非动作部分）用envValues替换
         /// </summary>
@@ -522,14 +603,13 @@ namespace NWSELib.net
         internal List<Vector> replaceEnvValue(List<Vector> allValue, List<Vector> envValues)
         {
             (int t1, int t2) = this.getGene().getTimeDiff();
-            int index = 0;
             List<Vector> r = new List<Vector>(allValue);
             for (int i=0;i<this.getGene().dimensions.Count;i++)
             {
                 if (this.getGene().dimensions[i].Item2 != t1) continue;
                 NodeGene gene = this.getGene().owner[this.getGene().dimensions[i].Item1];
                 if (gene.Group.Contains("action")) continue;
-                r[i] = envValues[index++];
+                r[i] = envValues[i];
 
             }
             return r;
@@ -538,7 +618,7 @@ namespace NWSELib.net
         public void adjust_weights()
         {
             List<double> ws = this.records.ConvertAll(r => (double)r.acceptCount);
-            double max = ws.Max();
+            double max = ws.Sum();
             ws = ws.ConvertAll(w => w / max);
             for (int i = 0; i < this.records.Count; i++)
                 this.records[i].weight = ws[i]; 
@@ -725,6 +805,49 @@ namespace NWSELib.net
                 }
             }
             return r;
+        }
+        /// <summary>
+        /// 将记录值分解为环境、动作、后置变量三部分
+        /// </summary>
+        /// <param name="net"></param>
+        /// <param name="record"></param>
+        /// <returns></returns>
+        public (List<Vector>, List<Vector>, List<Vector>) splitRecordMeans(Network net, InferenceRecord record)
+        {
+            //待返回结果
+            List<Vector> env = new List<Vector>();
+            List<Vector> actions = new List<Vector>();
+            List<Vector> expects = new List<Vector>();
+
+            //动作比较特殊，每个动作都要设置结构，尽管该节点可能不涉及
+            int actioncount = net.Effectors.Count;
+            for (int i = 0; i < actioncount; i++)
+                actions.Add(new Vector(0.5));//0.5表示啥都不做
+
+            //分解record的均值
+            (int t1, int t2) = this.getGene().getTimeDiff();
+            List<(int, int)> dimensions = this.getGene().dimensions;
+            for (int i=0;i<dimensions.Count;i++)
+            {
+                if(dimensions[i].Item2 == t2)
+                {
+                    expects.Add(record.means[i]);
+                }else
+                {
+                    Node node = net.getNode(dimensions[i].Item1);
+                    if(node.Gene.Group.Contains("action"))
+                    {
+                        Effector effector = (Effector)net.Effectors.FirstOrDefault(e => "_" + e.Name == node.Name);
+                        int effectorIndex = net.Effectors.IndexOf(effector);
+                        actions[effectorIndex] = record.means[i];
+                    }
+                    else
+                    {
+                        env.Add(record.means[i]);
+                    }
+                }
+            }
+            return (env, actions, expects);
         }
 
 

@@ -257,7 +257,13 @@ namespace NWSELib.genome
             
         }
 
-        public List<int> getVariables()
+        public List<(int,int)> getVariables()
+        {
+            (int t1, int t2) = this.getTimeDiff();
+            return this.dimensions.FindAll(d => d.Item2 == t2);
+        }
+
+        public List<int> getVariableIds()
         {
             (int t1, int t2) = this.getTimeDiff();
             return this.dimensions.FindAll(d => d.Item2 == t2).ConvertAll(d => d.Item1);

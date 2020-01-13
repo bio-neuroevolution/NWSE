@@ -351,6 +351,7 @@ namespace NWSEExperiment.maze
             this.initSensors();
  
         }
+        
 
         /// <summary>
         /// Initializes the robot's GoalSensors and positions them on the robot's body.
@@ -544,6 +545,36 @@ namespace NWSEExperiment.maze
 
             return true;
             
+        }
+
+        /// <summary>
+        /// 计算从起点到终点移动或者反方向移动后的位置
+        /// </summary>
+        /// <param name="begin"></param>
+        /// <param name="end"></param>
+        /// <param name="v">1为正方向</param>
+        /// <returns></returns>
+        public Point2D compute_move_location(Point2D begin, Point2D end, int v)
+        {
+            double angle = 0;
+            Point2D temp = null;
+            if (v == 1)
+            {
+                temp = new Point2D(end.X, end.Y);
+                temp.X -= (float)begin.X;
+                temp.Y -= (float)begin.Y;
+            }
+            else
+            {
+                temp = new Point2D(begin.X, begin.Y);
+                temp.X -= (float)end.X;
+                temp.Y -= (float)end.Y;
+            }
+            angle = (float)temp.angle();
+
+            double dx = Math.Cos(angle) *(RobotAgent.Max_Speed_Action/2) * Timestep;
+            double dy = Math.Sin(angle) * (RobotAgent.Max_Speed_Action/2) * Timestep;
+            return new Point2D(begin.X + dx, begin.Y + dy);
         }
         public void updatePosition(double Timestep)
         {

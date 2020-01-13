@@ -57,7 +57,10 @@ namespace NWSELib.net
         /// 相似度
         /// </summary>
         public double similarity;
-
+        /// <summary>
+        /// 相似度匹配的环境数据，可以用来再计算一次相似度
+        /// </summary>
+        public List<Vector> scene = new List<Vector>();
 
         /// <summary>
         /// 行动条件
@@ -84,11 +87,14 @@ namespace NWSELib.net
 
 
         public ActionPlan() { }
-        public ActionPlan(Inference inf,InferenceRecord record,double similarity)
+        public ActionPlan(Network net,Inference inf,InferenceRecord record,double similarity,List<Vector> inputValues)
         {
             this.inference = inf;
             this.record = record;
             this.similarity = similarity;
+            this.scene = inputValues;
+
+            (this.conditions,this.actions,this.expects) = inf.splitRecordMeans(net, record);
         }
 
         /// <summary>
@@ -112,25 +118,52 @@ namespace NWSELib.net
             if (plan.parent == null) return false;
             return exist(plan.parent, inf);
         }
-
+        public List<ActionPlan> toList()
+        {
+            List<ActionPlan> r = new List<ActionPlan>();
+            ActionPlan temp = this;
+            while(temp != null)
+            {
+                r.Add(temp);
+                if (temp.childs.Count <= 0) return r;
+                if (temp.selected < 0) return r;
+                temp = temp.childs[temp.selected];
+            }
+            return r;
+        }
         public string print()
         {
             StringBuilder str = new StringBuilder();
             str.Append("    inference=" + this.inference.Gene.Text + System.Environment.NewLine);
-            str.Append("    recall=" + this.conditions.toString() + System.Environment.NewLine);
+            str.Append("    scene=" + this.scene.toString() + System.Environment.NewLine);
+            str.Append("    similarity=" + this.similarity.ToString("F3") + System.Environment.NewLine);
             str.Append("    record=" + this.record.means.toString() + System.Environment.NewLine);
+            str.Append("    actions=" + this.actions.toString() + System.Environment.NewLine);
             str.Append("    expect=" + this.expects.toString() + System.Environment.NewLine);
+            str.Append("    evulation=" + this.record.evulation.ToString("F3") + System.Environment.NewLine);
             str.Append("    accuracy=" + this.record.accuracy.ToString("F3") + System.Environment.NewLine);
             
             return str.ToString();
         }
 
+        public string ToString(ActionPlan curActionPlan)
+        {
+            StringBuilder str = new StringBuilder();
+            
+            List<ActionPlan> plans = toList();
+            for (int i = 0; i < plans.Count; i++)
+            {
+                if(plans.Count>0)
+                    str.Append("    第" + (i + 1).ToString() + "步");
+                if (plans[i] == curActionPlan)
+                    str.Append("    正在执行");
+                str.Append(System.Environment.NewLine);
+                str.Append(plans[i].print());
+                str.Append(System.Environment.NewLine);
+            }
+            str.Append(System.Environment.NewLine);
+            return str.ToString();
 
-
-
-
-
-
-
+        }
     }
 }

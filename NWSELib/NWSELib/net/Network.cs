@@ -14,6 +14,7 @@ namespace NWSELib.net
     public class Network
     {
         #region 基本信息
+        private static Random rng = new Random();
         /// <summary>
         /// 染色体
         /// </summary>
@@ -421,6 +422,14 @@ namespace NWSELib.net
                     curActionPlan.record.accuracy -= 0.1;
                 }
             }
+            //以一定的概率探索
+            if(rng.NextDouble()>=Session.GetConfiguration().learning.eplison)
+            {
+                this.rootActionPlan = null;
+                this.curActionPlan = null;
+                setEffectValue(time);
+                return;
+            }
             //计算行动计划链
             this.rootActionPlan = doActionPlan(time);
             if (this.rootActionPlan != null)
@@ -501,26 +510,28 @@ namespace NWSELib.net
             InferenceRecord select_record = null;
             double select_record_similarity = double.MinValue;
             double select_record_evulation = double.MinValue;
+            List<Vector> select_record_inputValues = null;
+
             for (int i=0;i<this.Inferences.Count;i++)
             {
                 //取得推理节点的真实环境输入
                 List<Vector> inputValues = null;
                 if (plan == null)
-                    inputValues = this.getInputValuesFromEnv((Inference)this.Inferences[i], time);
+                    inputValues = this.getValues(((Inference)this.Inferences[i]).getIdList());
                 else
-                    inputValues = this.getInputValuesFromInferenceOuput(plan.inference,plan.record, (Inference)this.Inferences[i], time);
+                    inputValues = this.getValues(plan.inference.getGene().getVariableIds(),plan.expects, (Inference)this.Inferences[i]);
                 if (inputValues == null || inputValues.Count <= 0) continue;
 
                 //根据真实输入找到最相似的记录（记录，相似度）
                 (InferenceRecord record,double similarity) = recall((Inference)this.Inferences[i], inputValues);
                 if (record == null) continue;
-                if (similarity < Session.GetConfiguration().learning.inference.inference_distance)
-                    continue;
+                
 
                 if(plan != null)
                 {
-                    ActionPlan cplan = new ActionPlan((Inference)this.Inferences[i], record, similarity);
+                    ActionPlan cplan = new ActionPlan(this,(Inference)this.Inferences[i], record, similarity,inputValues);
                     plan.childs.Add(cplan);
+                    cplan.parent = plan;
                     continue;
                 }
 
@@ -530,13 +541,14 @@ namespace NWSELib.net
                     select_record = record;
                     select_record_similarity = similarity;
                     select_record_evulation = record.evulation;
+                    select_record_inputValues = inputValues;
                 }
             }
 
             if(root == null)
             {
                 if (select_inf == null) return root;
-                root = new ActionPlan(select_inf, select_record, select_record_similarity);
+                root = new ActionPlan(this,select_inf, select_record, select_record_similarity, select_record_inputValues);
                 return doActionPlan(time, root, root);
             }
 
@@ -549,148 +561,38 @@ namespace NWSELib.net
             return root;
         }
         /// <summary>
-        /// 取得推理节点的输入
+        /// 取得特定id的最新值
         /// </summary>
         /// <param name="inf"></param>
         /// <param name="time"></param>
         /// <returns></returns>
-        private List<Vector> getInputValuesFromEnv(Inference inf, int time)
+        public List<Vector> getValues(List<int> ids)
         {
-            List<Node> inputs = this.getInputNodes(inf.Id);
-            List<Vector> r = inputs.ConvertAll(i => i.GetValue(time));
-            return r.Contains(null) ? null : r;
+            return ids.ConvertAll(id => this.getNode(id).Value);
         }
-
-        private List<Vector> getInputValuesFromInferenceOuput(Inference previnf, InferenceRecord prevrecord,Inference inf, int time)
+        /// <summary>
+        /// 给定一组值，从中选择与inf的条件部分匹配的
+        /// </summary>
+        /// <param name="ids"></param>
+        /// <param name="values"></param>
+        /// <param name="inf"></param>
+        /// <returns></returns>
+        public List<Vector> getValues(List<int> ids,List<Vector> values, Inference inf)
         {
-            List<int> previnfvarIds = previnf.getGene().getVariables();
             List<int> infcondids = inf.getGene().getConditions().ConvertAll(x => x.Item1);
-            if (!Utility.ContainsAll(previnfvarIds, infcondids))
+            if (!Utility.ContainsAll(ids, infcondids))
                 return null;
 
-            
-            List<Vector> prevValues = prevrecord.means;
             List<Vector> r = new List<Vector>();
             for(int i=0;i< infcondids.Count;i++)
             {
-                int index = previnf.getGene().getVariableIndex(infcondids[i]);
-                r.Add(prevValues[index]);
+                int index = ids.IndexOf(infcondids[i]);
+                r.Add(values[index]);
             }
             return r;
         }
 
-        /*
-        private ActionPlanChain doForcast(int time,ActionPlanChain chain,ActionPlan plan)
-        {
-            List<Inference> nextinfs = this.getNextInferences(plan.inference);
-            //这个推理的前提上有多少个动作
-            List<Node> actionReceptors = getActionSensors(plan.inference);
-            if (actionReceptors == null || actionReceptors.Count <= 0)
-                return chain;
-            //这个动作上所有可能值的组合
-            List<List<Vector>> actionComposites = this.createActionComposites(actionReceptors);
-
-            //对每一个动作组合做预测
-            for(int i=0;i< actionComposites.Count;i++)
-            {
-                List<Vector> actions = actionComposites[i];
-                List<Vector> condValues = plan.inference.createConditions(plan.conditions, actions);
-                List<Vector> results = plan.record.forward_inference(plan.inference,condValues);
-                ActionPlan.Item actionItem = new ActionPlan.Item();
-                actionItem.actions = actions;
-                actionItem.expects = results;
-                actionItem.owner = plan;
-                actionItem.evaulation = doEvaulation(plan,actionItem);
-                plan.items.Add(actionItem);
-
-                if (nextinfs == null || nextinfs.Count <= 0) continue;
-                for(int j=0;j<nextinfs.Count;j++)
-                {
-                    if (!plan.exist(nextinfs[j])) continue;
-                    List<Vector> inputValues = computeInput(plan.inference, results, nextinfs[j]);
-                    if (inputValues == null || inputValues.Count <= 0) continue;
-                    (InferenceRecord record, double similarity) = recall(nextinfs[j], inputValues);
-                    if (record == null) continue;
-                    if (similarity < Session.GetConfiguration().learning.inference.inference_distance)
-                        continue;
-
-                    ActionPlan plan2 = new ActionPlan();
-                    plan2.inference = nextinfs[j];
-                    plan2.conditions = inputValues;
-                    plan2.record = record;
-                    plan2.similarity = similarity;
-                    actionItem.childs.Add(plan2);
-
-                    doForcast(time, chain, plan2);
-                }
-            }
-            return chain;
-        }
-        /// <summary>
-        /// 判断执行这组动作得到的预期评判
-        /// </summary>
-        /// <param name="plan"></param>
-        /// <param name="actionItem"></param>
-        /// <returns></returns>
-        private double doEvaulation(ActionPlan plan, ActionPlan.Item actionItem)
-        {
-            List<int> varIds = plan.inference.getGene().getVariables();
-            List<double> evualtions = new List<double>();
-            for(int i=0;i<this.Genome.judgeGenes.Count;i++)
-            {
-                int index = varIds.IndexOf(this.Genome.judgeGenes[i].variable);
-                //预期结果中不包含评判项，
-                if (index<0)
-                {
-                    continue;
-                }
-                Vector v = actionItem.expects[index];
-                double value = v.length();
-                double expect = 0;
-                if (this.Genome.judgeGenes[i].expression == "argmax")
-                    expect = 1.0;
-                evualtions.Add((1 - Math.Abs(expect - value))* this.Genome.judgeGenes[i].weight);
-                actionItem.judgeItems.Add(this.Genome.judgeGenes[i]);
-            }
-            return evualtions.Sum();
-        }
-        /// <summary>
-        /// 计算所有的动作组合
-        /// </summary>
-        /// <param name="actionReceptors"></param>
-        /// <returns></returns>
-        public List<List<Vector>> createActionComposites(List<Node> actionReceptors)
-        {
-            List<int> counts = actionReceptors.ConvertAll(a => (int)Session.GetConfiguration().agent.receptors.GetSensor(a.Name).Level.Min);
-            List<double> units = actionReceptors.ConvertAll(a => (Session.GetConfiguration().agent.receptors.GetSensor(a.Name).Range.Distance)/(Session.GetConfiguration().agent.receptors.GetSensor(a.Name).Level.Min));
-            List<List<Vector>> r = new List<List<Vector>>();
-
-
-            if(actionReceptors.Count == 1)
-            {
-                for(int i=0;i<counts[0];i++)
-                {
-                    List<Vector> t1 = new List<Vector>();
-                    t1.Add(new Vector((i* units[0]+(i+1)*units[0])/2));
-                    r.Add(t1);
-                }
-            }else
-            {
-                for (int i = 0; i < counts[0]; i++)
-                {
-                    for(int j=0;j<counts[1];j++)
-                    {
-                        List<Vector> t1 = new List<Vector>();
-                        t1.Add(new Vector((i * units[0] + (i + 1) * units[0]) / 2));
-                        t1.Add(new Vector((j * units[1] + (j + 1) * units[1]) / 2));
-                        r.Add(t1);
-                    }
-                }
-            }
-            return r;
-
-        }
-        */
+        
         /// <summary>
         /// 取得inf中动作感知部分的节点
         /// </summary>
@@ -710,7 +612,7 @@ namespace NWSELib.net
         /// <returns></returns>
         public List<Inference> getNextInferences(Inference inference)
         {
-            List<int> postVarIds = inference.getGene().getVariables();
+            List<int> postVarIds = inference.getGene().getVariableIds();
             List<Inference> r = new List<Inference>();
 
             for (int i=0;i<this.Inferences.Count;i++)
@@ -733,14 +635,15 @@ namespace NWSELib.net
         {
             if (inference == null || inference.Records.Count<=0) return (null,0);
             List<double> similarities = new List<double>();
-            int envcondCount = envValues.Count;
+            int envcondCount = inference.splitIds().Item1.Count;
             //计算相似度
             for (int i=0;i< inference.Records.Count;i++)
             {
                 List<Vector> center = inference.Records[i].means;
                 List<Vector> clone = new List<Vector>(center);
                 clone = inference.replaceEnvValue(clone, envValues);
-                double sim = inference.Records[i].prob(clone) / inference.Records[i].prob(center);
+                double sim = Vector.manhantan_distance(clone, center);
+                //double sim = inference.Records[i].prob(clone) / inference.Records[i].prob(center);
                 similarities.Add(sim);
             }
             //相似度从大到小排序
@@ -754,11 +657,12 @@ namespace NWSELib.net
             double evulation = double.MinValue;
             for(int i=0;i<index.Count;i++)
             {
-                if (similarities[index[i]] < envcondCount*tolerable_similarity) break;
+                if (similarities[index[i]] >= envcondCount*tolerable_similarity) break;
                 if(inference.Records[index[i]].evulation > evulation)
                 {
                     record = inference.Records[index[i]];
                     similarity = similarities[index[i]];
+                    evulation = inference.Records[index[i]].evulation;
                 }
             }
             return (record, similarity);
@@ -774,7 +678,7 @@ namespace NWSELib.net
         /// <returns>只是环境输入部分</returns>
         public List<Vector> computeInput(Inference inference, List<Vector> results, Inference nextinf)
         {
-            List<int> infVarIds = inference.getGene().getVariables();
+            List<int> infVarIds = inference.getGene().getVariableIds();
             if (infVarIds.Count != results.Count) return null;
             List<int> nextinfcondIds = nextinf.getGene().getConditionsExcludeActionSensor();
             List<Vector> r = new List<Vector>();
@@ -796,7 +700,7 @@ namespace NWSELib.net
         /// <returns></returns>
         public List<Vector> getOutputValues(Inference inference, int time)
         {
-            List<int> varIds = inference.getGene().getVariables();
+            List<int> varIds = inference.getGene().getVariableIds();
             List<Vector> vs = varIds.ConvertAll(id => this.getNode(id).GetValue(time));
             return vs.Contains(null) ? null : vs;
         }

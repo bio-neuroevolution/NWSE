@@ -243,7 +243,7 @@ namespace NWSEExperiment.maze
 
             List<double> obs = agent.getObserve();
             List<double> gesture = new List<double>();
-            gesture.Add(agent.Heading/(2*Math.PI));
+            gesture.Add(agent.Heading);
 
             double reward = noncollision? this.compute_reward(agent):-100;
             if(noncollision)
@@ -293,10 +293,15 @@ namespace NWSEExperiment.maze
             if (posindex >= optimaTraces[optima_index].Count - 1) return 1.0;
             Point2D correctPoint = optimaTraces[optima_index][posindex + 1];
 
-            double r = EngineUtilities.euclideanDistance(agent.Location, correctPoint) /
-                       EngineUtilities.euclideanDistance(correctPoint, optimaTraces[optima_index][posindex]);
-            return r >= 1 ? 1.0-r : r;
+            //计算前一个点行动后的最理想距离（即前一个点向正确点直接走后与正确点的距离）
+            Point2D p1 = ((RobotAgent)agent).compute_move_location(agent.OldLocation, correctPoint,1);
+            Point2D p2 = ((RobotAgent)agent).compute_move_location(agent.OldLocation, correctPoint, -1);
+            double d1 = EngineUtilities.euclideanDistance(p1, correctPoint);
+            double d2 = EngineUtilities.euclideanDistance(p2, correctPoint);
+            //计算实际点到正确点的距离
+            double d3 = EngineUtilities.euclideanDistance(agent.Location, correctPoint);
 
+            return ((d2 - d3) / (d2 - d1))*2.0 + -1.0;
         }
 
         #endregion
