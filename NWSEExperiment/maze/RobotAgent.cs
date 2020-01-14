@@ -244,7 +244,7 @@ namespace NWSEExperiment.maze
         #endregion
     }
 
-    public class RobotAgent : IAgent
+    public class RobotAgent : Agent
     {
         #region 内部状态
         public const double RADIUS = 10;
@@ -269,11 +269,12 @@ namespace NWSEExperiment.maze
         
         public bool Stopped;
         public bool HasCollided;
+        public bool PrevCollided;
         #endregion
 
         #region 内部组成
         public Network net;
-        public int getId() { return net.Id; }
+        public override int getId() { return net.Id; }
         public HardMaze maze;
         public List<IAgentSensor> WallSensors;
         public List<IAgentSensor> GoalSensors;
@@ -338,7 +339,7 @@ namespace NWSEExperiment.maze
 
 
             //Heading =EngineUtilities.angletoradian(heading);
-            Heading = heading/ EngineUtilities.DRScale;
+            Heading = heading/ Agent.DRScale;
             Velocity = 0.0;
             HasCollided = false;
             this.Timestep = timeStep;
@@ -485,7 +486,7 @@ namespace NWSEExperiment.maze
 
         }
 
-        public List<double> getObserve()
+        public override List<double> getObserve()
         {
 
             double[] obs = new double[this.WallSensors.Count + this.GoalSensors.Count];
@@ -507,44 +508,44 @@ namespace NWSEExperiment.maze
         }
 
 
-        public const double Max_Rotate_Action = Math.PI / 2;
-        public const double Max_Speed_Action = 40;
+        
         /// <summary>
         /// Enacts agent behavior based on neural network outputs. Movement uses instant/reactive turning and acceleration-based movement (hybrid approach) to encourage robots to move at the same (maximum) Velocity.
         /// </summary>
         /// <param name="outputs">Neural network outputs.</param>
         /// <param name="Timestep">The current timestep.</param>
-        public bool doAction(double[] actions)
+        public override bool doAction(double[] actions)
         {
             double timeStep = this.Timestep;
 
-            double tempVelocity = Velocity+(actions[0] - 0.5) * Max_Speed_Action;
-            //if (tempVelocity > 6.0) tempVelocity = 6.0;
-            //if (tempVelocity < -6.0) tempVelocity = (-6.0);
-            double tempHeading = Heading+(actions[1] - 0.5) * Max_Rotate_Action * 2;
-           
+            Velocity = Max_Speed_Action;
+            /*
+            if (actions[0] > 0.5) Velocity = Max_Speed_Action;
+            else if (actions[0] < 0.5) Velocity = -Max_Speed_Action;
+            else Velocity = 0;*/
 
+             //Velocity = (actions[0] - 0.5) * Max_Speed_Action;
+             //if (Velocity > 6.0) Velocity = 6.0;
+             //if (Velocity < -6.0) Velocity = (-6.0);
+            Heading += (actions[0] - 0.5) * Max_Rotate_Action * 2;
+            if (Heading < 0) Heading += 2 * Math.PI;
             //double tempHeading = noisyHeading();
             //Heading = tempHeading;
-            double dx = Math.Cos(tempHeading) * tempVelocity * Timestep;
-            double dy = Math.Sin(tempHeading) * tempVelocity * Timestep;
+            double dx = Math.Cos(Heading) * Velocity * Timestep;
+            double dy = Math.Sin(Heading) * Velocity * Timestep;
             Point2D tempLocation = new Point2D(Location.X + dx, Location.Y + dy);
 
-            if (this.maze.robotCollide(tempLocation))
+            PrevCollided = HasCollided;
+            HasCollided = this.maze.robotCollide(Location, tempLocation);
+            if (HasCollided)
+            {
+                updateSensors();
                 return false;
-
-            Velocity += (actions[0] - 0.5) * Max_Speed_Action;
-            //if (Velocity > 6.0) Velocity = 6.0;
-            //if (Velocity < -6.0) Velocity = (-6.0);
-            Heading += (actions[1] - 0.5) * Max_Rotate_Action * 2;
-            
-
-
+            }
             updatePosition(timeStep);
             updateSensors();
 
             return true;
-            
         }
 
         /// <summary>
@@ -591,6 +592,21 @@ namespace NWSEExperiment.maze
                 double dy = Math.Sin(tempHeading) * Velocity * Timestep;
                 Location = new Point2D(Location.X + dx, Location.Y + dy);
             }
+        }
+
+        public (double,(int,int)) computePositionAreaCode(double w,double h)
+        {
+            //行列各分100，总共10000个网格
+            int grid = 100;
+            double wunit = w / grid;
+            double hunit = h / grid;
+
+            int x = (int)(this.Location.X / wunit);
+            int y = (int)(this.Location.Y / hunit);
+
+            int code = grid * x + y;
+            return (code*1.0/(grid* grid), (x, y));
+
         }
 
         internal void draw(Graphics g, CoordinateFrame frame,bool showtrail=false)

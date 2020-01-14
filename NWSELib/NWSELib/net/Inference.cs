@@ -43,6 +43,10 @@ namespace NWSELib.net
         /// </summary>
         public double evulation;
         /// <summary>
+        /// 使用次数
+        /// </summary>
+        public int usedCount;
+        /// <summary>
         /// 表示该前置条件和后置变量映射关系的准确程度
         /// </summary>
         public double accuracy;
@@ -195,6 +199,22 @@ namespace NWSELib.net
         /// <param name="gene"></param>
         public Inference(NodeGene gene) : base(gene)
         {
+        }
+
+        public override string ToString()
+        {
+            StringBuilder str = new StringBuilder();
+            str.Append("推理节点=" + Gene.Text + System.Environment.NewLine);
+            str.Append("记录数=" + Records.Count.ToString() + System.Environment.NewLine);
+            for (int j = 0; j < Records.Count; j++)
+            {
+                str.Append("mean" + j.ToString() + "=" + Utility.toString(Records[j].means.flatten().Item1.ToList()) + System.Environment.NewLine+
+                    "   evulation=" + Records[j].evulation.ToString("F3") + System.Environment.NewLine+
+                    "   accuracy=" + Records[j].accuracy.ToString("F3") + System.Environment.NewLine+
+                    "   usedCount=" + Records[j].usedCount.ToString() + System.Environment.NewLine);
+                    
+            }
+            return str.ToString();
         }
         #endregion
 
@@ -357,14 +377,7 @@ namespace NWSELib.net
                 adjust_weights();
                 return activeValue;
             }
-            unclassified_samples.Add(values);
-            //未归类样本很少，暂不进行聚类
-            if(unclassified_samples.Count<=10)
-            {
-                base.activate(net, time, values);
-                return values;
-            }
-
+            
 
             //计算每个记录的密度值，以及样本的密度值
             //If the new sample is not classified into any records, calculate the density values for each record and for all unclassified samples
@@ -390,6 +403,13 @@ namespace NWSELib.net
             double td = ti < this.records.Count ? this.records[ti].density : this.density[ti - this.records.Count];
             this.density.Add(td);
 
+            //未归类样本很少，暂不进行聚类
+            if (unclassified_samples.Count <= 10)
+            {
+                base.activate(net, time, null);
+                return values;
+            }
+
             //如果新样本的最大密度接近原有高斯分量中心的最小密度，则启动新样本聚类过程
             //If the maximum density of the unclassified samples is close to the minimum density of the original Gaussian records, the clustering process of the the unclassified samples will be started
             double max_newsample_density = this.density.Max();
@@ -401,7 +421,9 @@ namespace NWSELib.net
                 for(int i=0;i<clusters.Count;i++)
                 {
                     
-                    create_newrecord_bysamples(clusters[i], des[i]);
+                    InferenceRecord newRecord = create_newrecord_bysamples(clusters[i], des[i]);
+                    newRecord.density = des[i].Average();
+                    this.records.Add(newRecord);
                 }
                 newCount = clusters.Count;
             }
@@ -452,7 +474,21 @@ namespace NWSELib.net
                 //Remove the sample from the unclassified samples
                 this.unclassified_samples.RemoveAt(maxindex);
                 this.density.RemoveAt(maxindex);
-                if (this.unclassified_samples.Count <= 0) break;
+
+                //如果只剩下最后一个样本，将它独立作为一类
+                if (this.unclassified_samples.Count == 1)
+                {
+                    List<List<Vector>> lastclasses = new List<List<Vector>>();
+                    List<double> lastden = new List<double>();
+                    lastclasses.Add(this.unclassified_samples[0]);
+                    lastden.Add(this.density[0]);
+                    r.Add(lastclasses);
+                    dens.Add(lastden);
+                    break;
+                }
+
+                //if (this.unclassified_samples.Count <= 0) break;
+                
 
                 //计算未归类样本集中所有样本与该样本的距离
                 //Calculate the distance between all samples in the unclassified sample set and the sample
@@ -478,15 +514,20 @@ namespace NWSELib.net
                 int argminvar = disvar.argmin()+2;
 
                 //将能够使方差最小的样本归属同一类
+                List<List<Vector>> temps = new List<List<Vector>>();
+                List<double> dtemps = new List<double>();
                 for(int i=0;i<argminvar;i++)
                 {
                     classes.Add(this.unclassified_samples[sortedindex[i]]);
                     den.Add(this.density[sortedindex[i]]);
-                    this.unclassified_samples.RemoveAt(sortedindex[i]);
-                    this.density.RemoveAt(sortedindex[i]);
                 }
-                
-
+                for (int i = argminvar; i < sortedindex.Count; i++)
+                {
+                    temps.Add(this.unclassified_samples[sortedindex[i]]);
+                    dtemps.Add(this.density[sortedindex[i]]);
+                }
+                unclassified_samples = temps;
+                density = dtemps;
                 if (this.unclassified_samples.Count <= 0) break;
 
             }
@@ -534,7 +575,7 @@ namespace NWSELib.net
             InferenceRecord r = new InferenceRecord();
             r.acceptCount = vs.Count;
 
-            List<int> dimensions = vs.ConvertAll(v => v.Count);
+            List<int> dimensions = vs[0].ConvertAll(v => v.Size);
             int totaldimension = dimensions.Sum();
             List<Vector> flatten = vs.ConvertAll(v => v.flatten()).ConvertAll(v => v.Item1);
             r.means = flatten.average().split(dimensions);

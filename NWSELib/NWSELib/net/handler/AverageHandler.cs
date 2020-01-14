@@ -21,7 +21,6 @@ namespace NWSELib.net.handler
             //取得时间参数
             int valueTime = (int)((HandlerGene)this.gene).param[0];
 
-
             //从记忆库中获取各个节点对应配置的输入
             List<Vector> vs = new List<Vector>();
             if (inputs.Count == 1)

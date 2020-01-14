@@ -9,6 +9,7 @@ using System.Text;
 using System.Xml.Serialization;
 using System.Linq;
 using NWSELib.net;
+using NWSELib;
 
 namespace NWSEExperiment.maze
 {
@@ -43,11 +44,14 @@ namespace NWSEExperiment.maze
         #endregion
 
         #region 增加的内容
+        [XmlIgnore]
         private ConcurrentDictionary<int, RobotAgent> agents = new ConcurrentDictionary<int, RobotAgent>();
+        [XmlIgnore]
         List<List<Point2D>> optimaTraces = new List<List<Point2D>>();
         public bool AgentVisible { get; set; }
 
-        List<RobotAgent> Agents { get => agents.Values.ToList(); }
+        [XmlIgnore]
+        public List<RobotAgent> Agents { get => agents.Values.ToList(); }
 
         RobotAgent currentAgent = null;
         RobotAgent CurrentAgent { 
@@ -156,15 +160,16 @@ namespace NWSEExperiment.maze
         /// <summary>
         /// Tests collision between the specified robot and all walls and other robots in the CurrentEnvironment.
         /// </summary>
-		public bool robotCollide(Point2D robotLocation)
+		public bool robotCollide(Point2D robotStartLocation,Point2D robotStopLocation)
         {
             foreach (Wall wall in walls)
             {
-                if (EngineUtilities.collide(wall, robotLocation))
-                {
-                    return true;
-                }
+                Line2D robotLine = new Line2D(robotStartLocation, robotStopLocation);
+                Point2D intePt = null;
+                int intersectionType = wall.Line.intersection(robotLine, out intePt);
+                if (intersectionType == 1) return true; 
             }
+
             
 
             return false;
@@ -231,23 +236,27 @@ namespace NWSEExperiment.maze
             agent.reset(this.start_point);
             List<double> obs =agent.getObserve();
             List<double> gesture = new List<double>();
-            gesture.Add(agent.Heading);
+            gesture.Add(agent.Heading / (2 * Math.PI));
+            var poscode = agent.computePositionAreaCode(this.AOIRectangle.Width, this.AOIRectangle.Height);
+            gesture.Add(poscode.Item1);
             return (obs,gesture);
         }
 
-
+        
         (List<double>, List<double>, List<double>, double) IEnv.action(Network net, List<double> actions)
         {
             RobotAgent agent = this.agents.Values.ToList().FirstOrDefault(a => a.getId() == net.Id);
             bool noncollision = agent.doAction(actions.ToArray());
 
             List<double> obs = agent.getObserve();
-            List<double> gesture = new List<double>();
-            gesture.Add(agent.Heading);
 
-            double reward = noncollision? this.compute_reward(agent):-100;
-            if(noncollision)
-                reward = this.compute_reward(agent);
+            List<double> gesture = new List<double>();
+            gesture.Add(agent.Heading/(2*Math.PI));
+
+            var poscode = agent.computePositionAreaCode(this.AOIRectangle.Width, this.AOIRectangle.Height);
+            gesture.Add(poscode.Item1);
+
+            double reward = this.compute_reward(agent);
             return (obs, gesture, actions,reward);
         }
 
@@ -272,7 +281,72 @@ namespace NWSEExperiment.maze
             t2.Add(new Point2D(this.goal_point.X, this.goal_point.Y));
             optimaTraces.Add(t2);
         }
-        public double compute_reward(IAgent agent)
+
+        public static List<double> createInstinctAction(Network net,int time)
+        {
+            //如果面朝目标，则直接向前走
+            if (net.getNode("g1").GetValue(time)[0] == 1)
+            {
+                return new List<double>()
+                {
+                    //EngineUtilities.RNG.NextDouble()/2.0+0.5,
+                    0.5
+                };
+            }//左转90度
+            else if (net.getNode("g2").GetValue(time)[0] == 1)
+            {
+                return new List<double>()
+                {
+                    //EngineUtilities.RNG.NextDouble()/2.0+0.5,
+                    0.25
+                };
+            }//转180度
+            else if (net.getNode("g3").GetValue(time)[0] == 1)
+            {
+                return new List<double>()
+                {
+                    EngineUtilities.RNG.NextDouble()/2.0,
+                    1.0
+                };
+            }//
+            else if (net.getNode("g4").GetValue(time)[0] == 1)
+            {
+                return new List<double>()
+                {
+                    EngineUtilities.RNG.NextDouble()/2.0+0.5,
+                    0.75
+                };
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        public double compute_reward(Agent agent)
+        {
+            if (Session.GetConfiguration().evaluation.reward_method == "collision")
+                return compute_reward_collision(agent);
+            //else if (Session.GetConfiguration().evaluation.reward_method == "optiomatraces")
+            return compute_reward_optiomatraces((RobotAgent)agent);
+        }
+        /// <summary>
+        /// 如果是
+        /// </summary>
+        /// <param name="agent"></param>
+        /// <returns></returns>
+        public double compute_reward_collision(Agent agent)
+        {
+            RobotAgent robot = (RobotAgent)agent;
+            if (robot.PrevCollided && !robot.HasCollided)
+                return 10.0;
+            else if (!robot.PrevCollided && robot.HasCollided)
+                return -10.0;
+            else if (robot.PrevCollided && robot.HasCollided)
+                return -10.0;
+            else return 0.1;
+        }
+        public double compute_reward_optiomatraces(RobotAgent agent)
         {
             //计算离Agent的前一个点最近的最优点
             int optima_index=-1,posindex=-1;

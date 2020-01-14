@@ -156,8 +156,7 @@ namespace NWSELib
             public int accept_max_count;
             [XmlAttribute]
             public double inference_distance;
-            [XmlAttribute]
-            public double env_distance;
+           
         }
 
         public class LearningJudge
@@ -169,6 +168,9 @@ namespace NWSELib
         
         public class Evaluation
         {
+            [XmlAttribute]
+            public String reward_method;
+
             [XmlAttribute]
             public double timeStep;
 

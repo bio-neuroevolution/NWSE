@@ -4,7 +4,7 @@ using System.Text;
 
 namespace NWSELib.genome
 {
-    public interface IGene
+    public interface IGene 
     {
     }
 }

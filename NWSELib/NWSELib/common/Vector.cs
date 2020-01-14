@@ -281,6 +281,10 @@ namespace NWSELib.common
         {
             return vs.ConvertAll<int>(v => v.Size).Max();
         }
+        public static int size(this List<Vector> vs)
+        {
+            return vs.ConvertAll(v => v.Size).Sum();
+        }
         /// <summary>
         /// 取得某列的值
         /// </summary>

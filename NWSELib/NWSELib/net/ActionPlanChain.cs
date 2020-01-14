@@ -72,6 +72,10 @@ namespace NWSELib.net
         /// </summary>
         public List<Vector> actions;
         /// <summary>
+        /// 本次动作是否是本能动作
+        /// </summary>
+        public bool instinct;
+        /// <summary>
         /// 预期结果
         /// </summary>
         public List<Vector> expects;
@@ -141,6 +145,7 @@ namespace NWSELib.net
             str.Append("    actions=" + this.actions.toString() + System.Environment.NewLine);
             str.Append("    expect=" + this.expects.toString() + System.Environment.NewLine);
             str.Append("    evulation=" + this.record.evulation.ToString("F3") + System.Environment.NewLine);
+            str.Append("    usedCount=" + this.record.usedCount.ToString() + System.Environment.NewLine);
             str.Append("    accuracy=" + this.record.accuracy.ToString("F3") + System.Environment.NewLine);
             
             return str.ToString();

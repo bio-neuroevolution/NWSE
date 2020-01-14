@@ -30,14 +30,23 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
+            this.toolStripLabel1 = new System.Windows.Forms.ToolStripLabel();
             this.btnERun = new System.Windows.Forms.ToolStripButton();
             this.btnEPause = new System.Windows.Forms.ToolStripButton();
+            this.btnEReset = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            this.toolStripLabel2 = new System.Windows.Forms.ToolStripLabel();
+            this.btnORun = new System.Windows.Forms.ToolStripButton();
+            this.btnOStop = new System.Windows.Forms.ToolStripButton();
+            this.btnOStrucuture = new System.Windows.Forms.ToolStripButton();
             this.btnoShowTrail = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
+            this.toolStripLabel3 = new System.Windows.Forms.ToolStripLabel();
+            this.btniOpen = new System.Windows.Forms.ToolStripButton();
             this.btnIEnvReset = new System.Windows.Forms.ToolStripButton();
             this.btnIInference = new System.Windows.Forms.ToolStripButton();
             this.btnIActions = new System.Windows.Forms.ToolStripButton();
+            this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.statusXY = new System.Windows.Forms.ToolStripStatusLabel();
             this.lblindcount = new System.Windows.Forms.ToolStripStatusLabel();
@@ -56,15 +65,15 @@
             this.tabPage5 = new System.Windows.Forms.TabPage();
             this.panel1 = new System.Windows.Forms.Panel();
             this.txtLog = new System.Windows.Forms.TextBox();
-            this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
-            this.btnOStrucuture = new System.Windows.Forms.ToolStripButton();
-            this.btnEReset = new System.Windows.Forms.ToolStripButton();
-            this.toolStripLabel1 = new System.Windows.Forms.ToolStripLabel();
-            this.btnOStop = new System.Windows.Forms.ToolStripButton();
-            this.btnORun = new System.Windows.Forms.ToolStripButton();
-            this.toolStripLabel2 = new System.Windows.Forms.ToolStripLabel();
-            this.toolStripLabel3 = new System.Windows.Forms.ToolStripLabel();
-            this.btniOpen = new System.Windows.Forms.ToolStripButton();
+            this.toolStripSplitButton1 = new System.Windows.Forms.ToolStripSplitButton();
+            this.runStep5ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.stepsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.stepsToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.stepsToolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
+            this.stepToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.stepToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.stepToolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
+            this.untilEndToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.tabControl1.SuspendLayout();
@@ -98,12 +107,19 @@
             this.btnIEnvReset,
             this.btnIInference,
             this.btnIActions,
+            this.toolStripSplitButton1,
             this.toolStripSeparator3});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(800, 40);
+            this.toolStrip1.Size = new System.Drawing.Size(916, 40);
             this.toolStrip1.TabIndex = 0;
             this.toolStrip1.Text = "toolStrip1";
+            // 
+            // toolStripLabel1
+            // 
+            this.toolStripLabel1.Name = "toolStripLabel1";
+            this.toolStripLabel1.Size = new System.Drawing.Size(64, 37);
+            this.toolStripLabel1.Text = "Evoultion:";
             // 
             // btnERun
             // 
@@ -126,10 +142,53 @@
             this.btnEPause.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
             this.btnEPause.Click += new System.EventHandler(this.toolStripButton3_Click);
             // 
+            // btnEReset
+            // 
+            this.btnEReset.Image = ((System.Drawing.Image)(resources.GetObject("btnEReset.Image")));
+            this.btnEReset.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnEReset.Name = "btnEReset";
+            this.btnEReset.Size = new System.Drawing.Size(44, 37);
+            this.btnEReset.Text = "Reset";
+            this.btnEReset.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
+            // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
             this.toolStripSeparator1.Size = new System.Drawing.Size(6, 40);
+            // 
+            // toolStripLabel2
+            // 
+            this.toolStripLabel2.Name = "toolStripLabel2";
+            this.toolStripLabel2.Size = new System.Drawing.Size(57, 37);
+            this.toolStripLabel2.Text = "Optimal:";
+            // 
+            // btnORun
+            // 
+            this.btnORun.Image = ((System.Drawing.Image)(resources.GetObject("btnORun.Image")));
+            this.btnORun.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnORun.Name = "btnORun";
+            this.btnORun.Size = new System.Drawing.Size(34, 37);
+            this.btnORun.Text = "Run";
+            this.btnORun.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
+            // 
+            // btnOStop
+            // 
+            this.btnOStop.Image = ((System.Drawing.Image)(resources.GetObject("btnOStop.Image")));
+            this.btnOStop.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnOStop.Name = "btnOStop";
+            this.btnOStop.Size = new System.Drawing.Size(39, 37);
+            this.btnOStop.Text = "Stop";
+            this.btnOStop.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
+            // 
+            // btnOStrucuture
+            // 
+            this.btnOStrucuture.Image = ((System.Drawing.Image)(resources.GetObject("btnOStrucuture.Image")));
+            this.btnOStrucuture.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnOStrucuture.Name = "btnOStrucuture";
+            this.btnOStrucuture.Size = new System.Drawing.Size(63, 37);
+            this.btnOStrucuture.Text = "structure";
+            this.btnOStrucuture.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
+            this.btnOStrucuture.Click += new System.EventHandler(this.toolStripButton6_Click_1);
             // 
             // btnoShowTrail
             // 
@@ -146,6 +205,21 @@
             // 
             this.toolStripSeparator2.Name = "toolStripSeparator2";
             this.toolStripSeparator2.Size = new System.Drawing.Size(6, 40);
+            // 
+            // toolStripLabel3
+            // 
+            this.toolStripLabel3.Name = "toolStripLabel3";
+            this.toolStripLabel3.Size = new System.Drawing.Size(71, 37);
+            this.toolStripLabel3.Text = "Intercative:";
+            // 
+            // btniOpen
+            // 
+            this.btniOpen.Image = ((System.Drawing.Image)(resources.GetObject("btniOpen.Image")));
+            this.btniOpen.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btniOpen.Name = "btniOpen";
+            this.btniOpen.Size = new System.Drawing.Size(44, 37);
+            this.btniOpen.Text = "Open";
+            this.btniOpen.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
             // 
             // btnIEnvReset
             // 
@@ -177,6 +251,11 @@
             this.btnIActions.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
             this.btnIActions.Click += new System.EventHandler(this.toolStripButton7_Click);
             // 
+            // toolStripSeparator3
+            // 
+            this.toolStripSeparator3.Name = "toolStripSeparator3";
+            this.toolStripSeparator3.Size = new System.Drawing.Size(6, 40);
+            // 
             // statusStrip1
             // 
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -184,7 +263,7 @@
             this.lblindcount});
             this.statusStrip1.Location = new System.Drawing.Point(0, 428);
             this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(800, 22);
+            this.statusStrip1.Size = new System.Drawing.Size(916, 22);
             this.statusStrip1.TabIndex = 1;
             this.statusStrip1.Text = "statusStrip1";
             // 
@@ -209,7 +288,7 @@
             this.tabControl1.Location = new System.Drawing.Point(0, 40);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(800, 388);
+            this.tabControl1.Size = new System.Drawing.Size(916, 388);
             this.tabControl1.TabIndex = 2;
             // 
             // tabPage1
@@ -218,7 +297,7 @@
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(792, 362);
+            this.tabPage1.Size = new System.Drawing.Size(908, 362);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Maze";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -230,14 +309,14 @@
             this.panel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel.Location = new System.Drawing.Point(3, 3);
             this.panel.Name = "panel";
-            this.panel.Size = new System.Drawing.Size(786, 356);
+            this.panel.Size = new System.Drawing.Size(902, 356);
             this.panel.TabIndex = 0;
             // 
             // panel2
             // 
             this.panel2.Controls.Add(this.tabControl2);
             this.panel2.Dock = System.Windows.Forms.DockStyle.Right;
-            this.panel2.Location = new System.Drawing.Point(481, 0);
+            this.panel2.Location = new System.Drawing.Point(597, 0);
             this.panel2.Name = "panel2";
             this.panel2.Size = new System.Drawing.Size(305, 356);
             this.panel2.TabIndex = 1;
@@ -300,7 +379,7 @@
             this.pnlMaze.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pnlMaze.Location = new System.Drawing.Point(0, 0);
             this.pnlMaze.Name = "pnlMaze";
-            this.pnlMaze.Size = new System.Drawing.Size(786, 356);
+            this.pnlMaze.Size = new System.Drawing.Size(902, 356);
             this.pnlMaze.TabIndex = 0;
             this.pnlMaze.Paint += new System.Windows.Forms.PaintEventHandler(this.panel_Paint);
             this.pnlMaze.MouseMove += new System.Windows.Forms.MouseEventHandler(this.panel_MouseMove);
@@ -355,80 +434,93 @@
             this.txtLog.Size = new System.Drawing.Size(786, 356);
             this.txtLog.TabIndex = 0;
             // 
-            // toolStripSeparator3
+            // toolStripSplitButton1
             // 
-            this.toolStripSeparator3.Name = "toolStripSeparator3";
-            this.toolStripSeparator3.Size = new System.Drawing.Size(6, 40);
+            this.toolStripSplitButton1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.runStep5ToolStripMenuItem,
+            this.stepsToolStripMenuItem,
+            this.stepsToolStripMenuItem1,
+            this.stepsToolStripMenuItem2,
+            this.stepToolStripMenuItem,
+            this.stepToolStripMenuItem1,
+            this.stepToolStripMenuItem2,
+            this.untilEndToolStripMenuItem});
+            this.toolStripSplitButton1.Image = ((System.Drawing.Image)(resources.GetObject("toolStripSplitButton1.Image")));
+            this.toolStripSplitButton1.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripSplitButton1.Name = "toolStripSplitButton1";
+            this.toolStripSplitButton1.Size = new System.Drawing.Size(105, 37);
+            this.toolStripSplitButton1.Text = "multiple steps";
+            this.toolStripSplitButton1.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
             // 
-            // btnOStrucuture
+            // runStep5ToolStripMenuItem
             // 
-            this.btnOStrucuture.Image = ((System.Drawing.Image)(resources.GetObject("btnOStrucuture.Image")));
-            this.btnOStrucuture.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.btnOStrucuture.Name = "btnOStrucuture";
-            this.btnOStrucuture.Size = new System.Drawing.Size(63, 37);
-            this.btnOStrucuture.Text = "structure";
-            this.btnOStrucuture.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
-            this.btnOStrucuture.Click += new System.EventHandler(this.toolStripButton6_Click_1);
+            this.runStep5ToolStripMenuItem.Name = "runStep5ToolStripMenuItem";
+            this.runStep5ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.runStep5ToolStripMenuItem.Tag = "5";
+            this.runStep5ToolStripMenuItem.Text = "5 steps";
+            this.runStep5ToolStripMenuItem.Click += new System.EventHandler(this.runStep5ToolStripMenuItem_Click);
             // 
-            // btnEReset
+            // stepsToolStripMenuItem
             // 
-            this.btnEReset.Image = ((System.Drawing.Image)(resources.GetObject("btnEReset.Image")));
-            this.btnEReset.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.btnEReset.Name = "btnEReset";
-            this.btnEReset.Size = new System.Drawing.Size(44, 37);
-            this.btnEReset.Text = "Reset";
-            this.btnEReset.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
+            this.stepsToolStripMenuItem.Name = "stepsToolStripMenuItem";
+            this.stepsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.stepsToolStripMenuItem.Tag = "10";
+            this.stepsToolStripMenuItem.Text = "10 steps";
+            this.stepsToolStripMenuItem.Click += new System.EventHandler(this.runStep5ToolStripMenuItem_Click);
             // 
-            // toolStripLabel1
+            // stepsToolStripMenuItem1
             // 
-            this.toolStripLabel1.Name = "toolStripLabel1";
-            this.toolStripLabel1.Size = new System.Drawing.Size(64, 37);
-            this.toolStripLabel1.Text = "Evoultion:";
+            this.stepsToolStripMenuItem1.Name = "stepsToolStripMenuItem1";
+            this.stepsToolStripMenuItem1.Size = new System.Drawing.Size(180, 22);
+            this.stepsToolStripMenuItem1.Tag = "15";
+            this.stepsToolStripMenuItem1.Text = "15 steps";
+            this.stepsToolStripMenuItem1.Click += new System.EventHandler(this.runStep5ToolStripMenuItem_Click);
             // 
-            // btnOStop
+            // stepsToolStripMenuItem2
             // 
-            this.btnOStop.Image = ((System.Drawing.Image)(resources.GetObject("btnOStop.Image")));
-            this.btnOStop.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.btnOStop.Name = "btnOStop";
-            this.btnOStop.Size = new System.Drawing.Size(39, 37);
-            this.btnOStop.Text = "Stop";
-            this.btnOStop.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
+            this.stepsToolStripMenuItem2.Name = "stepsToolStripMenuItem2";
+            this.stepsToolStripMenuItem2.Size = new System.Drawing.Size(180, 22);
+            this.stepsToolStripMenuItem2.Tag = "25";
+            this.stepsToolStripMenuItem2.Text = "25 steps";
+            this.stepsToolStripMenuItem2.Click += new System.EventHandler(this.runStep5ToolStripMenuItem_Click);
             // 
-            // btnORun
+            // stepToolStripMenuItem
             // 
-            this.btnORun.Image = ((System.Drawing.Image)(resources.GetObject("btnORun.Image")));
-            this.btnORun.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.btnORun.Name = "btnORun";
-            this.btnORun.Size = new System.Drawing.Size(34, 37);
-            this.btnORun.Text = "Run";
-            this.btnORun.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
+            this.stepToolStripMenuItem.Name = "stepToolStripMenuItem";
+            this.stepToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.stepToolStripMenuItem.Tag = "50";
+            this.stepToolStripMenuItem.Text = "50 step";
+            this.stepToolStripMenuItem.Click += new System.EventHandler(this.runStep5ToolStripMenuItem_Click);
             // 
-            // toolStripLabel2
+            // stepToolStripMenuItem1
             // 
-            this.toolStripLabel2.Name = "toolStripLabel2";
-            this.toolStripLabel2.Size = new System.Drawing.Size(57, 37);
-            this.toolStripLabel2.Text = "Optimal:";
+            this.stepToolStripMenuItem1.Name = "stepToolStripMenuItem1";
+            this.stepToolStripMenuItem1.Size = new System.Drawing.Size(180, 22);
+            this.stepToolStripMenuItem1.Tag = "100";
+            this.stepToolStripMenuItem1.Text = "100 step";
+            this.stepToolStripMenuItem1.Click += new System.EventHandler(this.runStep5ToolStripMenuItem_Click);
             // 
-            // toolStripLabel3
+            // stepToolStripMenuItem2
             // 
-            this.toolStripLabel3.Name = "toolStripLabel3";
-            this.toolStripLabel3.Size = new System.Drawing.Size(71, 37);
-            this.toolStripLabel3.Text = "Intercative:";
+            this.stepToolStripMenuItem2.Name = "stepToolStripMenuItem2";
+            this.stepToolStripMenuItem2.Size = new System.Drawing.Size(180, 22);
+            this.stepToolStripMenuItem2.Tag = "200";
+            this.stepToolStripMenuItem2.Text = "200 step";
+            this.stepToolStripMenuItem2.Click += new System.EventHandler(this.runStep5ToolStripMenuItem_Click);
             // 
-            // btniOpen
+            // untilEndToolStripMenuItem
             // 
-            this.btniOpen.Image = ((System.Drawing.Image)(resources.GetObject("btniOpen.Image")));
-            this.btniOpen.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.btniOpen.Name = "btniOpen";
-            this.btniOpen.Size = new System.Drawing.Size(44, 37);
-            this.btniOpen.Text = "Open";
-            this.btniOpen.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
+            this.untilEndToolStripMenuItem.Name = "untilEndToolStripMenuItem";
+            this.untilEndToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.untilEndToolStripMenuItem.Tag = "0";
+            this.untilEndToolStripMenuItem.Text = "until end";
+            this.untilEndToolStripMenuItem.Click += new System.EventHandler(this.runStep5ToolStripMenuItem_Click);
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 450);
+            this.ClientSize = new System.Drawing.Size(916, 450);
             this.Controls.Add(this.tabControl1);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.toolStrip1);
@@ -496,6 +588,15 @@
         private System.Windows.Forms.ToolStripButton btnOStop;
         private System.Windows.Forms.ToolStripLabel toolStripLabel3;
         private System.Windows.Forms.ToolStripButton btniOpen;
+        private System.Windows.Forms.ToolStripSplitButton toolStripSplitButton1;
+        private System.Windows.Forms.ToolStripMenuItem runStep5ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem stepsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem stepsToolStripMenuItem1;
+        private System.Windows.Forms.ToolStripMenuItem stepsToolStripMenuItem2;
+        private System.Windows.Forms.ToolStripMenuItem stepToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem stepToolStripMenuItem1;
+        private System.Windows.Forms.ToolStripMenuItem stepToolStripMenuItem2;
+        private System.Windows.Forms.ToolStripMenuItem untilEndToolStripMenuItem;
     }
 }
 

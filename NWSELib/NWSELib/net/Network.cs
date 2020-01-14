@@ -46,45 +46,7 @@ namespace NWSELib.net
         public int Id { get => this.genome.id; }
         #endregion
 
-        #region 记忆信息
-        /*
-        private class MemoryItem
-        {
-            public int timeScale = 1;
-            public int beginTime = -1;
-            public Queue<Vector> records = new Queue<Vector>();
-            public MemoryItem() { }
-            public MemoryItem(int timeScale) { this.timeScale = timeScale; }
-        }
-
         
-
-        private MemoryItem[] memories;
-
-        public void putMemoryItem(int nodeIndex, int time, Vector value)
-        {
-
-            if (memories[nodeIndex].beginTime < 0)
-                memories[nodeIndex].beginTime = time;
-            memories[nodeIndex].records.Enqueue(value);
-        }
-        public Vector getMemoryItem(int nodeIndex, int time)
-        {
-            if (memories[nodeIndex].beginTime < 0)
-                return null;
-            int index = (time - memories[nodeIndex].beginTime) / memories[nodeIndex].timeScale;
-            Vector[] vs = memories[nodeIndex].records.ToArray();
-            return index < vs.Length ? vs[index] : null;
-        }
-
-        
-
-        public List<Vector> getNodeMemory(int nodeIndex)
-        {
-            return new List<Vector>(memories[nodeIndex].records.ToArray());
-        }
-        */
-        #endregion
 
         
 
@@ -173,6 +135,10 @@ namespace NWSELib.net
         {
             return this.nodes.FirstOrDefault(n => n.Id == id);
         }
+        public Node getNode(String name)
+        {
+            return this.nodes.FirstOrDefault(n => n.Name == name);
+        }
         public int getActionIdByName(String name)
         {
             Node n = this.Effectors.FirstOrDefault(e => e.Name == name || e.Name == name.Substring(1));
@@ -252,19 +218,16 @@ namespace NWSELib.net
         #endregion
 
         #region 推理状态
-        /// <summary>
-        /// 当前推理链
-        /// </summary>
-        public InferenceChain currentInferenceChain;
-        /// <summary>
-        /// 动作输出和推理迹
-        /// </summary>
-        public Dictionary<int, (double, int[])> currentActionTraces = new Dictionary<int, (double, int[])>();
-
+        
         /// <summary>
         /// 推理发生时间
         /// </summary>
         private int judgeTime;
+
+        /// <summary>
+        /// 行动计划轨迹
+        /// </summary>
+        public List<ActionPlan> actionPlanTraces = new List<ActionPlan>();
 
         /// <summary>
         /// 行动计划链
@@ -275,39 +238,7 @@ namespace NWSELib.net
         /// </summary>
         public ActionPlan curActionPlan;
 
-        /// <summary>
-        /// 显示推理过程
-        /// </summary>
-        /// <returns></returns>
-        public String getInferenceChainText()
-        {
-            if (currentInferenceChain == null) return "";
-            StringBuilder str = new StringBuilder();
-            str.Append("...1.JudgeMent:" + currentInferenceChain.juegeItem.Text+System.Environment.NewLine);
-            Inference inf = (Inference)this.getNode(currentInferenceChain.head.referenceNode);
-            str.Append("...2.For achieving the judgment goal,the inference " + inf.Id + " was uesed and the expection value is "+ currentInferenceChain.varValue.ToString()+":" + inf.Gene.Text+System.Environment.NewLine);
-            int xh = 3;
-            for(int i=0;i<this.ActionReceptors.Count;i++)
-            {
-                Receptor receptor = (Receptor)this.ActionReceptors[i];
-                (double, int[]) trace = currentActionTraces[receptor.Id];
-                if(trace.Item2 == null || trace.Item2.Length<=0)
-                {
-                    str.Append("..." + (xh + i).ToString() + ". action " + receptor.Gene.Text + "'s fitness value is " + trace.Item1.ToString()+System.Environment.NewLine);
-                    continue;
-                        
-                }
-                str.Append("..." + (xh + i).ToString() + ". action " + receptor.Gene.Text + "'s inference trace is:"+ System.Environment.NewLine);
-                List<InferenceChain.Item> items = currentInferenceChain.getItemsFromTrace(trace.Item2);
-                foreach(InferenceChain.Item item in items)
-                {
-                    str.Append("        " + this.getNode(item.referenceNode).Gene.Text);
-                }
-                str.Append("        action " + receptor.Gene.Text + "'s fitness value is " + trace.Item1.ToString() + System.Environment.NewLine);
-
-            }
-            return str.ToString();
-        }
+        
         #endregion
 
         #region 评价信息
@@ -399,7 +330,7 @@ namespace NWSELib.net
                 //检查行动实际结果与预期的匹配程度
                 curActionPlan.reals = this.getOutputValues(curActionPlan.inference, time);
                 curActionPlan.distance = Vector.manhantan_distance(curActionPlan.reals, curActionPlan.expects);
-                if(curActionPlan.distance <= Session.GetConfiguration().learning.inference.env_distance)
+                if(curActionPlan.distance <= Session.GetConfiguration().learning.judge.tolerable_similarity * curActionPlan.reals.size())
                 {
                     //两者接近，本次行动成功，设置奖励
                     curActionPlan.record.accuracy += 0.1;
@@ -430,35 +361,42 @@ namespace NWSELib.net
                 setEffectValue(time);
                 return;
             }
-            //计算行动计划链
+
+            //计算行动计划树
+            this.curActionPlan = null;
             this.rootActionPlan = doActionPlan(time);
-            if (this.rootActionPlan != null)
+            if (this.rootActionPlan == null)
             {
-                //选择行动记录评估值最高的
-                doSelectActionPlan(this.rootActionPlan);
+                setEffectValue(time);
+                return;
             }
-                
+            //选择行动记录评估值最高的
+            double maxEvaluation = doSelectActionPlan(this.rootActionPlan);
+            
             //根据行动计划设置输出
-            setEffectValue(time);
+            setEffectValue(time, maxEvaluation<-1.0);
 
         }
 
-        private void doSelectActionPlan(ActionPlan plan)
+        private double doSelectActionPlan(ActionPlan plan)
         {
-            if (plan == null) return;
+            //查找行为链中的最大评估值
+            if (plan == null) return 0;
             double max = plan.record.evulation;
             ActionPlan maxplan = plan;
             for (int i=0;i< plan.childs.Count; i++)
             {
                doSelectActionPlan(plan.childs[i],ref max,ref maxplan);
             }
-            if (maxplan == null) return;
+            if (maxplan == null) return max;
+            
             ActionPlan temp = maxplan;
             while(temp.parent != null)
             {
                 temp.parent.selected = temp.parent.childs.IndexOf(temp);
                 temp = temp.parent;
             }
+            return max;
         }
         
         private void doSelectActionPlan(ActionPlan plan, ref double max,ref  ActionPlan maxPlan)
@@ -483,27 +421,83 @@ namespace NWSELib.net
                 doSelectActionPlan(plan.childs[i], ref max, ref maxPlan);
             }
         }
+        public String showActionPlan()
+        {
+            StringBuilder str = new StringBuilder();
+            if (this.rootActionPlan == null)
+            {
+                if (this.actionPlanTraces.Count > 0 &&
+                    this.actionPlanTraces.Last().record == null &&
+                    this.actionPlanTraces.Last().instinct)
+                    str.Append("行动方式=本能行为" + System.Environment.NewLine);
+                else str.Append("行动方式=随机探索" + System.Environment.NewLine);
+                str.Append("   行为=");
+                str.Append(showActionText() + System.Environment.NewLine);
+            }
+            else
+            {
+                str.Append("行动方式=" + this.rootActionPlan.Depth.ToString() + "步规划" + System.Environment.NewLine);
+                str.Append("   行为=");
+                str.Append(showActionText() + System.Environment.NewLine);
+
+                str.Append(this.rootActionPlan.ToString(this.curActionPlan) + System.Environment.NewLine);
+            }
+
+
+            str.Append(System.Environment.NewLine);
+            return str.ToString();
+        }
+        public String showActionText()
+        {
+            List<double> values = this.Effectors.ConvertAll(e => e.Value[0]);
+            //double delta_speed = (values[0] - 0.5) * Agent.Max_Speed_Action;
+            double delta_degree = (((values[0] - 0.5) * Agent.Max_Rotate_Action * 2) * Agent.DRScale) % 360;
+            return delta_degree.ToString("F3");
+        }
         /// <summary>
         /// 根据行动计划设定输出
+        /// //没有行动计划,两种原因导致：1）没有找到相似场景；2）行动计划的最大评估值太小,相当于处于困境
+            //对于前一种，可以执行本能行为，后一种则执行随机行为
         /// </summary>
-        private void setEffectValue(int time)
+        private void setEffectValue(int time,bool random=true)
         {
-            //没有行动计划，设置随机动作
+            
             if(this.rootActionPlan == null)
             {
-                for (int i = 0; i < this.Effectors.Count; i++)
-                    this.Effectors[i].randomValue(this, time);
+                List<double> actions = null;
+                bool instinct = false;
+                if (!random)
+                {
+                    actions = Session.instinctActionHandler(this, time);
+                    instinct = true;
+                    for (int i = 0; i < this.Effectors.Count; i++)
+                        this.Effectors[i].activate(this, time, actions[i]);
+                }
+                if (actions == null)
+                {
+                    for (int i = 0; i < this.Effectors.Count; i++)
+                        this.Effectors[i].randomValue(this, time);
+                }
+                this.actionPlanTraces.Add(new ActionPlan()
+                {
+                    actions = this.Effectors.ConvertAll(e=>e.Value),
+                    instinct = instinct
+                });
                 return;
             }else if(this.curActionPlan == null)
             {
                 this.curActionPlan = this.rootActionPlan;
+                this.actionPlanTraces.Add(this.curActionPlan);
             }
+
+            curActionPlan.record.usedCount += 1;
             for (int i = 0; i < this.Effectors.Count; i++)
             {
                 this.Effectors[i].activate(this, time, this.curActionPlan.actions[i]);
             }
         }
 
+        
         private ActionPlan doActionPlan(int time, ActionPlan root = null,ActionPlan plan =null)
         {
             Inference select_inf = null;
@@ -526,9 +520,11 @@ namespace NWSELib.net
                 (InferenceRecord record,double similarity) = recall((Inference)this.Inferences[i], inputValues);
                 if (record == null) continue;
                 
-
+                
                 if(plan != null)
                 {
+                    //如果找到的记录，评估是负的，则跳过
+                    if (record.evulation < 0 && record.accuracy > 0) continue;
                     ActionPlan cplan = new ActionPlan(this,(Inference)this.Inferences[i], record, similarity,inputValues);
                     plan.childs.Add(cplan);
                     cplan.parent = plan;
@@ -549,6 +545,7 @@ namespace NWSELib.net
             {
                 if (select_inf == null) return root;
                 root = new ActionPlan(this,select_inf, select_record, select_record_similarity, select_record_inputValues);
+                
                 return doActionPlan(time, root, root);
             }
 
@@ -648,7 +645,7 @@ namespace NWSELib.net
             }
             //相似度从大到小排序
             List<int> index = similarities.argsort();
-            index.Reverse();
+            
             //相似度上界
             double tolerable_similarity = Session.GetConfiguration().learning.judge.tolerable_similarity;
             //寻找满足相似度上界，且评价最高的
@@ -705,27 +702,49 @@ namespace NWSELib.net
             return vs.Contains(null) ? null : vs;
         }
 
-        public void setReward(double reward)
+        public void setReward(double reward,int mode = 1,bool clear=true)
         {
-            if (this.curActionPlan == null)
-                return;
-            //int count = this.actionPlanChain.getTraceLength(this.actionPlanChain.curPlanItem);
-            //达到最大负奖励
-            if(reward <= -1*Session.GetConfiguration().evaluation.max_reward)
+            if (this.actionPlanTraces.Count <= 0) return;
+            if(mode == 1)//指数下降方式分配
             {
-                this.curActionPlan.record.evulation += reward;
-                return;
-            }
-            ActionPlan item = this.curActionPlan;
-            while(item != null)
+                for (int i = this.actionPlanTraces.Count - 1; i >= 0; i--)
+                {
+                    ActionPlan plan = this.actionPlanTraces[i];
+                    if (plan == null || plan.record == null) continue;
+                    plan.record.evulation += Math.Exp(i - this.actionPlanTraces.Count + 1) * reward;
+
+                }
+                ActionPlan p = actionPlanTraces.Last();
+                actionPlanTraces.Clear();
+                actionPlanTraces.Add(p);
+            }else if(mode == 2)//平均分配
             {
-                item.record.evulation += reward;
-                item = item.parent;
+                for (int i = this.actionPlanTraces.Count - 1; i >= 0; i--)
+                {
+                    ActionPlan plan = this.actionPlanTraces[i];
+                    if (plan == null || plan.record == null) continue;
+                    plan.record.evulation += reward;
+
+                }
+                ActionPlan p = actionPlanTraces.Last();
+                actionPlanTraces.Clear();
+                actionPlanTraces.Add(p);
             }
+            else//只分配给最后一个
+            {
+                ActionPlan p = actionPlanTraces.Last();
+                p.record.evulation += reward;
+            }
+            
+            
+
+
+
         }
         #endregion
 
         #region 反向推理
+        /*
         /// <summary>
         /// 评判
         /// </summary>
@@ -1009,9 +1028,6 @@ namespace NWSELib.net
             }
             return false;
         }
-        #endregion
-
-
         /// <summary>
         /// 处理接受到的奖励，相当于适应度（-1到1之间）
         /// 根据适应度，设定推理路径上的各个推断节点和处理节点的可靠度
@@ -1035,5 +1051,10 @@ namespace NWSELib.net
             }
             
         }
+        */
+        #endregion
+
+
+
     }
 }

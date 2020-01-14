@@ -254,7 +254,7 @@ namespace NWSEExperiment.maze
             
             return val;
         }
-        public const double DRScale = 57.29578;
+        
 
         public static double angletoradian(double value)
         {

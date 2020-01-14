@@ -291,7 +291,30 @@ namespace NWSELib.common
 			return t * Math.Sqrt(dx * dx + dy * dy);
 
 		}
+		/// <summary>
+		/// Calculates the point of intersection between two line segments
+		/// </summary>
+		/// <param name="line">Second line segment</param>
+		/// <param name="pt">the point of intersection</param>
+		/// <returns>0-no intersection;1-intersect on line segment;-1-Intersect on line segment extension</returns>
+		public int intersection(Line2D line, out Point2D pt)
+		{
+			bool found = false;
+			pt = intersection(line,out found);
+			if (!found) return 0;
+			if (pt.X >= Math.Min(line.Endpoint1.X, line.Endpoint2.X) &&
+				   pt.X <= Math.Max(line.Endpoint1.X, line.Endpoint2.X) &&
+				   pt.Y >= Math.Min(line.Endpoint1.Y, line.Endpoint2.Y) &&
+				   pt.Y <= Math.Max(line.Endpoint1.Y, line.Endpoint2.Y) &&
 
+				   pt.X >= Math.Min(this.Endpoint1.X, this.Endpoint2.X) &&
+				   pt.X <= Math.Max(this.Endpoint1.X, this.Endpoint2.X) &&
+				   pt.Y >= Math.Min(this.Endpoint1.Y, this.Endpoint2.Y) &&
+				   pt.Y <= Math.Max(this.Endpoint1.Y, this.Endpoint2.Y))
+				return 1;
+			else
+				return -1;
+		}
 		/// <summary>
 		/// Calculates the point of intersection between two line segments
 		/// </summary>

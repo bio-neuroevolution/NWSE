@@ -134,7 +134,7 @@ namespace NWSELib.net
         {
             if (value != null && value is double) value = new Vector(new double[] { (double)value });
             
-            if(times == null || times.Count<=0)
+            if(times.Count<=0)
             {
                 times.Add(time);
                 values.Add((Vector)value);
@@ -155,6 +155,7 @@ namespace NWSELib.net
             if(time > lastime)
             {
                 times.Add(time);
+                if (value is List<Vector>) value = ((List<Vector>)value).flatten();
                 values.Add((Vector)value);
                 return null;
             }
@@ -164,6 +165,12 @@ namespace NWSELib.net
                 while (times[index++] < time) ;
                 times.Insert(index - 1, time);
                 values.Insert(index-1, (Vector)value);
+            }
+
+            while(values.Count>Session.GetConfiguration().agent.shorttermcapacity)
+            {
+                this.values.RemoveAt(0);
+                this.times.RemoveAt(0);
             }
 
             return prev;

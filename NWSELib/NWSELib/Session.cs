@@ -18,6 +18,7 @@ namespace NWSELib
 {
     public delegate void EventHandler(String eventName, int generation,params Object[] states);
 
+    public delegate List<double> InstinctActionHandler(Network net, int time);
     /// <summary>
     /// 执行任务
     /// </summary>
@@ -36,6 +37,10 @@ namespace NWSELib
         /// ID生成器
         /// </summary>
         public static IdGenerator idGenerator = new IdGenerator();
+        /// <summary>
+        /// 本能行为处理器
+        /// </summary>
+        public static InstinctActionHandler instinctActionHandler;
 
         /// <summary>
         /// 配置
@@ -63,6 +68,7 @@ namespace NWSELib
             return idGenerator;
         }
 
+        
         #endregion
 
         #region 进化状态
@@ -166,7 +172,7 @@ namespace NWSELib
                         net.setReward(reward);
                         this.triggerEvent(Session.EVT_NAME_MESSAGE, "time="+time.ToString()+",action=" + actions.ConvertAll(x => x.ToString()).Aggregate((a, b) => String.Format("{0:##.###}", a) + "," + String.Format("{0:##.###}", b))
                             + ",reward = " + reward.ToString() + ", obs="+Utility.toString(obs));
-                        this.triggerEvent(Session.EVT_NAME_MESSAGE, " mental process:" + net.getInferenceChainText());
+                        this.triggerEvent(Session.EVT_NAME_MESSAGE, " mental process:" + net.showActionPlan());
 
                         logger.Info("gamerun ind=" + net.Genome.id +",time="+time+ ",action"+actions+ ",obs=" + obs+",reward="+reward);
                         if (reward >= Session.GetConfiguration().evaluation.max_reward)

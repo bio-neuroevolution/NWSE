@@ -2,7 +2,7 @@
 
 namespace NWSELib.genome
 {
-    public abstract class NodeGene : IGene
+    public abstract class NodeGene : IGene,IComparable<NodeGene>
     {
         #region 基本信息
         public NWSEGenome owner;
@@ -190,6 +190,14 @@ namespace NWSELib.genome
         public bool equiv(NodeGene gene)
         {
             return this.Text == gene.Text;
+        }
+
+        public int CompareTo(NodeGene other)
+        {
+            if (other == null) return 1;
+            if (this.id > other.id) return 1;
+            else if (this.id < other.id) return -1;
+            return 0;
         }
         #endregion
     }

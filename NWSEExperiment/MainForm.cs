@@ -26,6 +26,7 @@ namespace NWSEExperiment
         public Session evolutionSession;
         private ILog logger = LogManager.GetLogger(typeof(MainForm));
 
+        private RobotAgent optimaAgent;
         private Network optima_net;
         private int optima_generation;
 
@@ -159,6 +160,7 @@ namespace NWSEExperiment
             this.maze.ShowTrail = btnoShowTrail.Checked ;
         }
 
+        private NWSEGenomeFactory genomeFactory = new NWSEGenomeFactory();
         private int interactive_time = 0;
         private List<double> obs;
         private List<double> gesture;
@@ -173,28 +175,22 @@ namespace NWSEExperiment
         {
             //this.maze = new HardMaze();
             this.evolutionSession = new Session(maze,null);
-            this.optima_net = new Network(NWSEGenome.create(evolutionSession));
+            Session.instinctActionHandler = new InstinctActionHandler(HardMaze.createInstinctAction);    
+            this.optima_net = new Network(genomeFactory.createDemoGenome(evolutionSession));
             evolutionSession.root = new EvolutionTreeNode(optima_net);
             interactive_time = 0;
             (obs, gesture) = maze.reset(optima_net);
-
+            optimaAgent = maze.Agents[0];
             this.txtMsg.Text = "第" + interactive_time.ToString() + "次交互" + System.Environment.NewLine;
             this.txtMsg.Text += "障碍=" + Utility.toString(obs.GetRange(0, 6)) + System.Environment.NewLine; ;
             this.txtMsg.Text += "目标=" + Utility.toString(obs.GetRange(6, 4)) + System.Environment.NewLine; ;
-            this.txtMsg.Text += "朝向=" + (gesture[0]* EngineUtilities.DRScale).ToString("F3") + System.Environment.NewLine;
+            this.txtMsg.Text += "朝向=" + (gesture[0]* Agent.DRScale).ToString("F3") + System.Environment.NewLine;
             this.txtMsg.Text += System.Environment.NewLine;
 
             this.Refresh();
             
         }
-        /// <summary>
-        /// 接收输入
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void toolStripButton8_Click(object sender, EventArgs e)
-        {   
-        }
+        
 
         /// <summary>
         /// 推理
@@ -204,40 +200,20 @@ namespace NWSEExperiment
         private void toolStripButton5_Click(object sender, EventArgs e)
         {
             //网络执行
-            actions = this.optima_net.activate(obs, interactive_time,evolutionSession);
+            List<double> inputs = new List<double>(obs);
+            inputs.AddRange(gesture);
+            actions = this.optima_net.activate(inputs, interactive_time,evolutionSession);
             //显示推理链
-            if(this.optima_net.rootActionPlan == null)
-            {
-                this.txtMsg.Text += "行动方式=随机探索" + System.Environment.NewLine;
-                this.txtMsg.Text += "   行为=" +
-                showActionText(this.optima_net.Effectors.ConvertAll(x => x.Value[0])) +
-                System.Environment.NewLine;
-            }else
-            {
-                this.txtMsg.Text += "行动方式="+ this.optima_net.rootActionPlan.Depth.ToString()+"步规划" + System.Environment.NewLine;
-                this.txtMsg.Text += "   行为=" +
-                showActionText(this.optima_net.Effectors.ConvertAll(x => x.Value[0])) + System.Environment.NewLine;
-
-                this.txtMsg.Text += this.optima_net.rootActionPlan.ToString(this.optima_net.curActionPlan) + System.Environment.NewLine;
-            }
-                
-            
-            this.txtMsg.Text += System.Environment.NewLine;
+            this.txtMsg.Text += this.optima_net.showActionPlan();
 
             interactive_time += 1;
         }
+        
         /// <summary>
-        /// 查看执行规划
+        /// 显示行动效果
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void toolStripButton6_Click(object sender, EventArgs e)
-        {
-            
-        }
-
-        
-
         private void toolStripButton7_Click(object sender, EventArgs e)
         {
             (obs,gesture,actions,reward) = ((IEnv)this.maze).action(this.optima_net,
@@ -246,8 +222,9 @@ namespace NWSEExperiment
             this.txtMsg.Text += "第" + interactive_time.ToString() + "次交互" + System.Environment.NewLine;
             this.txtMsg.Text += "障碍=" + Utility.toString(obs.GetRange(0, 6)) + System.Environment.NewLine; ;
             this.txtMsg.Text += "目标=" + Utility.toString(obs.GetRange(6, 4)) + System.Environment.NewLine; ;
-            this.txtMsg.Text += "朝向=" + ((gesture[0] * EngineUtilities.DRScale) % 360).ToString("F3") + System.Environment.NewLine;
+            this.txtMsg.Text += "朝向=" + ((gesture[0] * 2*Math.PI*Agent.DRScale) % 360).ToString("F3") + System.Environment.NewLine;
             this.txtMsg.Text += "奖励=" + this.reward+ System.Environment.NewLine;
+            this.txtMsg.Text += "障碍=" + this.optimaAgent.PrevCollided.ToString() + "->" + optimaAgent.HasCollided.ToString();
             this.txtMsg.Text += System.Environment.NewLine;
 
             this.optima_net.setReward(reward);
@@ -265,27 +242,36 @@ namespace NWSEExperiment
             for (int i = 0; i < infs.Count; i++)
             {
                 Inference inf = (Inference)infs[i];
-                this.txtMsg.Text += "推理节点=" + inf.Gene.Text + System.Environment.NewLine;
-                this.txtMsg.Text += "   记录数=" + inf.Records.Count.ToString() + System.Environment.NewLine;
-                for (int j = 0; j < inf.Records.Count; j++)
-                {
-                    this.txtMsg.Text += "   mean" + j.ToString() + "=" + Utility.toString(inf.Records[j].means.flatten().Item1.ToList()) +
-                        ",evulation=" + inf.Records[j].evulation.ToString("F3") +
-                        ",accuracy=" + inf.Records[j].accuracy.ToString("F3") +
-                        System.Environment.NewLine;
-                }
-
+                this.txtMsg.Text += inf.ToString();
             }
             this.txtMsg.Text += "##############";
             this.txtMsg.Text += System.Environment.NewLine;
         }
 
 
-        private String showActionText(List<double> values)
+        
+
+        private void runStep5ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            double delta_speed = (values[0] - 0.5) * RobotAgent.Max_Speed_Action;
-            double delta_degree = (((values[1] - 0.5) * RobotAgent.Max_Rotate_Action * 2) * EngineUtilities.DRScale) % 360;
-            return delta_speed.ToString("F3") + "," + delta_degree.ToString("F3");
+            ToolStripMenuItem item = (ToolStripMenuItem)sender;
+            int steps = int.Parse(item.Tag.ToString());
+
+            while(true)
+            {
+                toolStripButton5_Click(null,null);
+                toolStripButton7_Click(null, null);
+                if(steps > 0)
+                {
+                    steps -= 1;
+                    if (steps <= 0) break;
+                }
+                else
+                {
+                    if (reward >= 100) return;
+                }
+                
+
+            }
         }
     }
 }

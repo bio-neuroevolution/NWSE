@@ -79,18 +79,19 @@ namespace NWSELib.common
 
         public static List<int> argsort(this List<double> values)
         {
+            List<double> temp = new List<double>(values);
             List<int> index = new List<int>();
-            for (int i = 0; i < values.Count; i++)
+            for (int i = 0; i < temp.Count; i++)
                 index.Add(i);
-            for(int i=0;i<values.Count;i++)
+            for(int i=0;i< temp.Count;i++)
             {
-                for(int j=i+1;j<values.Count;j++)
+                for(int j=i+1;j< temp.Count;j++)
                 {
-                    if(values[i] > values[j])
+                    if(temp[i] > temp[j])
                     {
-                        double t = values[i];
-                        values[i] = values[j];
-                        values[j] = t;
+                        double t = temp[i];
+                        temp[i] = temp[j];
+                        temp[j] = t;
 
                         int k = index[i];
                         index[i] = index[j];

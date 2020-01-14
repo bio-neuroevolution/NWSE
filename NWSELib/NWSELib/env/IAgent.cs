@@ -5,13 +5,16 @@ using System.Text;
 
 namespace NWSELib.env
 {
-    public interface IAgent
+    public abstract class Agent
     {
-        int getId();
-        List<double> getObserve();
-        bool doAction(double[] actions);
+        public const double Max_Rotate_Action = Math.PI;
+        public const double Max_Speed_Action = 10;
+        public const double DRScale = 57.29578;
 
-        Point2D Location { get; }
-        Point2D OldLocation { get; }
+        public abstract int getId();
+        public abstract List<double> getObserve();
+        public abstract bool doAction(double[] actions);
+
+        
     }
 }
