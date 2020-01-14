@@ -35,7 +35,7 @@ namespace NWSELib.genome
         /// <summary>
         /// 推理器基因
         /// </summary>
-        public readonly List<InferenceGene> infrernceGenes = new List<InferenceGene>();
+        public readonly List<IntegrationGene> infrernceGenes = new List<IntegrationGene>();
 
         
         /// <summary>
@@ -75,7 +75,7 @@ namespace NWSELib.genome
             receptorGenes.ForEach(r => genome.receptorGenes.Add(r.clone<ReceptorGene>()));
             genome.handlerSelectionProb.AddRange(handlerSelectionProb);
             handlerGenes.ForEach(h => genome.handlerGenes.Add(h.clone<HandlerGene>()));
-            infrernceGenes.ForEach(i => genome.infrernceGenes.Add(i.clone<InferenceGene>()));
+            infrernceGenes.ForEach(i => genome.infrernceGenes.Add(i.clone<IntegrationGene>()));
             judgeGenes.ForEach(j => genome.judgeGenes.Add(j.clone()));
             invaildInferenceNodes.ForEach(inf => genome.invaildInferenceNodes.Add(inf.clone<NodeGene>()));
             vaildInferenceNodes.ForEach(vf => genome.vaildInferenceNodes.Add(vf.clone<NodeGene>()));
@@ -131,7 +131,7 @@ namespace NWSELib.genome
             if(g.GetType() == typeof(HandlerGene))
             {
                 return this.handlerGenes.Exists(h => this.equiv(h, g));
-            }else if(g.GetType() == typeof(InferenceGene))
+            }else if(g.GetType() == typeof(IntegrationGene))
             {
                 return this.infrernceGenes.Exists(i => this.equiv(i, g));
             }
@@ -192,7 +192,7 @@ namespace NWSELib.genome
         {
             if (gene is ReceptorGene) return new List<NodeGene>();
             if (gene is HandlerGene) return ((HandlerGene)gene).inputs.ConvertAll(g => this[g]);
-            if (gene is InferenceGene) return ((InferenceGene)gene).dimensions.ConvertAll(x => this[x.Item1]);
+            if (gene is IntegrationGene) return ((IntegrationGene)gene).dimensions.ConvertAll(x => this[x.Item1]);
             if(gene is JudgeGene)return new List<NodeGene>();
             return new List<NodeGene>();
         }
@@ -320,7 +320,7 @@ namespace NWSELib.genome
 
 
             //生成缺省推理节点
-            InferenceGene inferenceGene = new InferenceGene(genome);
+            IntegrationGene inferenceGene = new IntegrationGene(genome);
             inferenceGene.Generation = session.Generation;
 
 
@@ -492,7 +492,7 @@ namespace NWSELib.genome
                     diemesnion.Add((inputs[condindex].Id, 1));
                 }
 
-                InferenceGene inferenceGene = new InferenceGene(this);
+                IntegrationGene inferenceGene = new IntegrationGene(this);
                 inferenceGene.dimensions = diemesnion;
                 inferenceGene.Cataory = inputs[varindex].Cataory;
                 inferenceGene.Generation = session.Generation;

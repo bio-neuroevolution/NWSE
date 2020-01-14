@@ -238,10 +238,10 @@ namespace NWSEExperiment
             this.txtMsg.Text += System.Environment.NewLine;
             this.txtMsg.Text += "#####个体结构#####";
             //打印推理记忆节点现状
-            List<Node> infs = this.optima_net.Inferences;
+            List<Node> infs = this.optima_net.Integrations;
             for (int i = 0; i < infs.Count; i++)
             {
-                Inference inf = (Inference)infs[i];
+                Integration inf = (Integration)infs[i];
                 this.txtMsg.Text += inf.ToString();
             }
             this.txtMsg.Text += "##############";

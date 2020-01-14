@@ -267,6 +267,33 @@ namespace NWSELib.common
             return v1.flatten().Item1.manhantan_distance(v2.flatten().Item1);
         }
 
+
+        public static bool equals(Vector v1,Vector v2)
+        {
+            if (v1 == v2) return true;
+            if (v1 == null || v2 == null) return false;
+            if (v1.Size != v2.Size) return false;
+            for(int i=0;i<v1.Size;i++)
+            {
+                if (v1[i] != v2[i]) return false;
+            }
+            return true;
+        }
+
+        public static bool equals(this List<Vector> v1, List<Vector> v2)
+        {
+            if (v1 == v2) return true;
+            if (v1 == null || v2 == null) return false;
+            if (v1.Count != v2.Count) return false;
+            for (int i = 0; i < v1.Count; i++)
+            {
+                if (equals(v1[i],v2[i])) return false;
+            }
+            return true;
+        }
+
+
+
         #endregion
     }
     public static class VectorExtender
@@ -375,6 +402,8 @@ namespace NWSELib.common
             if (vs == null || vs.Count <= 0) return "";
             return vs.ConvertAll(v => v.ToString()).Aggregate((a, b) => a + ";" + b);
         }
+
+        
         #endregion
 
         #region ×ª»»

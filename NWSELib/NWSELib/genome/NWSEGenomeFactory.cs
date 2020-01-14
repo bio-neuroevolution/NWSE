@@ -37,7 +37,7 @@ namespace NWSELib.genome
 
 
             //生成缺省推理节点
-            InferenceGene inferenceGene = new InferenceGene(genome);
+            IntegrationGene inferenceGene = new IntegrationGene(genome);
             inferenceGene.Generation = session.Generation;
 
 
@@ -72,7 +72,56 @@ namespace NWSELib.genome
             genome.computeNodeDepth();
             return genome;
         }
+
         public NWSEGenome createDemoGenome(Session session)
+        {
+            NWSEGenome genome = new NWSEGenome();
+            //生成感受器
+            this.createReceptors(genome, session);
+
+            
+
+            IntegrationGene inferenceGene = null;
+            //生成推理节点:1 
+            inferenceGene = new IntegrationGene(genome);
+            inferenceGene.Generation = session.Generation;
+            inferenceGene.dimensions = new List<(int, int)>();
+            inferenceGene.dimensions.Add((genome["heading"].Id, 1));
+            inferenceGene.dimensions.Add((genome["_a2"].Id, 1));
+            inferenceGene.dimensions.Add((genome["heading"].Id, 0));
+            inferenceGene.sort_dimension();
+            inferenceGene.Id = Session.idGenerator.getGeneId(inferenceGene);
+            genome.infrernceGenes.Add(inferenceGene);
+
+            //生成推理节点:2 
+            inferenceGene = new IntegrationGene(genome);
+            inferenceGene.Generation = session.Generation;
+            inferenceGene.dimensions = new List<(int, int)>();
+            inferenceGene.dimensions.Add((genome["pos"].Id, 1));
+            inferenceGene.dimensions.Add((genome["heading"].Id, 1));
+            inferenceGene.dimensions.Add((genome["_a2"].Id, 1));
+            inferenceGene.dimensions.Add((genome["b"].Id, 0));
+            inferenceGene.sort_dimension();
+            inferenceGene.Id = Session.idGenerator.getGeneId(inferenceGene);
+            genome.infrernceGenes.Add(inferenceGene);
+
+            //生成推理节点:3 
+            inferenceGene = new IntegrationGene(genome);
+            inferenceGene.Generation = session.Generation;
+            inferenceGene.dimensions = new List<(int, int)>();
+            inferenceGene.dimensions.Add((genome["pos"].Id, 1));
+            inferenceGene.dimensions.Add((genome["heading"].Id, 1));
+            inferenceGene.dimensions.Add((genome["_a2"].Id, 1));
+            inferenceGene.dimensions.Add((genome["pos"].Id, 0));
+            inferenceGene.sort_dimension();
+            inferenceGene.Id = Session.idGenerator.getGeneId(inferenceGene);
+            genome.infrernceGenes.Add(inferenceGene);
+
+            genome.id = Session.idGenerator.getGenomeId();
+            genome.computeNodeDepth();
+            return genome;
+        }
+        public NWSEGenome createDemoGenome2(Session session)
         {
             NWSEGenome genome = new NWSEGenome();
             //生成感受器
@@ -89,7 +138,7 @@ namespace NWSELib.genome
             handlerGene.Name = handlerGene.Text;
             genome.handlerGenes.Add(handlerGene);
 
-            InferenceGene inferenceGene = null;
+            IntegrationGene inferenceGene = null;
             //生成推理节点:1 
             /*inferenceGene = new InferenceGene(genome);
             inferenceGene.Generation = session.Generation;
@@ -113,7 +162,7 @@ namespace NWSELib.genome
             genome.infrernceGenes.Add(inferenceGene);*/
 
             //生成推理节点:3
-            inferenceGene = new InferenceGene(genome);
+            inferenceGene = new IntegrationGene(genome);
             inferenceGene.Generation = session.Generation;
             inferenceGene.dimensions = new List<(int, int)>();
             inferenceGene.dimensions.Add((genome["pos"].Id, 1));

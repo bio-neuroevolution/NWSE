@@ -10,6 +10,10 @@ namespace NWSELib
     [XmlRoot(ElementName = "configuration")]
     public class Configuration
     {
+        [XmlArray(ElementName = "mensurations")]
+        [XmlArrayItem(ElementName = "mensuration", Type = typeof(Mensuration))]
+        public List<Mensuration> mensurations = new List<Mensuration>();
+
         [XmlElement(ElementName = "agent")]
         public Agent agent = new Agent();
 
@@ -45,8 +49,99 @@ namespace NWSELib
             return handlers[index];
         }
 
-        
+        /// <summary>
+        /// 取得某个感知数据的分级和范围
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="name"></param>
+        /// <param name="cataory"></param>
+        /// <returns></returns>
+        public List<(int, double)> getLevel(int id, String name, String cataory)
+        {
+            //先按照名称检查
+            List<(int, double)> r = new List<(int, double)>();
+            List<ValueRange> levels = null;
+            List<ValueRange> ranges = null;
+            Sensor s = this.agent.receptors.GetSensor(name);
+            if(s != null)
+            {
+                levels = s.Levels;
+                ranges = s.Ranges;
+            }
+            else
+            {
+                Mensuration m = this.mensurations.FirstOrDefault(me => me.name == cataory);
+                if(m != null)
+                {
+                    levels = m.Levels;
+                    ranges = m.Ranges;
+                }
+            }
+            if (levels == null || ranges == null) return new List<(int, double)>();
+            for(int i=0;i<levels.Count;i++)
+            {
+                r.Add(((int)levels[i].random(),ranges[i].random()));
+            }
+            return r;
+        }
 
+
+        public class Mensuration
+        {
+            [XmlAttribute]
+            public String name;
+            [XmlAttribute]
+            public String caption;
+            [XmlAttribute]
+            public int dimension;
+            [XmlAttribute]
+            public String ranges;
+            [XmlAttribute]
+            public String levels;
+
+            [XmlIgnore]
+            private ValueRange _range;
+            [XmlIgnore]
+            private ValueRange _level;
+
+            [XmlIgnore]
+            public ValueRange Range { get => _range == null ? _range = new ValueRange(ranges) : _range; }
+            [XmlIgnore]
+            public ValueRange Level { get => _level == null ? _level = new ValueRange(levels) : _level; }
+
+            [XmlIgnore]
+            public List<ValueRange> Ranges
+            {
+                get
+                {
+                    String[] s1 = ranges.Split(';');
+                    if (s1 == null || s1.Length <= 0) return new List<ValueRange>();
+                    List<ValueRange> r = new List<ValueRange>();
+                    for (int i = 0; i < s1.Length; i++)
+                    {
+                        if (s1[i] == null || s1[i].Trim() == "") continue;
+                        r.Add(new ValueRange(s1[i].Trim()));
+                    }
+                    return r;
+                }
+            }
+            [XmlIgnore]
+            public List<ValueRange> Levels
+            {
+                get
+                {
+                    String[] s1 = levels.Split(';');
+                    if (s1 == null || s1.Length <= 0) return new List<ValueRange>();
+                    List<ValueRange> r = new List<ValueRange>();
+                    for (int i = 0; i < s1.Length; i++)
+                    {
+                        if (s1[i] == null || s1[i].Trim() == "") continue;
+                        r.Add(new ValueRange(s1[i].Trim()));
+                    }
+                    return r;
+                }
+            }
+        }
         public class Agent
         {
             [XmlAttribute]
@@ -137,6 +232,39 @@ namespace NWSELib
             public ValueRange Range { get => _range==null?_range=new ValueRange(range):_range; }
             [XmlIgnore]
             public ValueRange Level { get => _level==null?_level=new ValueRange(level):_level; }
+
+            [XmlIgnore]
+            public List<ValueRange> Ranges
+            {
+                get
+                {
+                    String[] s1 = range.Split(';');
+                    if (s1 == null || s1.Length <= 0) return new List<ValueRange>();
+                    List<ValueRange> r = new List<ValueRange>();
+                    for (int i=0;i<s1.Length;i++)
+                    {
+                        if (s1[i] == null || s1[i].Trim() == "") continue;
+                        r.Add(new ValueRange(s1[i].Trim()));
+                    }
+                    return r;
+                }
+            }
+            [XmlIgnore]
+            public List<ValueRange> Levels
+            {
+                get
+                {
+                    String[] s1 = level.Split(';');
+                    if (s1 == null || s1.Length <= 0) return new List<ValueRange>();
+                    List<ValueRange> r = new List<ValueRange>();
+                    for (int i = 0; i < s1.Length; i++)
+                    {
+                        if (s1[i] == null || s1[i].Trim() == "") continue;
+                        r.Add(new ValueRange(s1[i].Trim()));
+                    }
+                    return r;
+                }
+            }
         }
 
         public class Learning

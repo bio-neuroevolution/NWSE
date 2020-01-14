@@ -18,7 +18,7 @@ namespace NWSELib.net
         /// <summary>
         /// 预期结果依据的推理项
         /// </summary>
-        public Inference inference;
+        public Integration inference;
 
         /// <summary>
         /// 前一个行动计划
@@ -52,7 +52,7 @@ namespace NWSELib.net
         /// <summary>
         /// 与行动条件最匹配的记录
         /// </summary>
-        public InferenceRecord record;
+        public IntegrationRecord record;
         /// <summary>
         /// 相似度
         /// </summary>
@@ -88,10 +88,10 @@ namespace NWSELib.net
         /// 真实结果和预期结果的距离
         /// </summary>
         public double distance;
-
+        internal double maxEvaulation;
 
         public ActionPlan() { }
-        public ActionPlan(Network net,Inference inf,InferenceRecord record,double similarity,List<Vector> inputValues)
+        public ActionPlan(Network net,Integration inf,IntegrationRecord record,double similarity,List<Vector> inputValues)
         {
             this.inference = inf;
             this.record = record;
@@ -106,7 +106,7 @@ namespace NWSELib.net
         /// </summary>
         /// <param name="inf"></param>
         /// <returns></returns>
-        public bool exist(Inference inf)
+        public bool exist(Integration inf)
         {
             return exist(this,inf);
         }
@@ -116,7 +116,7 @@ namespace NWSELib.net
         /// <param name="plan"></param>
         /// <param name="inf"></param>
         /// <returns></returns>
-        private bool exist(ActionPlan plan, Inference inf)
+        private bool exist(ActionPlan plan, Integration inf)
         {
             if (plan.inference == inf) return true;
             if (plan.parent == null) return false;

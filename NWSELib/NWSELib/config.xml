@@ -1,5 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <configuration>
+  <mensurations/>
+    
+ 
   <agent shorttermcapacity="20" inferencesamples="3">
     <receptors>
       <env>
@@ -34,6 +37,10 @@
         <sensor name="g4" desc="left radar" cataory="direction" group="env.objdirection"  range="[0 - 1]" level="[2-2]">
           <property name="direction" type="float" value="-90"></property>
         </sensor>
+
+        <sensor name="b" desc="collision" cataory="onoff" group="env.collision"  range="[0 - 1]" level="[2-2]">
+          <property name="direction" type="float" value="-90"></property>
+        </sensor>
       </env>
       <gestures>
         <sensor name="heading" desc="heading" cataory="direction" group="body.heading"  range="[0 - 1]" level="[360-360]">
@@ -43,7 +50,7 @@
       </gestures>
       <actions>
         <!-- <sensor name="_a1" cataory="speed" group="action" range="[0 - 1]" level="[5-5]"/>-->
-        <sensor name="_a2" cataory="omege" group="action" range="[0 - 1]" level="[5-5]"/>
+        <sensor name="_a2" cataory="direction" group="action" range="[0 - 1]" level="[8-8]"/>
       </actions>
     </receptors>
 

@@ -235,6 +235,7 @@ namespace NWSEExperiment.maze
             }
             agent.reset(this.start_point);
             List<double> obs =agent.getObserve();
+            obs.Add(0); //没有发生碰撞冲突
             List<double> gesture = new List<double>();
             gesture.Add(agent.Heading / (2 * Math.PI));
             var poscode = agent.computePositionAreaCode(this.AOIRectangle.Width, this.AOIRectangle.Height);
@@ -249,6 +250,7 @@ namespace NWSEExperiment.maze
             bool noncollision = agent.doAction(actions.ToArray());
 
             List<double> obs = agent.getObserve();
+            obs.Add(agent.HasCollided?1:0);
 
             List<double> gesture = new List<double>();
             gesture.Add(agent.Heading/(2*Math.PI));

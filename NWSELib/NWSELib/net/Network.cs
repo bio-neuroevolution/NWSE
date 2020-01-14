@@ -89,9 +89,9 @@ namespace NWSELib.net
             get => nodes.FindAll(n => n is Handler);
         }
 
-        public List<Node> Inferences
+        public List<Node> Integrations
         {
-            get => nodes.FindAll(n => n is Inference);
+            get => nodes.FindAll(n => n is Integration);
         }
 
         /// <summary>
@@ -182,7 +182,7 @@ namespace NWSELib.net
             }
             for (int i = 0; i < genome.infrernceGenes.Count; i++)
             {
-                Inference inference = new Inference(genome.infrernceGenes[i]);
+                Integration inference = new Integration(genome.infrernceGenes[i]);
                 this.nodes.Add(inference);
             }
             for (int i = 0; i < this.ActionReceptors.Count; i++)
@@ -254,8 +254,8 @@ namespace NWSELib.net
         {
             double r = 0.0;
             this.Handlers.ForEach(h => r += h.Reability);
-            this.Inferences.ForEach(i => r += i.Reability);
-            return r / (this.Handlers.Count + this.Inferences.Count);
+            this.Integrations.ForEach(i => r += i.Reability);
+            return r / (this.Handlers.Count + this.Integrations.Count);
         }
         /// <summary>
         /// 网络可靠度
@@ -269,14 +269,14 @@ namespace NWSELib.net
         public List<NodeGene> getVaildInferenceGene()
         {
             double highlimit = Session.GetConfiguration().evaluation.gene_reability_range.Max;
-            return this.Inferences.FindAll(n => n.Reability > highlimit).ConvertAll(n => n.Gene);
+            return this.Integrations.FindAll(n => n.Reability > highlimit).ConvertAll(n => n.Gene);
         }
 
         public List<NodeGene> getInvaildInferenceGene()
         {
 
             double lowlimit = Session.GetConfiguration().evaluation.gene_reability_range.Min;
-            return this.Inferences.FindAll(n => n.Reability < lowlimit).ConvertAll(n=>n.Gene);
+            return this.Integrations.FindAll(n => n.Reability < lowlimit).ConvertAll(n=>n.Gene);
         }
         #endregion
 
@@ -304,9 +304,9 @@ namespace NWSELib.net
             }
 
             //激活推理节点
-            for(int i=0;i<this.Inferences.Count;i++)
+            for(int i=0;i<this.Integrations.Count;i++)
             {
-                this.Inferences[i].activate(this, time);
+                this.Integrations[i].activate(this, time);
             }
             //进行评判
             judge2(session,time);
@@ -500,24 +500,24 @@ namespace NWSELib.net
         
         private ActionPlan doActionPlan(int time, ActionPlan root = null,ActionPlan plan =null)
         {
-            Inference select_inf = null;
-            InferenceRecord select_record = null;
+            Integration select_inf = null;
+            IntegrationRecord select_record = null;
             double select_record_similarity = double.MinValue;
             double select_record_evulation = double.MinValue;
             List<Vector> select_record_inputValues = null;
 
-            for (int i=0;i<this.Inferences.Count;i++)
+            for (int i=0;i<this.Integrations.Count;i++)
             {
                 //取得推理节点的真实环境输入
                 List<Vector> inputValues = null;
                 if (plan == null)
-                    inputValues = this.getValues(((Inference)this.Inferences[i]).getIdList());
+                    inputValues = this.getValues(((Integration)this.Integrations[i]).getIdList());
                 else
-                    inputValues = this.getValues(plan.inference.getGene().getVariableIds(),plan.expects, (Inference)this.Inferences[i]);
+                    inputValues = this.getValues(plan.inference.getGene().getVariableIds(),plan.expects, (Integration)this.Integrations[i]);
                 if (inputValues == null || inputValues.Count <= 0) continue;
 
                 //根据真实输入找到最相似的记录（记录，相似度）
-                (InferenceRecord record,double similarity) = recall((Inference)this.Inferences[i], inputValues);
+                (IntegrationRecord record,double similarity) = recall((Integration)this.Integrations[i], inputValues);
                 if (record == null) continue;
                 
                 
@@ -525,7 +525,7 @@ namespace NWSELib.net
                 {
                     //如果找到的记录，评估是负的，则跳过
                     if (record.evulation < 0 && record.accuracy > 0) continue;
-                    ActionPlan cplan = new ActionPlan(this,(Inference)this.Inferences[i], record, similarity,inputValues);
+                    ActionPlan cplan = new ActionPlan(this,(Integration)this.Integrations[i], record, similarity,inputValues);
                     plan.childs.Add(cplan);
                     cplan.parent = plan;
                     continue;
@@ -533,7 +533,7 @@ namespace NWSELib.net
 
                 if(select_record_evulation < record.evulation)
                 {
-                    select_inf = (Inference)this.Inferences[i];
+                    select_inf = (Integration)this.Integrations[i];
                     select_record = record;
                     select_record_similarity = similarity;
                     select_record_evulation = record.evulation;
@@ -574,7 +574,7 @@ namespace NWSELib.net
         /// <param name="values"></param>
         /// <param name="inf"></param>
         /// <returns></returns>
-        public List<Vector> getValues(List<int> ids,List<Vector> values, Inference inf)
+        public List<Vector> getValues(List<int> ids,List<Vector> values, Integration inf)
         {
             List<int> infcondids = inf.getGene().getConditions().ConvertAll(x => x.Item1);
             if (!Utility.ContainsAll(ids, infcondids))
@@ -589,13 +589,37 @@ namespace NWSELib.net
             return r;
         }
 
+        public List<Vector> getRankedValues(List<int> ids,List<Vector> orginValues)
+        {
+            
+            List<Vector> values = new List<Vector>();
+            for (int j = 0; j < ids.Count; j++)
+            {
+                //取得每维的原始值
+                Vector orginValue = orginValues[j];
+                //取得该维度的分级数和范围
+                NodeGene gene = Genome[ids[j]];
+                List<(int, double)> level = Session.GetConfiguration().getLevel(gene.Id, gene.Name, gene.Cataory);
+                //分级处理
+                Vector newValue = new Vector(true, orginValue.Size);
+                for (int k = 0; k < orginValue.Size; k++)
+                {
+                    double unit = level[k].Item2 / level[k].Item1;
+                    int levelValue = (int)(orginValue[k] / unit);
+                    if (levelValue >= level[k].Item1)
+                        levelValue = level[k].Item1 - 1;
+                    newValue[k] = levelValue;
+                }
+            }
+            return values;
+        }
         
         /// <summary>
         /// 取得inf中动作感知部分的节点
         /// </summary>
         /// <param name="inf"></param>
         /// <returns></returns>
-        public List<Node> getActionSensors(Inference inf)
+        public List<Node> getActionSensors(Integration inf)
         {
             List<int> ids = inf.getGene().getActionSensorsConditions();
             if (ids == null) return new List<Node>();
@@ -607,17 +631,17 @@ namespace NWSELib.net
         /// </summary>
         /// <param name="inference"></param>
         /// <returns></returns>
-        public List<Inference> getNextInferences(Inference inference)
+        public List<Integration> getNextInferences(Integration inference)
         {
             List<int> postVarIds = inference.getGene().getVariableIds();
-            List<Inference> r = new List<Inference>();
+            List<Integration> r = new List<Integration>();
 
-            for (int i=0;i<this.Inferences.Count;i++)
+            for (int i=0;i<this.Integrations.Count;i++)
             {
-                if (this.Inferences[i] == inference) continue;
-                List<int> varCondIds = ((Inference)this.Inferences[i]).getGene().getConditionsExcludeActionSensor();
+                if (this.Integrations[i] == inference) continue;
+                List<int> varCondIds = ((Integration)this.Integrations[i]).getGene().getConditionsExcludeActionSensor();
                 if (Utility.ContainsAll(postVarIds, varCondIds))
-                    r.Add((Inference)this.Inferences[i]);
+                    r.Add((Integration)this.Integrations[i]);
             }
             return r;
         }
@@ -628,7 +652,7 @@ namespace NWSELib.net
         /// <param name="inference">推理</param>
         /// <param name="values"></param>
         /// <returns></returns>
-        public (InferenceRecord record, double similarity) recall(Inference inference, List<Vector> envValues)
+        public (IntegrationRecord record, double similarity) recall(Integration inference, List<Vector> envValues)
         {
             if (inference == null || inference.Records.Count<=0) return (null,0);
             List<double> similarities = new List<double>();
@@ -649,7 +673,7 @@ namespace NWSELib.net
             //相似度上界
             double tolerable_similarity = Session.GetConfiguration().learning.judge.tolerable_similarity;
             //寻找满足相似度上界，且评价最高的
-            InferenceRecord record = null;
+            IntegrationRecord record = null;
             double similarity = 0;
             double evulation = double.MinValue;
             for(int i=0;i<index.Count;i++)
@@ -673,7 +697,7 @@ namespace NWSELib.net
         /// <param name="results">结果</param>
         /// <param name="nextinf"></param>
         /// <returns>只是环境输入部分</returns>
-        public List<Vector> computeInput(Inference inference, List<Vector> results, Inference nextinf)
+        public List<Vector> computeInput(Integration inference, List<Vector> results, Integration nextinf)
         {
             List<int> infVarIds = inference.getGene().getVariableIds();
             if (infVarIds.Count != results.Count) return null;
@@ -695,7 +719,7 @@ namespace NWSELib.net
         /// <param name="inference"></param>
         /// <param name="time"></param>
         /// <returns></returns>
-        public List<Vector> getOutputValues(Inference inference, int time)
+        public List<Vector> getOutputValues(Integration inference, int time)
         {
             List<int> varIds = inference.getGene().getVariableIds();
             List<Vector> vs = varIds.ConvertAll(id => this.getNode(id).GetValue(time));
@@ -981,7 +1005,7 @@ namespace NWSELib.net
                 Vector varValue = item.values[item.varIndex];
                 (int t1, int t2) = cinf.getGene().getTimeDiff();
                 //记忆节点中的记忆记录的后置变量维的值与上一个推理获得的值最接近的
-                InferenceRecord cinfRecord =  cinf.getNearestRecord(varIndex,varValue);
+                IntegrationRecord cinfRecord =  cinf.getNearestRecord(varIndex,varValue);
                 if (cinfRecord == null) continue;
                 
                 //在记忆记录附近采样

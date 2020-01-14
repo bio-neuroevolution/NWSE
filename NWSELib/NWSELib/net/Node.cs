@@ -17,7 +17,7 @@ namespace NWSELib.net
         protected NodeGene gene;
 
         /// <summary>节点Id</summary>
-        public int Id { get => this.gene.Id; }
+        public int Id { get => this.gene.Id;}
         public String Name
         {
             get => gene.Name;
