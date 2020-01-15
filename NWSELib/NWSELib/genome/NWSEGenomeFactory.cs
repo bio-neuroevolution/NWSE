@@ -37,7 +37,7 @@ namespace NWSELib.genome
 
 
             //生成缺省推理节点
-            IntegrationGene inferenceGene = new IntegrationGene(genome);
+            InferenceGene inferenceGene = new InferenceGene(genome);
             inferenceGene.Generation = session.Generation;
 
 
@@ -81,9 +81,9 @@ namespace NWSELib.genome
 
             
 
-            IntegrationGene inferenceGene = null;
+            InferenceGene inferenceGene = null;
             //生成推理节点:1 
-            inferenceGene = new IntegrationGene(genome);
+            inferenceGene = new InferenceGene(genome);
             inferenceGene.Generation = session.Generation;
             inferenceGene.dimensions = new List<(int, int)>();
             inferenceGene.dimensions.Add((genome["heading"].Id, 1));
@@ -94,7 +94,7 @@ namespace NWSELib.genome
             genome.infrernceGenes.Add(inferenceGene);
 
             //生成推理节点:2 
-            inferenceGene = new IntegrationGene(genome);
+            inferenceGene = new InferenceGene(genome);
             inferenceGene.Generation = session.Generation;
             inferenceGene.dimensions = new List<(int, int)>();
             inferenceGene.dimensions.Add((genome["pos"].Id, 1));
@@ -106,7 +106,7 @@ namespace NWSELib.genome
             genome.infrernceGenes.Add(inferenceGene);
 
             //生成推理节点:3 
-            inferenceGene = new IntegrationGene(genome);
+            inferenceGene = new InferenceGene(genome);
             inferenceGene.Generation = session.Generation;
             inferenceGene.dimensions = new List<(int, int)>();
             inferenceGene.dimensions.Add((genome["pos"].Id, 1));
@@ -138,7 +138,7 @@ namespace NWSELib.genome
             handlerGene.Name = handlerGene.Text;
             genome.handlerGenes.Add(handlerGene);
 
-            IntegrationGene inferenceGene = null;
+            InferenceGene inferenceGene = null;
             //生成推理节点:1 
             /*inferenceGene = new InferenceGene(genome);
             inferenceGene.Generation = session.Generation;
@@ -162,7 +162,7 @@ namespace NWSELib.genome
             genome.infrernceGenes.Add(inferenceGene);*/
 
             //生成推理节点:3
-            inferenceGene = new IntegrationGene(genome);
+            inferenceGene = new InferenceGene(genome);
             inferenceGene.Generation = session.Generation;
             inferenceGene.dimensions = new List<(int, int)>();
             inferenceGene.dimensions.Add((genome["pos"].Id, 1));

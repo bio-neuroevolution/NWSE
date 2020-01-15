@@ -169,7 +169,7 @@ namespace NWSELib
                     {
                         List<double> actions = net.activate(obs, time,this);
                         (obs, gesture, actions,reward) = env.action(net,actions);
-                        net.setReward(reward);
+                        net.setReward(reward,time);
                         this.triggerEvent(Session.EVT_NAME_MESSAGE, "time="+time.ToString()+",action=" + actions.ConvertAll(x => x.ToString()).Aggregate((a, b) => String.Format("{0:##.###}", a) + "," + String.Format("{0:##.###}", b))
                             + ",reward = " + reward.ToString() + ", obs="+Utility.toString(obs));
                         this.triggerEvent(Session.EVT_NAME_MESSAGE, " mental process:" + net.showActionPlan());

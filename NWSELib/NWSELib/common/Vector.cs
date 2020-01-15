@@ -280,7 +280,7 @@ namespace NWSELib.common
             return true;
         }
 
-        public static bool equals(this List<Vector> v1, List<Vector> v2)
+        public static bool equals(List<Vector> v1, List<Vector> v2)
         {
             if (v1 == v2) return true;
             if (v1 == null || v2 == null) return false;

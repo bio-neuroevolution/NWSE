@@ -227,7 +227,7 @@ namespace NWSEExperiment
             this.txtMsg.Text += "障碍=" + this.optimaAgent.PrevCollided.ToString() + "->" + optimaAgent.HasCollided.ToString();
             this.txtMsg.Text += System.Environment.NewLine;
 
-            this.optima_net.setReward(reward);
+            this.optima_net.setReward(reward, interactive_time);
 
             this.Refresh();
            
@@ -235,17 +235,7 @@ namespace NWSEExperiment
 
         private void toolStripButton6_Click_1(object sender, EventArgs e)
         {
-            this.txtMsg.Text += System.Environment.NewLine;
-            this.txtMsg.Text += "#####个体结构#####";
-            //打印推理记忆节点现状
-            List<Node> infs = this.optima_net.Integrations;
-            for (int i = 0; i < infs.Count; i++)
-            {
-                Integration inf = (Integration)infs[i];
-                this.txtMsg.Text += inf.ToString();
-            }
-            this.txtMsg.Text += "##############";
-            this.txtMsg.Text += System.Environment.NewLine;
+            
         }
 
 
@@ -272,6 +262,36 @@ namespace NWSEExperiment
                 
 
             }
+        }
+
+        private void btnIndStructLevel1_Click(object sender, EventArgs e)
+        {
+            this.txtMsg.Text += System.Environment.NewLine;
+            this.txtMsg.Text += "#####个体结构(Level1)#####";
+            //打印推理记忆节点现状
+            List<Inference> infs = this.optima_net.Inferences;
+            for (int i = 0; i < infs.Count; i++)
+            {
+                Inference inf = (Inference)infs[i];
+                this.txtMsg.Text += inf.ToString();
+            }
+            this.txtMsg.Text += "##############";
+            this.txtMsg.Text += System.Environment.NewLine;
+        }
+
+        private void btnIndStructLevel2_Click(object sender, EventArgs e)
+        {
+            this.txtMsg.Text += System.Environment.NewLine;
+            this.txtMsg.Text += "#####个体结构(Level2)#####";
+            //打印推理记忆节点现状
+            List<Inference> infs = this.optima_net.imagination.inferences;
+            for (int i = 0; i < infs.Count; i++)
+            {
+                Inference inf = (Inference)infs[i];
+                this.txtMsg.Text += inf.ToString();
+            }
+            this.txtMsg.Text += "##############";
+            this.txtMsg.Text += System.Environment.NewLine;
         }
     }
 }

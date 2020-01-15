@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace NWSELib.genome
 {
     public abstract class NodeGene : IGene,IComparable<NodeGene>
     {
+        
         #region 基本信息
         public NWSEGenome owner;
         /// <summary>
@@ -71,12 +73,45 @@ namespace NWSELib.genome
         /// </summary>
         public virtual String Text { get => Name; } 
             
+
+        public bool IsActionSensor()
+        {
+            return this is ReceptorGene && this.Group.StartsWith("action");
+        }
+        public bool IsEnvSensor()
+        {
+            return this is ReceptorGene && this.Group.StartsWith("env");
+        }
+        public bool IsGestureSensor()
+        {
+            return this is ReceptorGene && this.Group.StartsWith("body");
+        }
+
+        public bool hasEnvDenpend()
+        {
+            return hasEnvDenpend(this);
+        }
+        private bool hasEnvDenpend(NodeGene gene)
+        {
+            
+            List<NodeGene> inputs = this.owner.getInputs(gene);
+            if (inputs == null || inputs.Count <= 0)
+            {
+                return (gene.group.StartsWith("env"));
+            }
+            foreach(NodeGene g in inputs)
+            {
+                if (hasEnvDenpend(g)) return true;
+            }
+            return false;
+        }
+        
         #endregion
 
-        #region 变异信息
-        /// <summary>
-        /// 分段数
-        /// </summary>
+       #region 变异信息
+       /// <summary>
+            /// 分段数
+            /// </summary>
         protected int sectionCount;
 
         /// <summary>

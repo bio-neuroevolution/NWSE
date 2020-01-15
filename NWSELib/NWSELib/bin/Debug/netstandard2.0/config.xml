@@ -1,49 +1,56 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <configuration>
+  
+    
+ 
   <agent shorttermcapacity="20" inferencesamples="3">
     <receptors>
       <env>
-        <sensor name="d1" desc="left rangefinder" cataory="distance" group="env.distance" range="[0.0 - 1.0]" level="[5-5]">
+        <sensor name="d1" desc="left rangefinder" cataory="distance" group="env.distance" range="[0.0 - 1.0]" level="[5-5]" levelNames="极小,较小,中等,较大,极大">
           <property name="direction" type="float" value="-90"></property>
         </sensor>
-        <sensor name="d2" desc="leftfront rangefinder" cataory="distance" group="env.distance" range="[0.0 - 1.0]" level="[5-5]">
+        <sensor name="d2" desc="leftfront rangefinder" cataory="distance" group="env.distance" range="[0.0 - 1.0]" level="[5-5]" levelNames="极小,较小,中等,较大,极大">
           <property name="direction" type="float" value="-45"></property>
         </sensor>
-        <sensor name="d3" desc="front rangefinder" cataory="distance" group="env.distance" range="[0.0 - 1.0]" level="[5-5]">
+        <sensor name="d3" desc="front rangefinder" cataory="distance" group="env.distance" range="[0.0 - 1.0]" level="[5-5]" levelNames="极小,较小,中等,较大,极大">
           <property name="direction" type="float" value="0"></property>
         </sensor>
-        <sensor name="d4" desc="rightfront rangefinder" cataory="distance" group="env.distance" range="[0.0 - 1.0]" level="[5-5]">
+        <sensor name="d4" desc="rightfront rangefinder" cataory="distance" group="env.distance" range="[0.0 - 1.0]" level="[5-5]" levelNames="极小,较小,中等,较大,极大">
           <property name="direction" type="float" value="45"></property>
         </sensor>
-        <sensor name="d5" desc="right rangefinder" cataory="distance" group="env.distance" range="[0.0 - 1.0]" level="[5-5]">
+        <sensor name="d5" desc="right rangefinder" cataory="distance" group="env.distance" range="[0.0 - 1.0]" level="[5-5]" levelNames="极小,较小,中等,较大,极大">
           <property name="direction" type="float" value="90"></property>
         </sensor>
-        <sensor name="d6" desc="rear rangefinder" cataory="distance" group="env.distance" range="[0.0 - 1.0]" level="[5-5]">
+        <sensor name="d6" desc="rear rangefinder" cataory="distance" group="env.distance" range="[0.0 - 1.0]" level="[5-5]" levelNames="极小,较小,中等,较大,极大">
           <property name="direction" type="float" value="180"></property>
         </sensor>
 
-        <sensor name="g1" desc="front radar" cataory="direction" group="env.objdirection"  range="[0 - 1]" level="[2 - 2]">
+        <sensor name="g1" desc="front radar" cataory="direction" group="env.objdirection"  range="[0 - 1]" level="[2 - 2]" levelNames="无,有">
           <property name="direction" type="float" value="0"></property>
         </sensor>
-        <sensor name="g2" desc="right radar" cataory="direction" group="env.objdirection"  range="[0 - 1]" level="[2 - 2]">
+        <sensor name="g2" desc="right radar" cataory="direction" group="env.objdirection"  range="[0 - 1]" level="[2 - 2]" levelNames="无,有">
           <property name="direction" type="float" value="90"></property>
         </sensor>
-        <sensor name="g3" desc="rear radar" cataory="direction" group="env.objdirection"  range="[0 - 1]" level="[2 - 2]">
+        <sensor name="g3" desc="rear radar" cataory="direction" group="env.objdirection"  range="[0 - 1]" level="[2 - 2]" levelNames="无,有">
           <property name="direction" type="float" value="180"></property>
         </sensor>
-        <sensor name="g4" desc="left radar" cataory="direction" group="env.objdirection"  range="[0 - 1]" level="[2-2]">
+        <sensor name="g4" desc="left radar" cataory="direction" group="env.objdirection"  range="[0 - 1]" level="[2-2]" levelNames="无,有">
+          <property name="direction" type="float" value="-90"></property>
+        </sensor>
+
+        <sensor name="b" desc="collision" cataory="onoff" group="env.collision"  range="[0 - 1]" level="[2-2]" levelNames="未冲突,冲突">
           <property name="direction" type="float" value="-90"></property>
         </sensor>
       </env>
       <gestures>
-        <sensor name="heading" desc="heading" cataory="direction" group="body.heading"  range="[0 - 1]" level="[360-360]">
+        <sensor name="heading" desc="heading" cataory="direction" group="body.heading"  range="[0 - 1]" level="[8-8]" levelNames="东,东南,南,西南,西,西北,北,东北">
         </sensor>
-        <sensor name="pos" desc="position" cataory="position" group="body.position"  range="[0 - 1]" level="[100-100]">
+        <sensor name="pos" desc="position" cataory="position" group="body.position"  range="[0 - 1]" level="[0-0]">
         </sensor>
       </gestures>
       <actions>
         <!-- <sensor name="_a1" cataory="speed" group="action" range="[0 - 1]" level="[5-5]"/>-->
-        <sensor name="_a2" cataory="omege" group="action" range="[0 - 1]" level="[5-5]"/>
+        <sensor name="_a2" cataory="direction" group="action" range="[0 - 1]" level="[8-8]" levelNames="东,东南,南,西南,西,西北,北,东北"/>
       </actions>
     </receptors>
 

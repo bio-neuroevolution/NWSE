@@ -44,62 +44,66 @@ namespace NWSELib.net
         /// Id
         /// </summary>
         public int Id { get => this.genome.id; }
+        /// <summary>
+        /// 抽象思维
+        /// </summary>
+        public Imagination imagination;
         #endregion
 
-        
 
-        
+
+
 
         #region 节点查询
         /// <summary>
         /// 所有感知节点
         /// </summary>
-        public List<Node> Receptors
+        public List<Receptor> Receptors
         {
-            get => nodes.FindAll(n => n is Receptor);
+            get => nodes.FindAll(n => n is Receptor).ConvertAll(n=>(Receptor)n);
         }
         /// <summary>
         /// 所有环境感知节点
         ///</summary>
-        public List<Node> EnvReceptors
+        public List<Receptor> EnvReceptors
         {
-            get => nodes.FindAll(n => n is Receptor && n.Group.StartsWith("env"));
+            get => nodes.FindAll(n => n is Receptor && n.Group.StartsWith("env")).ConvertAll(n => (Receptor)n);
         }
         /// <summary>
         /// 所有姿态感知节点
         ///</summary>
-        public List<Node> GesturesReceptors
+        public List<Receptor> GesturesReceptors
         {
-            get => nodes.FindAll(n => n is Receptor && n.Group.StartsWith("gestures"));
+            get => nodes.FindAll(n => n is Receptor && n.Group.StartsWith("gestures")).ConvertAll(n => (Receptor)n);
         }
         /// <summary>
         /// 所有动作感知节点
         ///</summary>
-        public List<Node> ActionReceptors
+        public List<Receptor> ActionReceptors
         {
-            get => nodes.FindAll(n => n is Receptor && n.Group.StartsWith("action"));
+            get => nodes.FindAll(n => n is Receptor && n.Group.StartsWith("action")).ConvertAll(n=>(Receptor)n);
         }
 
 
         /// <summary>
         /// 所有处理节点
         /// </summary>
-        public List<Node> Handlers
+        public List<Handler> Handlers
         {
-            get => nodes.FindAll(n => n is Handler);
+            get => nodes.FindAll(n => n is Handler).ConvertAll(n=>(Handler)n);
         }
 
-        public List<Node> Integrations
+        public List<Inference> Inferences
         {
-            get => nodes.FindAll(n => n is Integration);
+            get => nodes.FindAll(n => n is Inference).ConvertAll(n=>(Inference)n);
         }
 
         /// <summary>
         /// 效应器
         /// </summary>
-        public List<Node> Effectors
+        public List<Effector> Effectors
         {
-            get => nodes.FindAll(n => n is Effector);
+            get => nodes.FindAll(n => n is Effector).ConvertAll(n=>(Effector)n);
         }
 
         
@@ -151,6 +155,13 @@ namespace NWSELib.net
             return (Effector)this.Effectors.FirstOrDefault(e => e.Name == name || e.Name == name.Substring(1));
 
         }
+        public List<Node> getAcceptNodes()
+        {
+            List<Node> nodes = new List<Node>();
+            nodes.AddRange(this.Receptors);
+            nodes.AddRange(this.Handlers);
+            return nodes;
+        }
         #endregion
 
         #region 初始化
@@ -160,6 +171,10 @@ namespace NWSELib.net
         public void Reset()
         {
             this.nodes.ForEach(a => a.Reset());
+        }
+        public void thinkReset()
+        {
+            this.nodes.ForEach(n => n.think_reset());
         }
 
 
@@ -182,7 +197,7 @@ namespace NWSELib.net
             }
             for (int i = 0; i < genome.infrernceGenes.Count; i++)
             {
-                Integration inference = new Integration(genome.infrernceGenes[i]);
+                Inference inference = new Inference(genome.infrernceGenes[i]);
                 this.nodes.Add(inference);
             }
             for (int i = 0; i < this.ActionReceptors.Count; i++)
@@ -212,31 +227,40 @@ namespace NWSELib.net
                 }
             }
 
-            
+            imagination = new Imagination(this);
         }
+
+
 
         #endregion
 
-        #region 推理状态
+        #region 状态
         
-        /// <summary>
-        /// 推理发生时间
-        /// </summary>
-        private int judgeTime;
 
         /// <summary>
-        /// 行动计划轨迹
+        /// 行动轨迹
         /// </summary>
         public List<ActionPlan> actionPlanTraces = new List<ActionPlan>();
 
         /// <summary>
-        /// 行动计划链
+        /// 最后行动计划
         /// </summary>
-        public ActionPlan rootActionPlan;
+        public ActionPlan lastActionPlan
+        {
+            get
+            {
+                return actionPlanTraces.Count <= 0 ? null : actionPlanTraces[actionPlanTraces.Count - 1];
+            }
+        }
         /// <summary>
-        /// 当前正在执行的行动计划
+        /// 取得某个时间的行动计划
         /// </summary>
-        public ActionPlan curActionPlan;
+        /// <param name="time"></param>
+        /// <returns></returns>
+        public ActionPlan getActionPlan(int time)
+        {
+            return actionPlanTraces.FirstOrDefault(ap => ap.judgeTime == time);
+        }
 
         
         #endregion
@@ -254,8 +278,8 @@ namespace NWSELib.net
         {
             double r = 0.0;
             this.Handlers.ForEach(h => r += h.Reability);
-            this.Integrations.ForEach(i => r += i.Reability);
-            return r / (this.Handlers.Count + this.Integrations.Count);
+            this.Inferences.ForEach(i => r += i.Reability);
+            return r / (this.Handlers.Count + this.Inferences.Count);
         }
         /// <summary>
         /// 网络可靠度
@@ -269,14 +293,14 @@ namespace NWSELib.net
         public List<NodeGene> getVaildInferenceGene()
         {
             double highlimit = Session.GetConfiguration().evaluation.gene_reability_range.Max;
-            return this.Integrations.FindAll(n => n.Reability > highlimit).ConvertAll(n => n.Gene);
+            return this.Inferences.FindAll(n => n.Reability > highlimit).ConvertAll(n => n.Gene);
         }
 
         public List<NodeGene> getInvaildInferenceGene()
         {
 
             double lowlimit = Session.GetConfiguration().evaluation.gene_reability_range.Min;
-            return this.Integrations.FindAll(n => n.Reability < lowlimit).ConvertAll(n=>n.Gene);
+            return this.Inferences.FindAll(n => n.Reability < lowlimit).ConvertAll(n=>n.Gene);
         }
         #endregion
 
@@ -289,160 +313,82 @@ namespace NWSELib.net
         /// <returns></returns>
         public List<double> activate(List<double> obs, int time,Session session)
         {
-            //初始化
+            
+            //0.初始化
             Reset();
-            //初始化所有感知节点
+            //1.接收输入
             for (int i = 0; i < obs.Count; i++)
             {
                 this.Receptors[i].activate(this, time, obs[i]);
             }
 
-            //反复执行直到都激活
+            //2.处理感知
             while (!this.Handlers.All(n => n.IsActivate(time)))
             {
                 this.Handlers.ForEach(n => n.activate(this, time, null));
             }
 
-            //激活推理节点
-            for(int i=0;i<this.Integrations.Count;i++)
+            //3. 对现有推理记录的准确性进行评估
+            for (int i = 0; i < this.Inferences.Count; i++)
             {
-                this.Integrations[i].activate(this, time);
+                Inference inf = this.Inferences[i];
+                inf.Records.ForEach(r => r.adjustAccuracy(this, inf, time));
+                
             }
-            //进行评判
-            judge2(session,time);
+            //4. 记忆整理
+            for (int i=0;i<this.Inferences.Count;i++)
+            {
+                Inference inf = this.Inferences[i];
+                inf.Records.ForEach(r => r.adjustAccuracy(this, inf, time));
+                inf.activate(this, time);
+            }
+            //5. 信息抽象
+            //imagination.doAbstract();
+            imagination.inferences = this.Inferences;
 
+            //6. 推理想象、行为决策
+            ActionPlan plan = imagination.doImagination(time, session);
+            if (plan == null) plan = createDefaultPlan(time);
+            this.actionPlanTraces.Add(plan);
+            setEffectValue(time);
 
-            //取出输出节点
+            //7.记录行为
             List<double> actions = this.Effectors.ConvertAll<double>(n => (double)n.Value);
             for(int i=0;i< this.ActionReceptors.Count;i++)
             {
                 this.ActionReceptors[i].activate(this, time, actions[i]);
             }
+            //行为评估不在这里，而是在setReward里
             return actions;
         }
 
         #region 回忆和推理
-        private void judge2(Session session,int time)
+        public ActionPlan createDefaultPlan(int time)
         {
-            //如果当前行动计划不空
-            if(this.curActionPlan != null)
+            ActionPlan plan = new ActionPlan();
+            if(rng.NextDouble()<=0.5)
             {
-                //检查行动实际结果与预期的匹配程度
-                curActionPlan.reals = this.getOutputValues(curActionPlan.inference, time);
-                curActionPlan.distance = Vector.manhantan_distance(curActionPlan.reals, curActionPlan.expects);
-                if(curActionPlan.distance <= Session.GetConfiguration().learning.judge.tolerable_similarity * curActionPlan.reals.size())
-                {
-                    //两者接近，本次行动成功，设置奖励
-                    curActionPlan.record.accuracy += 0.1;
-                    //进行下一次行动
-                    if (curActionPlan.selected >=0)
-                    {
-                        ActionPlan nextPlan = curActionPlan.childs[curActionPlan.selected];
-                        curActionPlan = nextPlan;
-                        setEffectValue(time);
-                        return;
-                    }
-                    else
-                    {
-                        //本次行动执行完毕
-                    }
-                }
-                else
-                {
-                    //执行与预期出入较大
-                    curActionPlan.record.accuracy -= 0.1;
-                }
-            }
-            //以一定的概率探索
-            if(rng.NextDouble()>=Session.GetConfiguration().learning.eplison)
+                plan.actions = Session.instinctActionHandler(this, time);
+                plan.judgeTime = time;
+                plan.judgeType = ActionPlan.JUDGE_INSTINCT;
+            }else
             {
-                this.rootActionPlan = null;
-                this.curActionPlan = null;
-                setEffectValue(time);
-                return;
+                plan.actions = Effectors.ConvertAll(e=>e.randomValue(this,time));
+                plan.judgeTime = time;
+                plan.judgeType = ActionPlan.JUDGE_RANDOM;
             }
+            int index = 0;
+            plan.inputObs = this.Receptors.ConvertAll(r => r.Gene.IsActionSensor()? new Vector(plan.actions[index++]):r.Value);
 
-            //计算行动计划树
-            this.curActionPlan = null;
-            this.rootActionPlan = doActionPlan(time);
-            if (this.rootActionPlan == null)
-            {
-                setEffectValue(time);
-                return;
-            }
-            //选择行动记录评估值最高的
-            double maxEvaluation = doSelectActionPlan(this.rootActionPlan);
-            
-            //根据行动计划设置输出
-            setEffectValue(time, maxEvaluation<-1.0);
-
-        }
-
-        private double doSelectActionPlan(ActionPlan plan)
-        {
-            //查找行为链中的最大评估值
-            if (plan == null) return 0;
-            double max = plan.record.evulation;
-            ActionPlan maxplan = plan;
-            for (int i=0;i< plan.childs.Count; i++)
-            {
-               doSelectActionPlan(plan.childs[i],ref max,ref maxplan);
-            }
-            if (maxplan == null) return max;
-            
-            ActionPlan temp = maxplan;
-            while(temp.parent != null)
-            {
-                temp.parent.selected = temp.parent.childs.IndexOf(temp);
-                temp = temp.parent;
-            }
-            return max;
-        }
-        
-        private void doSelectActionPlan(ActionPlan plan, ref double max,ref  ActionPlan maxPlan)
-        {
-            
-            if (plan == null) return;
-            if(plan.record.evulation > max)
-            {
-                max = plan.record.evulation;
-                maxPlan = plan;
-            }
-            if (plan.childs.Count <= 0) return;
-            
-            for(int i=0;i<plan.childs.Count;i++)
-            {
-                if(plan.childs[i].record.evulation > max)
-                {
-                    max = plan.childs[i].record.evulation;
-                    maxPlan = plan.childs[i];
-                }
-
-                doSelectActionPlan(plan.childs[i], ref max, ref maxPlan);
-            }
+            return plan;
         }
         public String showActionPlan()
         {
+            if (lastActionPlan == null) return "";
             StringBuilder str = new StringBuilder();
-            if (this.rootActionPlan == null)
-            {
-                if (this.actionPlanTraces.Count > 0 &&
-                    this.actionPlanTraces.Last().record == null &&
-                    this.actionPlanTraces.Last().instinct)
-                    str.Append("行动方式=本能行为" + System.Environment.NewLine);
-                else str.Append("行动方式=随机探索" + System.Environment.NewLine);
-                str.Append("   行为=");
-                str.Append(showActionText() + System.Environment.NewLine);
-            }
-            else
-            {
-                str.Append("行动方式=" + this.rootActionPlan.Depth.ToString() + "步规划" + System.Environment.NewLine);
-                str.Append("   行为=");
-                str.Append(showActionText() + System.Environment.NewLine);
-
-                str.Append(this.rootActionPlan.ToString(this.curActionPlan) + System.Environment.NewLine);
-            }
-
+            str.Append("行动方式="+ lastActionPlan.judgeType + System.Environment.NewLine);
+            str.Append("   行为=");
+            str.Append(showActionText() + System.Environment.NewLine);
 
             str.Append(System.Environment.NewLine);
             return str.ToString();
@@ -461,102 +407,14 @@ namespace NWSELib.net
         /// </summary>
         private void setEffectValue(int time,bool random=true)
         {
-            
-            if(this.rootActionPlan == null)
-            {
-                List<double> actions = null;
-                bool instinct = false;
-                if (!random)
-                {
-                    actions = Session.instinctActionHandler(this, time);
-                    instinct = true;
-                    for (int i = 0; i < this.Effectors.Count; i++)
-                        this.Effectors[i].activate(this, time, actions[i]);
-                }
-                if (actions == null)
-                {
-                    for (int i = 0; i < this.Effectors.Count; i++)
-                        this.Effectors[i].randomValue(this, time);
-                }
-                this.actionPlanTraces.Add(new ActionPlan()
-                {
-                    actions = this.Effectors.ConvertAll(e=>e.Value),
-                    instinct = instinct
-                });
-                return;
-            }else if(this.curActionPlan == null)
-            {
-                this.curActionPlan = this.rootActionPlan;
-                this.actionPlanTraces.Add(this.curActionPlan);
-            }
-
-            curActionPlan.record.usedCount += 1;
             for (int i = 0; i < this.Effectors.Count; i++)
             {
-                this.Effectors[i].activate(this, time, this.curActionPlan.actions[i]);
+                this.Effectors[i].activate(this, time, this.lastActionPlan.actions[i]);
             }
         }
 
         
-        private ActionPlan doActionPlan(int time, ActionPlan root = null,ActionPlan plan =null)
-        {
-            Integration select_inf = null;
-            IntegrationRecord select_record = null;
-            double select_record_similarity = double.MinValue;
-            double select_record_evulation = double.MinValue;
-            List<Vector> select_record_inputValues = null;
-
-            for (int i=0;i<this.Integrations.Count;i++)
-            {
-                //取得推理节点的真实环境输入
-                List<Vector> inputValues = null;
-                if (plan == null)
-                    inputValues = this.getValues(((Integration)this.Integrations[i]).getIdList());
-                else
-                    inputValues = this.getValues(plan.inference.getGene().getVariableIds(),plan.expects, (Integration)this.Integrations[i]);
-                if (inputValues == null || inputValues.Count <= 0) continue;
-
-                //根据真实输入找到最相似的记录（记录，相似度）
-                (IntegrationRecord record,double similarity) = recall((Integration)this.Integrations[i], inputValues);
-                if (record == null) continue;
-                
-                
-                if(plan != null)
-                {
-                    //如果找到的记录，评估是负的，则跳过
-                    if (record.evulation < 0 && record.accuracy > 0) continue;
-                    ActionPlan cplan = new ActionPlan(this,(Integration)this.Integrations[i], record, similarity,inputValues);
-                    plan.childs.Add(cplan);
-                    cplan.parent = plan;
-                    continue;
-                }
-
-                if(select_record_evulation < record.evulation)
-                {
-                    select_inf = (Integration)this.Integrations[i];
-                    select_record = record;
-                    select_record_similarity = similarity;
-                    select_record_evulation = record.evulation;
-                    select_record_inputValues = inputValues;
-                }
-            }
-
-            if(root == null)
-            {
-                if (select_inf == null) return root;
-                root = new ActionPlan(this,select_inf, select_record, select_record_similarity, select_record_inputValues);
-                
-                return doActionPlan(time, root, root);
-            }
-
-            if (root.Depth >= 3) return root;
-            if (plan.childs.Count <= 0) return root;
-            for(int i=0;i<plan.childs.Count;i++)
-            {
-                root = doActionPlan(time, root, plan.childs[i]);
-            }
-            return root;
-        }
+        
         /// <summary>
         /// 取得特定id的最新值
         /// </summary>
@@ -566,27 +424,6 @@ namespace NWSELib.net
         public List<Vector> getValues(List<int> ids)
         {
             return ids.ConvertAll(id => this.getNode(id).Value);
-        }
-        /// <summary>
-        /// 给定一组值，从中选择与inf的条件部分匹配的
-        /// </summary>
-        /// <param name="ids"></param>
-        /// <param name="values"></param>
-        /// <param name="inf"></param>
-        /// <returns></returns>
-        public List<Vector> getValues(List<int> ids,List<Vector> values, Integration inf)
-        {
-            List<int> infcondids = inf.getGene().getConditions().ConvertAll(x => x.Item1);
-            if (!Utility.ContainsAll(ids, infcondids))
-                return null;
-
-            List<Vector> r = new List<Vector>();
-            for(int i=0;i< infcondids.Count;i++)
-            {
-                int index = ids.IndexOf(infcondids[i]);
-                r.Add(values[index]);
-            }
-            return r;
         }
 
         public List<Vector> getRankedValues(List<int> ids,List<Vector> orginValues)
@@ -614,34 +451,24 @@ namespace NWSELib.net
             return values;
         }
         
-        /// <summary>
-        /// 取得inf中动作感知部分的节点
-        /// </summary>
-        /// <param name="inf"></param>
-        /// <returns></returns>
-        public List<Node> getActionSensors(Integration inf)
-        {
-            List<int> ids = inf.getGene().getActionSensorsConditions();
-            if (ids == null) return new List<Node>();
-            return ids.ConvertAll(id => this.getNode(id));
-        }
+        
         /// <summary>
         /// 取得inference接续的推理节点
         /// 要求是inference的后置变量部分完全包含了其他推理的前置条件部分（动作感知除外）
         /// </summary>
         /// <param name="inference"></param>
         /// <returns></returns>
-        public List<Integration> getNextInferences(Integration inference)
+        public List<Inference> getNextInferences(Inference inference)
         {
             List<int> postVarIds = inference.getGene().getVariableIds();
-            List<Integration> r = new List<Integration>();
+            List<Inference> r = new List<Inference>();
 
-            for (int i=0;i<this.Integrations.Count;i++)
+            for (int i=0;i<this.Inferences.Count;i++)
             {
-                if (this.Integrations[i] == inference) continue;
-                List<int> varCondIds = ((Integration)this.Integrations[i]).getGene().getConditionsExcludeActionSensor();
+                if (this.Inferences[i] == inference) continue;
+                List<int> varCondIds = ((Inference)this.Inferences[i]).getGene().getConditionsExcludeActionSensor();
                 if (Utility.ContainsAll(postVarIds, varCondIds))
-                    r.Add((Integration)this.Integrations[i]);
+                    r.Add((Inference)this.Inferences[i]);
             }
             return r;
         }
@@ -652,7 +479,7 @@ namespace NWSELib.net
         /// <param name="inference">推理</param>
         /// <param name="values"></param>
         /// <returns></returns>
-        public (IntegrationRecord record, double similarity) recall(Integration inference, List<Vector> envValues)
+        public (InferenceRecord record, double similarity) recall(Inference inference, List<Vector> envValues)
         {
             if (inference == null || inference.Records.Count<=0) return (null,0);
             List<double> similarities = new List<double>();
@@ -673,7 +500,7 @@ namespace NWSELib.net
             //相似度上界
             double tolerable_similarity = Session.GetConfiguration().learning.judge.tolerable_similarity;
             //寻找满足相似度上界，且评价最高的
-            IntegrationRecord record = null;
+            InferenceRecord record = null;
             double similarity = 0;
             double evulation = double.MinValue;
             for(int i=0;i<index.Count;i++)
@@ -697,7 +524,7 @@ namespace NWSELib.net
         /// <param name="results">结果</param>
         /// <param name="nextinf"></param>
         /// <returns>只是环境输入部分</returns>
-        public List<Vector> computeInput(Integration inference, List<Vector> results, Integration nextinf)
+        public List<Vector> computeInput(Inference inference, List<Vector> results, Inference nextinf)
         {
             List<int> infVarIds = inference.getGene().getVariableIds();
             if (infVarIds.Count != results.Count) return null;
@@ -719,51 +546,45 @@ namespace NWSELib.net
         /// <param name="inference"></param>
         /// <param name="time"></param>
         /// <returns></returns>
-        public List<Vector> getOutputValues(Integration inference, int time)
+        public List<Vector> getOutputValues(Inference inference, int time)
         {
             List<int> varIds = inference.getGene().getVariableIds();
             List<Vector> vs = varIds.ConvertAll(id => this.getNode(id).GetValue(time));
             return vs.Contains(null) ? null : vs;
         }
 
-        public void setReward(double reward,int mode = 1,bool clear=true)
+        public const int REWARD_EXP = 1;
+        public const int REWARD_MEAN = 2;
+        public const int REWARD_ONCE = 3;
+
+        public void setReward(double reward,int time,int mode = 1,bool clear=true)
         {
-            if (this.actionPlanTraces.Count <= 0) return;
-            if(mode == 1)//指数下降方式分配
+            if (actionPlanTraces.Count <= 0) return;
+            for (int i = actionPlanTraces.Count - 1; i >= 0; i--)
             {
-                for (int i = this.actionPlanTraces.Count - 1; i >= 0; i--)
+                ActionPlan plan = actionPlanTraces[i];
+                thinkReset();
+                for(int j=0;j<this.Receptors.Count;j++)
                 {
-                    ActionPlan plan = this.actionPlanTraces[i];
-                    if (plan == null || plan.record == null) continue;
-                    plan.record.evulation += Math.Exp(i - this.actionPlanTraces.Count + 1) * reward;
-
+                    this.Receptors[j].think(this, time, plan.inputObs[j]);
                 }
-                ActionPlan p = actionPlanTraces.Last();
-                actionPlanTraces.Clear();
-                actionPlanTraces.Add(p);
-            }else if(mode == 2)//平均分配
-            {
-                for (int i = this.actionPlanTraces.Count - 1; i >= 0; i--)
+                this.Handlers.ForEach(h => h.think(this, time, null));
+
+                for(int j=0;j<this.imagination.inferences.Count;j++)
                 {
-                    ActionPlan plan = this.actionPlanTraces[i];
-                    if (plan == null || plan.record == null) continue;
-                    plan.record.evulation += reward;
-
+                    Inference inf = this.imagination.inferences[j];
+                    if (!inf.getGene().hasEnvDenpend()) continue; //根外界环境无关的不做评估
+                    List<InferenceRecord> matchedRecords = inf.getMatchRecordsInThink(this,time);
+                    double r = reward;
+                    if(mode == 1)r = Math.Exp(i - this.actionPlanTraces.Count + 1) * reward;
+                    matchedRecords.ForEach(mr =>
+                    {
+                        mr.evulation += r;
+                        mr.childs.ForEach(mrc => mrc.evulation += r);
+                    });
                 }
-                ActionPlan p = actionPlanTraces.Last();
-                actionPlanTraces.Clear();
-                actionPlanTraces.Add(p);
+                if (mode == REWARD_ONCE) return;
             }
-            else//只分配给最后一个
-            {
-                ActionPlan p = actionPlanTraces.Last();
-                p.record.evulation += reward;
-            }
-            
-            
-
-
-
         }
         #endregion
 

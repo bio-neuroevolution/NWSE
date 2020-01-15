@@ -46,6 +46,15 @@
             this.btnIEnvReset = new System.Windows.Forms.ToolStripButton();
             this.btnIInference = new System.Windows.Forms.ToolStripButton();
             this.btnIActions = new System.Windows.Forms.ToolStripButton();
+            this.toolStripSplitButton1 = new System.Windows.Forms.ToolStripSplitButton();
+            this.runStep5ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.stepsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.stepsToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.stepsToolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
+            this.stepToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.stepToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.stepToolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
+            this.untilEndToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.statusXY = new System.Windows.Forms.ToolStripStatusLabel();
@@ -65,15 +74,9 @@
             this.tabPage5 = new System.Windows.Forms.TabPage();
             this.panel1 = new System.Windows.Forms.Panel();
             this.txtLog = new System.Windows.Forms.TextBox();
-            this.toolStripSplitButton1 = new System.Windows.Forms.ToolStripSplitButton();
-            this.runStep5ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.stepsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.stepsToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
-            this.stepsToolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
-            this.stepToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.stepToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
-            this.stepToolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
-            this.untilEndToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.btnIndStruct = new System.Windows.Forms.ToolStripDropDownButton();
+            this.btnIndStructLevel1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.btnIndStructLevel2 = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.tabControl1.SuspendLayout();
@@ -104,6 +107,7 @@
             this.toolStripSeparator2,
             this.toolStripLabel3,
             this.btniOpen,
+            this.btnIndStruct,
             this.btnIEnvReset,
             this.btnIInference,
             this.btnIActions,
@@ -111,7 +115,7 @@
             this.toolStripSeparator3});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(916, 40);
+            this.toolStrip1.Size = new System.Drawing.Size(957, 40);
             this.toolStrip1.TabIndex = 0;
             this.toolStrip1.Text = "toolStrip1";
             // 
@@ -251,6 +255,88 @@
             this.btnIActions.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
             this.btnIActions.Click += new System.EventHandler(this.toolStripButton7_Click);
             // 
+            // toolStripSplitButton1
+            // 
+            this.toolStripSplitButton1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.runStep5ToolStripMenuItem,
+            this.stepsToolStripMenuItem,
+            this.stepsToolStripMenuItem1,
+            this.stepsToolStripMenuItem2,
+            this.stepToolStripMenuItem,
+            this.stepToolStripMenuItem1,
+            this.stepToolStripMenuItem2,
+            this.untilEndToolStripMenuItem});
+            this.toolStripSplitButton1.Image = ((System.Drawing.Image)(resources.GetObject("toolStripSplitButton1.Image")));
+            this.toolStripSplitButton1.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripSplitButton1.Name = "toolStripSplitButton1";
+            this.toolStripSplitButton1.Size = new System.Drawing.Size(105, 37);
+            this.toolStripSplitButton1.Text = "multiple steps";
+            this.toolStripSplitButton1.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
+            // 
+            // runStep5ToolStripMenuItem
+            // 
+            this.runStep5ToolStripMenuItem.Name = "runStep5ToolStripMenuItem";
+            this.runStep5ToolStripMenuItem.Size = new System.Drawing.Size(126, 22);
+            this.runStep5ToolStripMenuItem.Tag = "5";
+            this.runStep5ToolStripMenuItem.Text = "5 steps";
+            this.runStep5ToolStripMenuItem.Click += new System.EventHandler(this.runStep5ToolStripMenuItem_Click);
+            // 
+            // stepsToolStripMenuItem
+            // 
+            this.stepsToolStripMenuItem.Name = "stepsToolStripMenuItem";
+            this.stepsToolStripMenuItem.Size = new System.Drawing.Size(126, 22);
+            this.stepsToolStripMenuItem.Tag = "10";
+            this.stepsToolStripMenuItem.Text = "10 steps";
+            this.stepsToolStripMenuItem.Click += new System.EventHandler(this.runStep5ToolStripMenuItem_Click);
+            // 
+            // stepsToolStripMenuItem1
+            // 
+            this.stepsToolStripMenuItem1.Name = "stepsToolStripMenuItem1";
+            this.stepsToolStripMenuItem1.Size = new System.Drawing.Size(126, 22);
+            this.stepsToolStripMenuItem1.Tag = "15";
+            this.stepsToolStripMenuItem1.Text = "15 steps";
+            this.stepsToolStripMenuItem1.Click += new System.EventHandler(this.runStep5ToolStripMenuItem_Click);
+            // 
+            // stepsToolStripMenuItem2
+            // 
+            this.stepsToolStripMenuItem2.Name = "stepsToolStripMenuItem2";
+            this.stepsToolStripMenuItem2.Size = new System.Drawing.Size(126, 22);
+            this.stepsToolStripMenuItem2.Tag = "25";
+            this.stepsToolStripMenuItem2.Text = "25 steps";
+            this.stepsToolStripMenuItem2.Click += new System.EventHandler(this.runStep5ToolStripMenuItem_Click);
+            // 
+            // stepToolStripMenuItem
+            // 
+            this.stepToolStripMenuItem.Name = "stepToolStripMenuItem";
+            this.stepToolStripMenuItem.Size = new System.Drawing.Size(126, 22);
+            this.stepToolStripMenuItem.Tag = "50";
+            this.stepToolStripMenuItem.Text = "50 step";
+            this.stepToolStripMenuItem.Click += new System.EventHandler(this.runStep5ToolStripMenuItem_Click);
+            // 
+            // stepToolStripMenuItem1
+            // 
+            this.stepToolStripMenuItem1.Name = "stepToolStripMenuItem1";
+            this.stepToolStripMenuItem1.Size = new System.Drawing.Size(126, 22);
+            this.stepToolStripMenuItem1.Tag = "100";
+            this.stepToolStripMenuItem1.Text = "100 step";
+            this.stepToolStripMenuItem1.Click += new System.EventHandler(this.runStep5ToolStripMenuItem_Click);
+            // 
+            // stepToolStripMenuItem2
+            // 
+            this.stepToolStripMenuItem2.Name = "stepToolStripMenuItem2";
+            this.stepToolStripMenuItem2.Size = new System.Drawing.Size(126, 22);
+            this.stepToolStripMenuItem2.Tag = "200";
+            this.stepToolStripMenuItem2.Text = "200 step";
+            this.stepToolStripMenuItem2.Click += new System.EventHandler(this.runStep5ToolStripMenuItem_Click);
+            // 
+            // untilEndToolStripMenuItem
+            // 
+            this.untilEndToolStripMenuItem.Name = "untilEndToolStripMenuItem";
+            this.untilEndToolStripMenuItem.Size = new System.Drawing.Size(126, 22);
+            this.untilEndToolStripMenuItem.Tag = "0";
+            this.untilEndToolStripMenuItem.Text = "until end";
+            this.untilEndToolStripMenuItem.Click += new System.EventHandler(this.runStep5ToolStripMenuItem_Click);
+            // 
             // toolStripSeparator3
             // 
             this.toolStripSeparator3.Name = "toolStripSeparator3";
@@ -263,7 +349,7 @@
             this.lblindcount});
             this.statusStrip1.Location = new System.Drawing.Point(0, 428);
             this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(916, 22);
+            this.statusStrip1.Size = new System.Drawing.Size(957, 22);
             this.statusStrip1.TabIndex = 1;
             this.statusStrip1.Text = "statusStrip1";
             // 
@@ -288,7 +374,7 @@
             this.tabControl1.Location = new System.Drawing.Point(0, 40);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(916, 388);
+            this.tabControl1.Size = new System.Drawing.Size(957, 388);
             this.tabControl1.TabIndex = 2;
             // 
             // tabPage1
@@ -297,7 +383,7 @@
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(908, 362);
+            this.tabPage1.Size = new System.Drawing.Size(949, 362);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Maze";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -309,14 +395,14 @@
             this.panel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel.Location = new System.Drawing.Point(3, 3);
             this.panel.Name = "panel";
-            this.panel.Size = new System.Drawing.Size(902, 356);
+            this.panel.Size = new System.Drawing.Size(943, 356);
             this.panel.TabIndex = 0;
             // 
             // panel2
             // 
             this.panel2.Controls.Add(this.tabControl2);
             this.panel2.Dock = System.Windows.Forms.DockStyle.Right;
-            this.panel2.Location = new System.Drawing.Point(597, 0);
+            this.panel2.Location = new System.Drawing.Point(638, 0);
             this.panel2.Name = "panel2";
             this.panel2.Size = new System.Drawing.Size(305, 356);
             this.panel2.TabIndex = 1;
@@ -379,7 +465,7 @@
             this.pnlMaze.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pnlMaze.Location = new System.Drawing.Point(0, 0);
             this.pnlMaze.Name = "pnlMaze";
-            this.pnlMaze.Size = new System.Drawing.Size(902, 356);
+            this.pnlMaze.Size = new System.Drawing.Size(943, 356);
             this.pnlMaze.TabIndex = 0;
             this.pnlMaze.Paint += new System.Windows.Forms.PaintEventHandler(this.panel_Paint);
             this.pnlMaze.MouseMove += new System.Windows.Forms.MouseEventHandler(this.panel_MouseMove);
@@ -390,7 +476,7 @@
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(792, 362);
+            this.tabPage2.Size = new System.Drawing.Size(908, 362);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Mailstone";
             this.tabPage2.UseVisualStyleBackColor = true;
@@ -401,7 +487,7 @@
             this.txtMilestone.Location = new System.Drawing.Point(3, 3);
             this.txtMilestone.Multiline = true;
             this.txtMilestone.Name = "txtMilestone";
-            this.txtMilestone.Size = new System.Drawing.Size(786, 356);
+            this.txtMilestone.Size = new System.Drawing.Size(902, 356);
             this.txtMilestone.TabIndex = 0;
             // 
             // tabPage5
@@ -410,7 +496,7 @@
             this.tabPage5.Location = new System.Drawing.Point(4, 22);
             this.tabPage5.Name = "tabPage5";
             this.tabPage5.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage5.Size = new System.Drawing.Size(792, 362);
+            this.tabPage5.Size = new System.Drawing.Size(908, 362);
             this.tabPage5.TabIndex = 2;
             this.tabPage5.Text = "Log";
             this.tabPage5.UseVisualStyleBackColor = true;
@@ -421,7 +507,7 @@
             this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel1.Location = new System.Drawing.Point(3, 3);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(786, 356);
+            this.panel1.Size = new System.Drawing.Size(902, 356);
             this.panel1.TabIndex = 0;
             // 
             // txtLog
@@ -431,96 +517,40 @@
             this.txtLog.Multiline = true;
             this.txtLog.Name = "txtLog";
             this.txtLog.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txtLog.Size = new System.Drawing.Size(786, 356);
+            this.txtLog.Size = new System.Drawing.Size(902, 356);
             this.txtLog.TabIndex = 0;
             // 
-            // toolStripSplitButton1
+            // btnIndStruct
             // 
-            this.toolStripSplitButton1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.runStep5ToolStripMenuItem,
-            this.stepsToolStripMenuItem,
-            this.stepsToolStripMenuItem1,
-            this.stepsToolStripMenuItem2,
-            this.stepToolStripMenuItem,
-            this.stepToolStripMenuItem1,
-            this.stepToolStripMenuItem2,
-            this.untilEndToolStripMenuItem});
-            this.toolStripSplitButton1.Image = ((System.Drawing.Image)(resources.GetObject("toolStripSplitButton1.Image")));
-            this.toolStripSplitButton1.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.toolStripSplitButton1.Name = "toolStripSplitButton1";
-            this.toolStripSplitButton1.Size = new System.Drawing.Size(105, 37);
-            this.toolStripSplitButton1.Text = "multiple steps";
-            this.toolStripSplitButton1.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
+            this.btnIndStruct.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.btnIndStructLevel1,
+            this.btnIndStructLevel2});
+            this.btnIndStruct.Image = ((System.Drawing.Image)(resources.GetObject("btnIndStruct.Image")));
+            this.btnIndStruct.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnIndStruct.Name = "btnIndStruct";
+            this.btnIndStruct.Size = new System.Drawing.Size(53, 37);
+            this.btnIndStruct.Text = "struct";
+            this.btnIndStruct.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
             // 
-            // runStep5ToolStripMenuItem
+            // btnIndStructLevel1
             // 
-            this.runStep5ToolStripMenuItem.Name = "runStep5ToolStripMenuItem";
-            this.runStep5ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.runStep5ToolStripMenuItem.Tag = "5";
-            this.runStep5ToolStripMenuItem.Text = "5 steps";
-            this.runStep5ToolStripMenuItem.Click += new System.EventHandler(this.runStep5ToolStripMenuItem_Click);
+            this.btnIndStructLevel1.Name = "btnIndStructLevel1";
+            this.btnIndStructLevel1.Size = new System.Drawing.Size(180, 22);
+            this.btnIndStructLevel1.Text = "Level1";
+            this.btnIndStructLevel1.Click += new System.EventHandler(this.btnIndStructLevel1_Click);
             // 
-            // stepsToolStripMenuItem
+            // btnIndStructLevel2
             // 
-            this.stepsToolStripMenuItem.Name = "stepsToolStripMenuItem";
-            this.stepsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.stepsToolStripMenuItem.Tag = "10";
-            this.stepsToolStripMenuItem.Text = "10 steps";
-            this.stepsToolStripMenuItem.Click += new System.EventHandler(this.runStep5ToolStripMenuItem_Click);
-            // 
-            // stepsToolStripMenuItem1
-            // 
-            this.stepsToolStripMenuItem1.Name = "stepsToolStripMenuItem1";
-            this.stepsToolStripMenuItem1.Size = new System.Drawing.Size(180, 22);
-            this.stepsToolStripMenuItem1.Tag = "15";
-            this.stepsToolStripMenuItem1.Text = "15 steps";
-            this.stepsToolStripMenuItem1.Click += new System.EventHandler(this.runStep5ToolStripMenuItem_Click);
-            // 
-            // stepsToolStripMenuItem2
-            // 
-            this.stepsToolStripMenuItem2.Name = "stepsToolStripMenuItem2";
-            this.stepsToolStripMenuItem2.Size = new System.Drawing.Size(180, 22);
-            this.stepsToolStripMenuItem2.Tag = "25";
-            this.stepsToolStripMenuItem2.Text = "25 steps";
-            this.stepsToolStripMenuItem2.Click += new System.EventHandler(this.runStep5ToolStripMenuItem_Click);
-            // 
-            // stepToolStripMenuItem
-            // 
-            this.stepToolStripMenuItem.Name = "stepToolStripMenuItem";
-            this.stepToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.stepToolStripMenuItem.Tag = "50";
-            this.stepToolStripMenuItem.Text = "50 step";
-            this.stepToolStripMenuItem.Click += new System.EventHandler(this.runStep5ToolStripMenuItem_Click);
-            // 
-            // stepToolStripMenuItem1
-            // 
-            this.stepToolStripMenuItem1.Name = "stepToolStripMenuItem1";
-            this.stepToolStripMenuItem1.Size = new System.Drawing.Size(180, 22);
-            this.stepToolStripMenuItem1.Tag = "100";
-            this.stepToolStripMenuItem1.Text = "100 step";
-            this.stepToolStripMenuItem1.Click += new System.EventHandler(this.runStep5ToolStripMenuItem_Click);
-            // 
-            // stepToolStripMenuItem2
-            // 
-            this.stepToolStripMenuItem2.Name = "stepToolStripMenuItem2";
-            this.stepToolStripMenuItem2.Size = new System.Drawing.Size(180, 22);
-            this.stepToolStripMenuItem2.Tag = "200";
-            this.stepToolStripMenuItem2.Text = "200 step";
-            this.stepToolStripMenuItem2.Click += new System.EventHandler(this.runStep5ToolStripMenuItem_Click);
-            // 
-            // untilEndToolStripMenuItem
-            // 
-            this.untilEndToolStripMenuItem.Name = "untilEndToolStripMenuItem";
-            this.untilEndToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.untilEndToolStripMenuItem.Tag = "0";
-            this.untilEndToolStripMenuItem.Text = "until end";
-            this.untilEndToolStripMenuItem.Click += new System.EventHandler(this.runStep5ToolStripMenuItem_Click);
+            this.btnIndStructLevel2.Name = "btnIndStructLevel2";
+            this.btnIndStructLevel2.Size = new System.Drawing.Size(180, 22);
+            this.btnIndStructLevel2.Text = "Level2";
+            this.btnIndStructLevel2.Click += new System.EventHandler(this.btnIndStructLevel2_Click);
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(916, 450);
+            this.ClientSize = new System.Drawing.Size(957, 450);
             this.Controls.Add(this.tabControl1);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.toolStrip1);
@@ -597,6 +627,9 @@
         private System.Windows.Forms.ToolStripMenuItem stepToolStripMenuItem1;
         private System.Windows.Forms.ToolStripMenuItem stepToolStripMenuItem2;
         private System.Windows.Forms.ToolStripMenuItem untilEndToolStripMenuItem;
+        private System.Windows.Forms.ToolStripDropDownButton btnIndStruct;
+        private System.Windows.Forms.ToolStripMenuItem btnIndStructLevel1;
+        private System.Windows.Forms.ToolStripMenuItem btnIndStructLevel2;
     }
 }
 

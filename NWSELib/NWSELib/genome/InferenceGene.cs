@@ -9,7 +9,7 @@ namespace NWSELib.genome
     /// <summary>
     /// 推断基因
     /// </summary>
-    public class IntegrationGene : NodeGene
+    public class InferenceGene : NodeGene
     {
         /// <summary>
         /// 推断各维的节点ID或者名称,以及时间项
@@ -18,11 +18,11 @@ namespace NWSELib.genome
 
         public override T clone<T>()
         {
-            IntegrationGene gene = new IntegrationGene(this.owner).copy<IntegrationGene>(this);
+            InferenceGene gene = new InferenceGene(this.owner).copy<InferenceGene>(this);
             gene.dimensions.AddRange(this.dimensions);
             return (T)(Object)gene;
         }
-        public IntegrationGene(NWSEGenome genome):base(genome)
+        public InferenceGene(NWSEGenome genome):base(genome)
         { 
         }
         /// <summary>
@@ -49,7 +49,7 @@ namespace NWSELib.genome
             this.sort_dimension();
             return "InferenceGene:" + Text + ";info:" + base.ToString() + ";param:";
         }
-        public static new IntegrationGene Parse(String s)
+        public static new InferenceGene Parse(String s)
         {
             int t1 = s.IndexOf("InferenceGene") + "InferenceGene".Length;
             int t2 = s.IndexOf("info");
@@ -70,7 +70,7 @@ namespace NWSELib.genome
                 conditions.Add((geneid, (t6 < t4 ? 1 : 0)));
             }
             //解析info
-            IntegrationGene gene = new IntegrationGene(null);
+            InferenceGene gene = new InferenceGene(null);
             gene.parse(s2);
 
 
@@ -99,7 +99,7 @@ namespace NWSELib.genome
         /// </summary>
         /// <param name="gene">基因</param>
         /// <returns>0表示一致；1表示this包含另外一个；-1表示this被包含；2表示交叉；-2表示没有交叉</returns>
-        public int relation(IntegrationGene gene)
+        public int relation(InferenceGene gene)
         {
             int[] rs = { 1, 1, 1, 1, 1 };
             int[] r = { 0, 1, -1, 2, -2 };
@@ -298,5 +298,7 @@ namespace NWSELib.genome
             }
             return r;
         }
+
+        
     }
 }

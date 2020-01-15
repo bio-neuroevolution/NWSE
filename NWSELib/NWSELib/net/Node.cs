@@ -132,40 +132,7 @@ namespace NWSELib.net
         /// <returns></returns>
         public virtual Object activate(Network net, int time, Object value = null)
         {
-            if (value != null && value is double) value = new Vector(new double[] { (double)value });
-            
-            if(times.Count<=0)
-            {
-                times.Add(time);
-                values.Add((Vector)value);
-                return null;
-            }
-
-            Object prev = null;
-            int index = times.IndexOf(time);
-            if(index >= 0)
-            {
-                times[index] = time;
-                prev = values[index];
-                values[index] = (Vector)value;
-                return prev;
-
-            }
-            int lastime = times.Last();
-            if(time > lastime)
-            {
-                times.Add(time);
-                if (value is List<Vector>) value = ((List<Vector>)value).flatten();
-                values.Add((Vector)value);
-                return null;
-            }
-            else
-            {
-                index = 0;
-                while (times[index++] < time) ;
-                times.Insert(index - 1, time);
-                values.Insert(index-1, (Vector)value);
-            }
+            Object oldValue = putTimeAndValue(times, values, time, value);
 
             while(values.Count>Session.GetConfiguration().agent.shorttermcapacity)
             {
@@ -173,7 +140,7 @@ namespace NWSELib.net
                 this.times.RemoveAt(0);
             }
 
-            return prev;
+            return oldValue;
         }
         /// <summary>
         /// 重置计算
@@ -192,10 +159,80 @@ namespace NWSELib.net
             return this.times.Contains(time);
         }
 
-        internal void randomValue(Network net,int time)
+        internal double randomValue(Network net,int time)
         {
             double value = Session.GetConfiguration().agent.receptors.GetSensor("_"+this.Name).Range.random();
             this.activate(net, time, value);
+            return value;
+        }
+        #endregion
+
+        #region 想象信息（用于推理）
+        private List<int> vtimes = new List<int>();
+        private List<Vector> vvalues = new List<Vector>();
+
+        public void think_reset()
+        {
+            vtimes.Clear();
+            vvalues.Clear();
+        }
+        public void think(Network net, int time, Vector value)
+        {
+            putTimeAndValue(vtimes, vvalues, time, value);
+        }
+
+        public bool IsThinkCompleted(int time)
+        {
+            return this.vtimes.Contains(time);
+        }
+
+        public Vector getThinkValues(int time)
+        {
+            int index = this.vtimes.IndexOf(time);
+            if (index >= 0) return vvalues[index];
+            return this.GetValue(time);
+;        }
+
+        private static Object putTimeAndValue(List<int> times,List<Vector> values,int time,Object value)
+        {
+            if (value != null && value is double) value = new Vector(new double[] { (double)value });
+
+            if (times.Count <= 0)
+            {
+                times.Add(time);
+                values.Add((Vector)value);
+                return null;
+            }
+
+            Object prev = null;
+            int index = times.IndexOf(time);
+            if (index >= 0)
+            {
+                times[index] = time;
+                prev = values[index];
+                values[index] = (Vector)value;
+                return prev;
+
+            }
+            int lastime = times.Last();
+            if (time > lastime)
+            {
+                times.Add(time);
+                if (value is List<Vector>) value = ((List<Vector>)value).flatten();
+                values.Add((Vector)value);
+                return null;
+            }
+            else
+            {
+                index = 0;
+                while (times[index++] < time) ;
+                times.Insert(index - 1, time);
+                values.Insert(index - 1, (Vector)value);
+            }
+
+            
+
+            return prev;
         }
         #endregion
     }

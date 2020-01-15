@@ -15,160 +15,76 @@ namespace NWSELib.net
     /// </summary>
     public class ActionPlan
     {
-        /// <summary>
-        /// 预期结果依据的推理项
-        /// </summary>
-        public Integration inference;
+        public const String JUDGE_RANDOM = "随机行动";
+        public const String JUDGE_INSTINCT = "本能行动";
+        public const String JUDGE_INFERENCE = "推理行动";
 
         /// <summary>
-        /// 前一个行动计划
+        /// 判定产生动作的类型
         /// </summary>
-        public ActionPlan parent;
+        public String judgeType;
         /// <summary>
-        /// 后序行动
+        /// 判定发生时间
         /// </summary>
-        public List<ActionPlan> childs = new List<ActionPlan>();
+        public int judgeTime;
 
-        public int Depth
+        /// <summary>
+        /// 该行动计划获得的观察数据
+        /// </summary>
+        public List<Vector> inputObs = new List<Vector>();
+
+        /// <summary>
+        /// 计划执行的动作
+        /// </summary>
+        public List<double> actions;
+
+        /// <summary>
+        /// 预期得到的观察数据
+        /// </summary>
+        public List<Vector> expectNextObs;
+
+        /// <summary>
+        /// 真实得到的观察结果
+        /// </summary>
+        public List<Vector> realObs;
+
+        /// <summary>
+        /// 行动实施以后预期得到的观察与实际得到的观察相似距离
+        /// </summary>
+        public double SimilarityDistance
         {
             get
             {
-                return getDepth(this);
-                
+                if (realObs == null || expectNextObs == null ||
+                   realObs.Count <= 0 || expectNextObs.Count <= 0)
+                    return double.NaN;
+                return Vector.manhantan_distance(expectNextObs, realObs);    
             }
         }
-        private static int getDepth(ActionPlan plan, int d=0)
-        {
-            if (plan == null) return d;
-            d += 1;
-            if (plan.childs.Count <= 0) return d;
-            return getDepth(plan.childs[0], d);
-        }
-        /// <summary>
-        /// 行动选择标记，指示选择childs中的哪一个
-        /// </summary>
-        public int selected = -1;
 
         /// <summary>
-        /// 与行动条件最匹配的记录
+        /// 预期结果依据的推理项
         /// </summary>
-        public IntegrationRecord record;
-        /// <summary>
-        /// 相似度
-        /// </summary>
-        public double similarity;
-        /// <summary>
-        /// 相似度匹配的环境数据，可以用来再计算一次相似度
-        /// </summary>
-        public List<Vector> scene = new List<Vector>();
+        public List<(Inference,InferenceRecord)> inferencesItems = new List<(Inference, InferenceRecord)>();
+        internal double evluation;
 
-        /// <summary>
-        /// 行动条件
-        /// </summary>
-        public List<Vector> conditions;
-
-        /// <summary>
-        /// 行动
-        /// </summary>
-        public List<Vector> actions;
-        /// <summary>
-        /// 本次动作是否是本能动作
-        /// </summary>
-        public bool instinct;
-        /// <summary>
-        /// 预期结果
-        /// </summary>
-        public List<Vector> expects;
-
-        /// <summary>
-        /// 真实结果
-        /// </summary>
-        public List<Vector> reals;
-        /// <summary>
-        /// 真实结果和预期结果的距离
-        /// </summary>
-        public double distance;
-        internal double maxEvaulation;
-
-        public ActionPlan() { }
-        public ActionPlan(Network net,Integration inf,IntegrationRecord record,double similarity,List<Vector> inputValues)
-        {
-            this.inference = inf;
-            this.record = record;
-            this.similarity = similarity;
-            this.scene = inputValues;
-
-            (this.conditions,this.actions,this.expects) = inf.splitRecordMeans(net, record);
-        }
-
-        /// <summary>
-        /// 在当前行动计划向上回溯的计划链条中，是否包含inf
-        /// </summary>
-        /// <param name="inf"></param>
-        /// <returns></returns>
-        public bool exist(Integration inf)
-        {
-            return exist(this,inf);
-        }
-        /// <summary>
-        /// 在plan，以及plan以上的行动链条上，是否包含inf
-        /// </summary>
-        /// <param name="plan"></param>
-        /// <param name="inf"></param>
-        /// <returns></returns>
-        private bool exist(ActionPlan plan, Integration inf)
-        {
-            if (plan.inference == inf) return true;
-            if (plan.parent == null) return false;
-            return exist(plan.parent, inf);
-        }
-        public List<ActionPlan> toList()
-        {
-            List<ActionPlan> r = new List<ActionPlan>();
-            ActionPlan temp = this;
-            while(temp != null)
-            {
-                r.Add(temp);
-                if (temp.childs.Count <= 0) return r;
-                if (temp.selected < 0) return r;
-                temp = temp.childs[temp.selected];
-            }
-            return r;
-        }
         public string print()
         {
             StringBuilder str = new StringBuilder();
-            str.Append("    inference=" + this.inference.Gene.Text + System.Environment.NewLine);
-            str.Append("    scene=" + this.scene.toString() + System.Environment.NewLine);
-            str.Append("    similarity=" + this.similarity.ToString("F3") + System.Environment.NewLine);
-            str.Append("    record=" + this.record.means.toString() + System.Environment.NewLine);
-            str.Append("    actions=" + this.actions.toString() + System.Environment.NewLine);
-            str.Append("    expect=" + this.expects.toString() + System.Environment.NewLine);
-            str.Append("    evulation=" + this.record.evulation.ToString("F3") + System.Environment.NewLine);
-            str.Append("    usedCount=" + this.record.usedCount.ToString() + System.Environment.NewLine);
-            str.Append("    accuracy=" + this.record.accuracy.ToString("F3") + System.Environment.NewLine);
-            
-            return str.ToString();
-        }
-
-        public string ToString(ActionPlan curActionPlan)
-        {
-            StringBuilder str = new StringBuilder();
-            
-            List<ActionPlan> plans = toList();
-            for (int i = 0; i < plans.Count; i++)
+            str.Append("    scene=" + this.inputObs.toString() + System.Environment.NewLine);
+            str.Append("    actions=" + Utility.toString(this.actions) + System.Environment.NewLine);
+            str.Append("    expect=" + this.expectNextObs.toString() + System.Environment.NewLine);
+            str.Append("    distance(similarity)=" + this.SimilarityDistance.ToString("F3") + System.Environment.NewLine);
+            str.Append("    inferences=" + System.Environment.NewLine);
+            for(int i=0;i< inferencesItems.Count;i++)
             {
-                if(plans.Count>0)
-                    str.Append("    第" + (i + 1).ToString() + "步");
-                if (plans[i] == curActionPlan)
-                    str.Append("    正在执行");
-                str.Append(System.Environment.NewLine);
-                str.Append(plans[i].print());
-                str.Append(System.Environment.NewLine);
+                (Inference inf, InferenceRecord record) = inferencesItems[i];
+                str.Append("    " + (i + 1).ToString() + ". " + inf.getGene().Text);
+                str.Append("        " + record.ToString());
             }
-            str.Append(System.Environment.NewLine);
             return str.ToString();
-
         }
+
+        
     }
 }

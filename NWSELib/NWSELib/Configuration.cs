@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Serialization;
 using System.Reflection;
+using NWSELib.genome;
+using System.Text;
 
 namespace NWSELib
 {
@@ -98,6 +100,9 @@ namespace NWSELib
             public String ranges;
             [XmlAttribute]
             public String levels;
+            [XmlAttribute]
+            public String levelNames = "";
+            
 
             [XmlIgnore]
             private ValueRange _range;
@@ -141,7 +146,54 @@ namespace NWSELib
                     return r;
                 }
             }
+
+            [XmlIgnore]
+            public List<String> LevelNames
+            {
+                get
+                {
+                    return levelNames.Split(',').ToList();
+                }
+            }
+            [XmlIgnore]
+            public List<String>[] LevelNameSet
+            {
+                get
+                {
+                    String[] s1 = levelNames.Split(';');
+                    List<String>[] r = new List<string>[s1.Length];
+                    for (int i = 0; i < s1.Length; i++)
+                        r[i] = s1[i].Split(',').ToList();
+                    return r;
+                }
+            }
         }
+        /// <summary>
+        /// 这个有问题，因为基因处理是一层套一层
+        /// </summary>
+        /// <param name="gene"></param>
+        /// <param name="vector"></param>
+        /// <returns></returns>
+        public (string caption, string value) getLevelCaption(NodeGene gene, Vector vector)
+        {
+            Sensor s = this.agent.receptors.GetSensor(gene.Name);
+            String caption = s == null ? gene.Name : s.name;
+            List<(int,double)> levels = this.getLevel(gene.Id, gene.Name, gene.Cataory);
+            StringBuilder str = new StringBuilder();
+            List<String>[] levelNameSet = s.LevelNameSet;
+            for (int i=0;i<levels.Count;i++)
+            {
+                List<String> names = levelNameSet[i];
+                double unit = levels[i].Item2 / levels[i].Item1;
+                int levelValue = (int)(vector[i] / unit);
+                if (levelValue >= levels[i].Item1) levelValue = levels[i].Item1 - 1;
+                String v = names[levelValue];
+                if (str.ToString() != "") str.Append(",");
+                str.Append(v);
+            }
+            return (caption, str.ToString());
+        }
+
         public class Agent
         {
             [XmlAttribute]
@@ -223,6 +275,9 @@ namespace NWSELib
             [XmlAttribute]
             public String level;
 
+            [XmlAttribute]
+            public String levelNames = "";
+
             [XmlIgnore]
             private ValueRange _range;
             [XmlIgnore]
@@ -262,6 +317,28 @@ namespace NWSELib
                         if (s1[i] == null || s1[i].Trim() == "") continue;
                         r.Add(new ValueRange(s1[i].Trim()));
                     }
+                    return r;
+                }
+            }
+
+            [XmlIgnore]
+            public List<String> LevelNames
+            {
+                get
+                {
+                    return levelNames.Split(',').ToList();
+                }
+            }
+
+            [XmlIgnore]
+            public List<String>[] LevelNameSet
+            {
+                get
+                {
+                    String[] s1 = levelNames.Split(';');
+                    List<String>[] r = new List<string>[s1.Length];
+                    for (int i = 0; i < s1.Length; i++)
+                        r[i] = s1[i].Split(',').ToList();
                     return r;
                 }
             }
