@@ -58,33 +58,28 @@ namespace NWSELib
         /// <param name="name"></param>
         /// <param name="cataory"></param>
         /// <returns></returns>
-        public List<(int, double)> getLevel(int id, String name, String cataory)
+        public (int, ValueRange) getLevel(int id, String name, String cataory)
         {
-            //先按照名称检查
-            List<(int, double)> r = new List<(int, double)>();
-            List<ValueRange> levels = null;
-            List<ValueRange> ranges = null;
+           
+            ValueRange level = null;
+            ValueRange range = null;
             Sensor s = this.agent.receptors.GetSensor(name);
             if(s != null)
             {
-                levels = s.Levels;
-                ranges = s.Ranges;
+                level = s.Level;
+                range = s.Range;
             }
             else
             {
                 Mensuration m = this.mensurations.FirstOrDefault(me => me.name == cataory);
                 if(m != null)
                 {
-                    levels = m.Levels;
-                    ranges = m.Ranges;
+                    level = s.Level;
+                    range = s.Range;
                 }
             }
-            if (levels == null || ranges == null) return new List<(int, double)>();
-            for(int i=0;i<levels.Count;i++)
-            {
-                r.Add(((int)levels[i].random(),ranges[i].random()));
-            }
-            return r;
+            if (level == null || range == null) return (level==null?0:(int)level.random(),range);
+            return ((int)level.random(), range);
         }
 
 
@@ -168,31 +163,7 @@ namespace NWSELib
                 }
             }
         }
-        /// <summary>
-        /// 这个有问题，因为基因处理是一层套一层
-        /// </summary>
-        /// <param name="gene"></param>
-        /// <param name="vector"></param>
-        /// <returns></returns>
-        public (string caption, string value) getLevelCaption(NodeGene gene, Vector vector)
-        {
-            Sensor s = this.agent.receptors.GetSensor(gene.Name);
-            String caption = s == null ? gene.Name : s.name;
-            List<(int,double)> levels = this.getLevel(gene.Id, gene.Name, gene.Cataory);
-            StringBuilder str = new StringBuilder();
-            List<String>[] levelNameSet = s.LevelNameSet;
-            for (int i=0;i<levels.Count;i++)
-            {
-                List<String> names = levelNameSet[i];
-                double unit = levels[i].Item2 / levels[i].Item1;
-                int levelValue = (int)(vector[i] / unit);
-                if (levelValue >= levels[i].Item1) levelValue = levels[i].Item1 - 1;
-                String v = names[levelValue];
-                if (str.ToString() != "") str.Append(",");
-                str.Append(v);
-            }
-            return (caption, str.ToString());
-        }
+        
 
         public class Agent
         {

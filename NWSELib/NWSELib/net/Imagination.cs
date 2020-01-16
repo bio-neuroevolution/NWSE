@@ -39,12 +39,12 @@ namespace NWSELib.net
 
             if (net.Inferences.Count <= 0) return;
             //对每一个融合节点
-            foreach(Inference integration in net.Inferences)
+            foreach(Inference inff in net.Inferences)
             {
                 //创建一个对应
-                Inference absIntegration = new Inference(integration.Gene)
+                Inference absIntegration = new Inference(inff.Gene)
                 {
-                    Reability = integration.Reability
+                    Reability = inff.Reability
                 };
                 this.inferences.Add(absIntegration);
                 List<List<double>> accuracies = new List<List<double>>();
@@ -52,14 +52,14 @@ namespace NWSELib.net
                 List<List<int>> usedCounts = new List<List<int>>();
 
                 //取得各个维，以及各个维的分级方式
-                List<(int, int)> dimensions = integration.getGene().dimensions;
+                List<(int, int)> dimensions = inff.getGene().dimensions;
                 List<int> ids = dimensions.ConvertAll(d => d.Item1);
                 
                 //对每一个记录做分级处理
-                for (int i=0;i<integration.Records.Count;i++)
+                for (int i=0;i<inff.Records.Count;i++)
                 {
-                    InferenceRecord orginRecord = integration.Records[i];
-                    List<Vector> values = net.getRankedValues(ids, orginRecord.means);
+                    InferenceRecord orginRecord = inff.Records[i];
+                    List<Vector> values = net.getRankedValues(inff, orginRecord.means);
                     //检查下新值应归属到哪里
                     int index = putValue(absIntegration, orginRecord, values, accuracies, evaulations, usedCounts);
                 }
@@ -123,40 +123,77 @@ namespace NWSELib.net
             List<double> instinctActions = Session.instinctActionHandler(net, time);
             //以本能方案为模版，测试生成一系列测试方案
             List<List<double>> testActions = createTestActionSet(instinctActions);
-            List<double> evulations = new List<double>();
-
+            
             //对每一个动作
+            List<(List<double>, double)> actionEvaulationRecords = new List<(List<double>, double)>();
             List<List<Vector>> obs = new List<List<Vector>>();
             for (int a=0;a<testActions.Count;a++)
             {
                 List<double> actions = testActions[a];
                 //执行直到无法执行，得到评估值
                 (double evulation,List<Vector> initObs) = doActionImagination(actions,time,session);
-                evulations.Add(evulation);
                 obs.Add(initObs);
+                actionEvaulationRecords.Add((actions, evulation));
             }
-            if (evulations.All(ed => double.IsNaN(ed)))
+            //所有评估都是未知的，则这里返回null，这将导致生成随机动作
+            if (actionEvaulationRecords.All(ed => double.IsNaN(ed.Item2)))
                 return null;
+
             ActionPlan plan = new ActionPlan();
-            //行动方案第一个是本能行动方案，如果它有效且评估值大于0，优先选择它
-            if (double.IsNaN(evulations[0]) && evulations[0] > 0)
+            //所有评估要么未知，要么都是负的，则从未知中生成动作
+            if (actionEvaulationRecords.All(ed => double.IsNaN(ed.Item2)|| ed.Item2<0))
             {
-                plan.actions = testActions[0];
+                List<int> indexs = new List<int>();
+                for(int t=0;t< actionEvaulationRecords.Count;t++)
+                {
+                    if(double.IsNaN(actionEvaulationRecords[t].Item2))
+                    {
+                        indexs.Add(t);
+                    }
+                }
+                if (indexs.Count > 0)
+                {
+                    int s = Network.rng.Next(0, indexs.Count);
+                    plan.actions = actionEvaulationRecords[s].Item1;
+                    plan.judgeTime = time;
+                    plan.judgeType = ActionPlan.JUDGE_INFERENCE;
+                    plan.evluation = actionEvaulationRecords[s].Item2;
+                    plan.inputObs = obs[s];
+                    plan.mode = ActionPlan.MODE_EXPLORATION;
+                    plan.actionEvaulationRecords = actionEvaulationRecords;
+                    return plan;
+                }
+            }
+            
+            //行动方案第一个是本能行动方案，如果它有效且评估值排在前两位，优先选择它
+            List<int> evaIndex = actionEvaulationRecords.ConvertAll(r=>r.Item2).argsort();
+            if (!double.IsNaN(actionEvaulationRecords[0].Item2) && actionEvaulationRecords[0].Item2 >0 && (evaIndex.IndexOf(0)>= evaIndex.Count-2))
+            {
+                plan.actions = actionEvaulationRecords[0].Item1;
                 plan.judgeTime = time;
-                plan.judgeType = ActionPlan.JUDGE_INFERENCE;
-                plan.evluation = evulations[0];
+                plan.judgeType = ActionPlan.JUDGE_INSTINCT;
+                plan.evluation = actionEvaulationRecords[0].Item2;
                 plan.inputObs = obs[0];
+                plan.mode = ActionPlan.MODE_INSTINCT;
+                plan.actionEvaulationRecords = actionEvaulationRecords;
             }
             else
             {
-                //返回评估值最大的
-                double m = evulations.Max();
-                int inx = evulations.IndexOf(m);
-                plan.actions = testActions[inx];
+                //在评估值前三个且大于中找根0.5接近的动作（0.5即维持原动作）
+                //生物体出于能耗考虑会尽量维持原有动作
+                //目前系统没考虑这点，只是如果不这样判断，由于系统是稀疏奖励的，
+                //导致Agent太长时间才能发生碰撞，从而得到足够的负面奖励
+                //甚至在一个小区域反复随机游走
+                
+                double m = actionEvaulationRecords.ConvertAll(r=>r.Item2).Max();
+                int inx = actionEvaulationRecords.ConvertAll(r => r.Item2).IndexOf(m);
+                plan.actions = actionEvaulationRecords[inx].Item1;
                 plan.judgeTime = time;
                 plan.judgeType = ActionPlan.JUDGE_INFERENCE;
-                plan.evluation = m;
+                plan.evluation = actionEvaulationRecords[inx].Item2;
                 plan.inputObs = obs[inx];
+                plan.mode = ActionPlan.MODE_EXPLOITATION;
+                plan.actionEvaulationRecords = actionEvaulationRecords;
             }
             
 
@@ -173,22 +210,33 @@ namespace NWSELib.net
         /// <returns></returns>
         private (double, List<Vector>) doActionImagination(List<double> actions,int time,Session session)
         {
+            //虚拟初始化
+            net.thinkReset();
             //取得动作对应的效应器
             List<Effector> effetors = net.Effectors;
             //计算当前环境观察值(动作感知替换中测试推理动作值)
-            List<Vector> obsValues = net.Receptors.ConvertAll(r => r.GetValue(time));
-            int index = 0;
-            net.ActionReceptors.ForEach(s =>
-            {
-                obsValues[net.Receptors.IndexOf(s)] = actions[index++];
-            });
             Dictionary<Receptor, Vector> observations = new Dictionary<Receptor, Vector>();
-            for (int i = 0; i < obsValues.Count; i++)
-                observations.Add(net.Receptors[i], obsValues[i]);
+            List<Vector> obsValues = new List<Vector>();
+            int index = 0;
+            for (int i=0;i< net.Receptors.Count;i++)
+            {
+                if(!net.Receptors[i].Gene.IsActionSensor())
+                {
+                    Vector tValue = net.Receptors[i].GetValue(time);
+                    tValue = net.getRankedValue(net.Receptors[i],tValue);
+                    obsValues.Add(tValue);
+                }
+                else
+                {
+                    Vector tValue = new Vector(actions[index++]);
+                    tValue = net.getRankedValue(net.Receptors[i], tValue);
+                    obsValues.Add(tValue);
+                }
+                observations.Add(net.Receptors[i], obsValues.Last());
+            }
             List<Vector> initObs = obsValues;
 
-            //虚拟初始化
-            net.thinkReset();
+            
             double evaulation = double.NaN;
 
             //对网络进行虚拟激活，得到新的观察值
@@ -224,7 +272,7 @@ namespace NWSELib.net
                 //对每一个整合项进行前向推理
                 foreach (Inference inte in infs)
                 {
-                    List<Vector> condValues = net.getInputNodes(inte.Id).ConvertAll(n=>n.getThinkValues(time));
+                    List<Vector> condValues = inte.getGene().getConditions().ConvertAll(c=>net.getNode(c.Item1)).ConvertAll(n=>n.getThinkValues(time));
                     (InferenceRecord matchedRecord,List<Vector> varValues) = inte.forward_inference(net,condValues);
                     if (matchedRecord == null) continue;
                     List<Receptor> varNodes = inte.getGene().getVariableIds().ConvertAll(id => (Receptor)net.getNode(id));
@@ -232,8 +280,11 @@ namespace NWSELib.net
                     {
                         int inx = net.Receptors.IndexOf(varNodes[i]);
                         if (inx < 0) continue;
-                        newObservations.Add(net.Receptors[inx], varValues[i]);
+                        if (!newObservations.ContainsKey(net.Receptors[inx]))
+                            newObservations.Add(net.Receptors[inx], varValues[i]);
+                        else newObservations[net.Receptors[inx]] = varValues[i]; //这意味着不同的前向推理会得到冲突项，两次赋值可能会不一致，即允许心理运算存在矛盾
                     }
+                    matchedRecord.usedCount += 1;
                     evulations.Add(matchedRecord.evulation);
                 }
                 //取所有历史评估的最小值
@@ -247,7 +298,7 @@ namespace NWSELib.net
                     
 
                 //检查所否所有的观察值都生成了
-                if (newObservations.Count <= 0)
+                if (newObservations.Count <= actions.Count)
                     return (evaulation, initObs);
 
                 //继续循环
@@ -262,12 +313,14 @@ namespace NWSELib.net
 
         private List<Inference> getCanThinkInferences(Network net, int time)
         {
-            List<Node> nodes = new List<Node>();
+            List<Inference> nodes = new List<Inference>();
             foreach (Inference h in this.inferences)
             {
-                nodes = nodeThink(net, h, time, nodes);
+                if(h.getGene().getConditions().All(c=>net.getNode(c.Item1).IsThinkCompleted(time)))
+                    nodes.Add(h);
+                
             }
-            return nodes.FindAll(n => n is Inference).ConvertAll(n => (Inference)n);
+            return nodes;
         }
 
         private List<Handler> getCanThinkHandlers(Network net, int time)
@@ -299,7 +352,11 @@ namespace NWSELib.net
                 nodes.Add(h);
             return nodes;
         }
-
+        /// <summary>
+        /// 生成的测试集第一个是本能动作，第二个是方向不变动作，然后逐渐向两边增大
+        /// </summary>
+        /// <param name="instinctActions"></param>
+        /// <returns></returns>
         private List<List<double>> createTestActionSet(List<double> instinctActions)
         {
             List<List<double>> r = new List<List<double>>();
@@ -309,12 +366,29 @@ namespace NWSELib.net
             Configuration.Sensor s = Session.config.agent.receptors.GetSensor("_a2");
             int count = 16;
             double unit = s.Range.Distance / count;
-            for (int i = 0; i < count; i++)
+
+            int pos = 1;
+            List<double> action = new List<double>();
+            action.Add(0.5);
+            r.Add(action);
+            count -= 1;
+            while (count > 0)
             {
-                List<double> action = new List<double>();
-                action.Add(i * unit);
+                action = new List<double>();
+                action.Add(0.5+unit*pos);
                 r.Add(action);
+                count -= 1;
+                if (count <= 0) break;
+
+                action = new List<double>();
+                action.Add(0.5 + unit * -pos);
+                r.Add(action);
+                count -= 1;
+                if (count <= 0) break;
+
+                pos += 1;
             }
+            
             return r;
         }
 

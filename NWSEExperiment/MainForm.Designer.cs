@@ -43,6 +43,9 @@
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.toolStripLabel3 = new System.Windows.Forms.ToolStripLabel();
             this.btniOpen = new System.Windows.Forms.ToolStripButton();
+            this.btnIndStruct = new System.Windows.Forms.ToolStripDropDownButton();
+            this.btnIndStructLevel1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.btnIndStructLevel2 = new System.Windows.Forms.ToolStripMenuItem();
             this.btnIEnvReset = new System.Windows.Forms.ToolStripButton();
             this.btnIInference = new System.Windows.Forms.ToolStripButton();
             this.btnIActions = new System.Windows.Forms.ToolStripButton();
@@ -74,9 +77,7 @@
             this.tabPage5 = new System.Windows.Forms.TabPage();
             this.panel1 = new System.Windows.Forms.Panel();
             this.txtLog = new System.Windows.Forms.TextBox();
-            this.btnIndStruct = new System.Windows.Forms.ToolStripDropDownButton();
-            this.btnIndStructLevel1 = new System.Windows.Forms.ToolStripMenuItem();
-            this.btnIndStructLevel2 = new System.Windows.Forms.ToolStripMenuItem();
+            this.btnPolicyShow = new System.Windows.Forms.ToolStripButton();
             this.toolStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.tabControl1.SuspendLayout();
@@ -103,19 +104,20 @@
             this.btnORun,
             this.btnOStop,
             this.btnOStrucuture,
-            this.btnoShowTrail,
             this.toolStripSeparator2,
             this.toolStripLabel3,
             this.btniOpen,
-            this.btnIndStruct,
             this.btnIEnvReset,
             this.btnIInference,
             this.btnIActions,
             this.toolStripSplitButton1,
-            this.toolStripSeparator3});
+            this.toolStripSeparator3,
+            this.btnIndStruct,
+            this.btnoShowTrail,
+            this.btnPolicyShow});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(957, 40);
+            this.toolStrip1.Size = new System.Drawing.Size(1145, 40);
             this.toolStrip1.TabIndex = 0;
             this.toolStrip1.Text = "toolStrip1";
             // 
@@ -224,6 +226,32 @@
             this.btniOpen.Size = new System.Drawing.Size(44, 37);
             this.btniOpen.Text = "Open";
             this.btniOpen.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
+            // 
+            // btnIndStruct
+            // 
+            this.btnIndStruct.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.btnIndStructLevel1,
+            this.btnIndStructLevel2});
+            this.btnIndStruct.Image = ((System.Drawing.Image)(resources.GetObject("btnIndStruct.Image")));
+            this.btnIndStruct.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnIndStruct.Name = "btnIndStruct";
+            this.btnIndStruct.Size = new System.Drawing.Size(53, 37);
+            this.btnIndStruct.Text = "struct";
+            this.btnIndStruct.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
+            // 
+            // btnIndStructLevel1
+            // 
+            this.btnIndStructLevel1.Name = "btnIndStructLevel1";
+            this.btnIndStructLevel1.Size = new System.Drawing.Size(180, 22);
+            this.btnIndStructLevel1.Text = "Level1";
+            this.btnIndStructLevel1.Click += new System.EventHandler(this.btnIndStructLevel1_Click);
+            // 
+            // btnIndStructLevel2
+            // 
+            this.btnIndStructLevel2.Name = "btnIndStructLevel2";
+            this.btnIndStructLevel2.Size = new System.Drawing.Size(180, 22);
+            this.btnIndStructLevel2.Text = "Level2";
+            this.btnIndStructLevel2.Click += new System.EventHandler(this.btnIndStructLevel2_Click);
             // 
             // btnIEnvReset
             // 
@@ -349,7 +377,7 @@
             this.lblindcount});
             this.statusStrip1.Location = new System.Drawing.Point(0, 428);
             this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(957, 22);
+            this.statusStrip1.Size = new System.Drawing.Size(1145, 22);
             this.statusStrip1.TabIndex = 1;
             this.statusStrip1.Text = "statusStrip1";
             // 
@@ -374,7 +402,7 @@
             this.tabControl1.Location = new System.Drawing.Point(0, 40);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(957, 388);
+            this.tabControl1.Size = new System.Drawing.Size(1145, 388);
             this.tabControl1.TabIndex = 2;
             // 
             // tabPage1
@@ -383,7 +411,7 @@
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(949, 362);
+            this.tabPage1.Size = new System.Drawing.Size(1137, 362);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Maze";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -395,14 +423,14 @@
             this.panel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel.Location = new System.Drawing.Point(3, 3);
             this.panel.Name = "panel";
-            this.panel.Size = new System.Drawing.Size(943, 356);
+            this.panel.Size = new System.Drawing.Size(1131, 356);
             this.panel.TabIndex = 0;
             // 
             // panel2
             // 
             this.panel2.Controls.Add(this.tabControl2);
             this.panel2.Dock = System.Windows.Forms.DockStyle.Right;
-            this.panel2.Location = new System.Drawing.Point(638, 0);
+            this.panel2.Location = new System.Drawing.Point(826, 0);
             this.panel2.Name = "panel2";
             this.panel2.Size = new System.Drawing.Size(305, 356);
             this.panel2.TabIndex = 1;
@@ -465,7 +493,7 @@
             this.pnlMaze.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pnlMaze.Location = new System.Drawing.Point(0, 0);
             this.pnlMaze.Name = "pnlMaze";
-            this.pnlMaze.Size = new System.Drawing.Size(943, 356);
+            this.pnlMaze.Size = new System.Drawing.Size(1131, 356);
             this.pnlMaze.TabIndex = 0;
             this.pnlMaze.Paint += new System.Windows.Forms.PaintEventHandler(this.panel_Paint);
             this.pnlMaze.MouseMove += new System.Windows.Forms.MouseEventHandler(this.panel_MouseMove);
@@ -476,7 +504,7 @@
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(908, 362);
+            this.tabPage2.Size = new System.Drawing.Size(949, 362);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Mailstone";
             this.tabPage2.UseVisualStyleBackColor = true;
@@ -487,7 +515,7 @@
             this.txtMilestone.Location = new System.Drawing.Point(3, 3);
             this.txtMilestone.Multiline = true;
             this.txtMilestone.Name = "txtMilestone";
-            this.txtMilestone.Size = new System.Drawing.Size(902, 356);
+            this.txtMilestone.Size = new System.Drawing.Size(943, 356);
             this.txtMilestone.TabIndex = 0;
             // 
             // tabPage5
@@ -496,7 +524,7 @@
             this.tabPage5.Location = new System.Drawing.Point(4, 22);
             this.tabPage5.Name = "tabPage5";
             this.tabPage5.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage5.Size = new System.Drawing.Size(908, 362);
+            this.tabPage5.Size = new System.Drawing.Size(949, 362);
             this.tabPage5.TabIndex = 2;
             this.tabPage5.Text = "Log";
             this.tabPage5.UseVisualStyleBackColor = true;
@@ -507,7 +535,7 @@
             this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel1.Location = new System.Drawing.Point(3, 3);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(902, 356);
+            this.panel1.Size = new System.Drawing.Size(943, 356);
             this.panel1.TabIndex = 0;
             // 
             // txtLog
@@ -517,40 +545,25 @@
             this.txtLog.Multiline = true;
             this.txtLog.Name = "txtLog";
             this.txtLog.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txtLog.Size = new System.Drawing.Size(902, 356);
+            this.txtLog.Size = new System.Drawing.Size(943, 356);
             this.txtLog.TabIndex = 0;
             // 
-            // btnIndStruct
+            // btnPolicyShow
             // 
-            this.btnIndStruct.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.btnIndStructLevel1,
-            this.btnIndStructLevel2});
-            this.btnIndStruct.Image = ((System.Drawing.Image)(resources.GetObject("btnIndStruct.Image")));
-            this.btnIndStruct.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.btnIndStruct.Name = "btnIndStruct";
-            this.btnIndStruct.Size = new System.Drawing.Size(53, 37);
-            this.btnIndStruct.Text = "struct";
-            this.btnIndStruct.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
-            // 
-            // btnIndStructLevel1
-            // 
-            this.btnIndStructLevel1.Name = "btnIndStructLevel1";
-            this.btnIndStructLevel1.Size = new System.Drawing.Size(180, 22);
-            this.btnIndStructLevel1.Text = "Level1";
-            this.btnIndStructLevel1.Click += new System.EventHandler(this.btnIndStructLevel1_Click);
-            // 
-            // btnIndStructLevel2
-            // 
-            this.btnIndStructLevel2.Name = "btnIndStructLevel2";
-            this.btnIndStructLevel2.Size = new System.Drawing.Size(180, 22);
-            this.btnIndStructLevel2.Text = "Level2";
-            this.btnIndStructLevel2.Click += new System.EventHandler(this.btnIndStructLevel2_Click);
+            this.btnPolicyShow.CheckOnClick = true;
+            this.btnPolicyShow.Image = ((System.Drawing.Image)(resources.GetObject("btnPolicyShow.Image")));
+            this.btnPolicyShow.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnPolicyShow.Name = "btnPolicyShow";
+            this.btnPolicyShow.Size = new System.Drawing.Size(45, 37);
+            this.btnPolicyShow.Text = "Policy";
+            this.btnPolicyShow.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
+            this.btnPolicyShow.Click += new System.EventHandler(this.btnPolicyShow_Click);
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(957, 450);
+            this.ClientSize = new System.Drawing.Size(1145, 450);
             this.Controls.Add(this.tabControl1);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.toolStrip1);
@@ -630,6 +643,7 @@
         private System.Windows.Forms.ToolStripDropDownButton btnIndStruct;
         private System.Windows.Forms.ToolStripMenuItem btnIndStructLevel1;
         private System.Windows.Forms.ToolStripMenuItem btnIndStructLevel2;
+        private System.Windows.Forms.ToolStripButton btnPolicyShow;
     }
 }
 

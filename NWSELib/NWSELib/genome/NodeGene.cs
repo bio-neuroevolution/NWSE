@@ -105,6 +105,8 @@ namespace NWSELib.genome
             }
             return false;
         }
+
+        
         
         #endregion
 

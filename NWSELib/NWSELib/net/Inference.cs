@@ -93,35 +93,7 @@ namespace NWSELib.net
             return str.ToString();
         }
 
-        public String toCaption(Inference inference, int xh, String prefix = "   ")
-        {
-            List<(int,int)> dimensions = inference.getGene().dimensions;
-            (int t1, int t2) = inference.getGene().getTimeDiff();
-            List<(String caption, String value)> means = new List<(string caption, string value)>();
-            for(int i=0;i<dimensions.Count;i++)
-            {
-                NodeGene gene = inference.getGene().owner[dimensions[i].Item1];
-                (String caption,String value) = Session.GetConfiguration().getLevelCaption(gene,this.means[i]);
-                means.Add((caption,value));
-            }
-            StringBuilder str1 = new StringBuilder();
-            for (int i = 0; i < means.Count; i++)
-            {
-                if (i > 0 && dimensions[i].Item2 == t2 && dimensions[i - 1].Item2 != t2)
-                    str1.Append("=>");
-                else if (str1.ToString() != "")
-                    str1.Append(",");
-                str1.Append(means[i].caption+"="+means[i].value);
-            }
-            StringBuilder str = new StringBuilder();
-            str.Append("mean" + xh.ToString() + ":" + System.Environment.NewLine +
-                       str1.ToString() + System.Environment.NewLine + 
-                       prefix + "evulation=" + evulation.ToString("F3") + System.Environment.NewLine +
-                       prefix + "accuracy=" + accuracyDistance.ToString("F3") + System.Environment.NewLine +
-                       prefix + "usedCount=" + usedCount.ToString() + System.Environment.NewLine +
-                       prefix + "acceptCount=" + acceptCount.ToString() + System.Environment.NewLine);
-            return str.ToString();
-        }
+        
 
         #endregion
 
@@ -271,7 +243,7 @@ namespace NWSELib.net
         {
             distance = getConditionValueDistance(net,inf,condValues);
             int size = condValues.size();
-            return (distance < Session.GetConfiguration().learning.judge.tolerable_similarity * size);
+            return (distance < Session.GetConfiguration().learning.judge.tolerable_similarity);
         }
         /// <summary>
         /// 本记录的均值中条件部分与输入值的曼哈顿距离
@@ -284,7 +256,7 @@ namespace NWSELib.net
         {
             (List<Vector> meanCondValues, List<Vector> meanVarValues) = inf.splitRecordMeans2(net, this);
             
-            return Vector.manhantan_distance(condValues, meanCondValues);
+            return Vector.max_manhantan_distance(condValues, meanCondValues);
         }
         
         /// <summary>
@@ -302,8 +274,8 @@ namespace NWSELib.net
             //条件值的总维度
             int size = realCondValues.size();
             //条件部分是否匹配
-            double dis = Vector.manhantan_distance(realCondValues, meanCondValues);
-            if (dis >= Session.GetConfiguration().learning.judge.tolerable_similarity * size)
+            double dis = Vector.max_manhantan_distance(realCondValues, meanCondValues);
+            if (dis >= Session.GetConfiguration().learning.judge.tolerable_similarity)
                 return this.accuracyDistance;
 
             this.accuracyDistance = Vector.manhantan_distance(realVarValues, meanVarValues);
@@ -376,7 +348,7 @@ namespace NWSELib.net
             str.Append("记录数=" + Records.Count.ToString() + System.Environment.NewLine);
             for (int j = 0; j < Records.Count; j++)
             {
-                str.Append(Records[j].toCaption(this,j));
+                str.Append(Records[j].toString(j));
 
             }
             return str.ToString();
@@ -460,6 +432,10 @@ namespace NWSELib.net
             return (e, a, v);
         }
 
+        public override List<Node> getInputNodes(Network net)
+        {
+            return this.getGene().dimensions.ConvertAll(d=>net.getNode(d.Item1));
+        }
         #endregion
 
         #region 值管理
@@ -489,7 +465,7 @@ namespace NWSELib.net
                 if (dimensions[i].Item2 == t2)
                     v.Add(net.getNode(dimensions[i].Item1).GetValue(time- dimensions[i].Item2));
                 else
-                    c.Add(net.getNode(dimensions[i].Item1).GetValue(time- dimensions[i].Item1));
+                    c.Add(net.getNode(dimensions[i].Item1).GetValue(time- dimensions[i].Item2));
 
             }
             return (c, v);

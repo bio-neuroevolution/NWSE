@@ -18,11 +18,18 @@ namespace NWSELib.net
         public const String JUDGE_RANDOM = "随机行动";
         public const String JUDGE_INSTINCT = "本能行动";
         public const String JUDGE_INFERENCE = "推理行动";
+        internal static readonly String MODE_EXPLOITATION = "利用优先";
+        internal static readonly String MODE_INSTINCT = "本能优先";
+        internal static readonly String MODE_EXPLORATION = "探索优先";
 
         /// <summary>
         /// 判定产生动作的类型
         /// </summary>
         public String judgeType;
+        /// <summary>
+        /// 推理模式
+        /// </summary>
+        internal String mode = "";
         /// <summary>
         /// 判定发生时间
         /// </summary>
@@ -39,6 +46,17 @@ namespace NWSELib.net
         public List<double> actions;
 
         /// <summary>
+        /// 执行这个动作的预期评估值
+        /// </summary>
+        internal double evluation;
+
+        /// <summary>
+        /// 所有可能动作的评估记录
+        /// </summary>
+        public List<(List<double>, double)> actionEvaulationRecords = new List<(List<double>, double)>();
+        
+
+        /// <summary>
         /// 预期得到的观察数据
         /// </summary>
         public List<Vector> expectNextObs;
@@ -47,6 +65,8 @@ namespace NWSELib.net
         /// 真实得到的观察结果
         /// </summary>
         public List<Vector> realObs;
+
+
 
         /// <summary>
         /// 行动实施以后预期得到的观察与实际得到的观察相似距离
@@ -66,7 +86,7 @@ namespace NWSELib.net
         /// 预期结果依据的推理项
         /// </summary>
         public List<(Inference,InferenceRecord)> inferencesItems = new List<(Inference, InferenceRecord)>();
-        internal double evluation;
+        
 
         public string print()
         {

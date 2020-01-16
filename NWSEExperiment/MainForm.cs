@@ -166,6 +166,8 @@ namespace NWSEExperiment
         private List<double> gesture;
         private List<double> actions;
         private double reward;
+
+        private bool policyShow;
         /// <summary>
         /// 交互式环境重置
         /// </summary>
@@ -202,11 +204,21 @@ namespace NWSEExperiment
             //网络执行
             List<double> inputs = new List<double>(obs);
             inputs.AddRange(gesture);
-            actions = this.optima_net.activate(inputs, interactive_time,evolutionSession);
+            actions = this.optima_net.activate(inputs, interactive_time,evolutionSession,reward);
             //显示推理链
             this.txtMsg.Text += this.optima_net.showActionPlan();
 
             interactive_time += 1;
+
+            if(btnPolicyShow.Checked)
+            {
+                if (this.optimaAgent == null) return;
+                Graphics g = panel.CreateGraphics();
+                this.optimaAgent.drawEvaulation(g, frame);
+                g.Dispose();
+            }
+
+
         }
         
         /// <summary>
@@ -227,7 +239,7 @@ namespace NWSEExperiment
             this.txtMsg.Text += "障碍=" + this.optimaAgent.PrevCollided.ToString() + "->" + optimaAgent.HasCollided.ToString();
             this.txtMsg.Text += System.Environment.NewLine;
 
-            this.optima_net.setReward(reward, interactive_time);
+            //this.optima_net.setReward(reward, interactive_time);
 
             this.Refresh();
            
@@ -292,6 +304,17 @@ namespace NWSEExperiment
             }
             this.txtMsg.Text += "##############";
             this.txtMsg.Text += System.Environment.NewLine;
+        }
+
+        private void btnPolicyShow_Click(object sender, EventArgs e)
+        {
+            policyShow = btnPolicyShow.Checked;
+            if (!btnPolicyShow.Checked) return;
+            if (this.optimaAgent == null) return;
+            Graphics g = panel.CreateGraphics();
+            this.optimaAgent.drawEvaulation(g, frame);
+            g.Dispose();
+
         }
     }
 }

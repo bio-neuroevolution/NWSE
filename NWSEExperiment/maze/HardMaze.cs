@@ -252,11 +252,13 @@ namespace NWSEExperiment.maze
             List<double> obs = agent.getObserve();
             obs.Add(agent.HasCollided?1:0);
 
+            var poscode = agent.computePositionAreaCode(this.AOIRectangle.Width, this.AOIRectangle.Height);
+            obs.Add(poscode.Item1);
+
             List<double> gesture = new List<double>();
             gesture.Add(agent.Heading/(2*Math.PI));
 
-            var poscode = agent.computePositionAreaCode(this.AOIRectangle.Width, this.AOIRectangle.Height);
-            gesture.Add(poscode.Item1);
+            
 
             double reward = this.compute_reward(agent);
             return (obs, gesture, actions,reward);
@@ -341,11 +343,11 @@ namespace NWSEExperiment.maze
         {
             RobotAgent robot = (RobotAgent)agent;
             if (robot.PrevCollided && !robot.HasCollided)
-                return 10.0;
+                return 100.0;
             else if (!robot.PrevCollided && robot.HasCollided)
-                return -10.0;
+                return -100.0;
             else if (robot.PrevCollided && robot.HasCollided)
-                return -10.0;
+                return -100.0;
             else return 0.1;
         }
         public double compute_reward_optiomatraces(RobotAgent agent)

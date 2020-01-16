@@ -5,6 +5,7 @@ using NWSELib.net;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -270,6 +271,8 @@ namespace NWSEExperiment.maze
         public bool Stopped;
         public bool HasCollided;
         public bool PrevCollided;
+
+        
         #endregion
 
         #region 内部组成
@@ -317,12 +320,17 @@ namespace NWSEExperiment.maze
             Location = initpos;
         }
 
-
+        static Pen dash_pen = null;
         /// <summary>
         /// Initialize the robot.
         /// </summary>
         public RobotAgent(Network net, HardMaze maze)
         {
+            if(dash_pen == null)
+            {
+                dash_pen = new Pen(Color.Blue, 12);
+                dash_pen.DashStyle = DashStyle.Dash;
+            }
             this.net = net;
             double locationX = maze.start_point.X;
             double locationY = maze.start_point.Y;
@@ -631,6 +639,43 @@ namespace NWSEExperiment.maze
                     Point2D l2 = frame.convertToDisplay(this.traces[i+1]);
                     g.DrawLine(System.Drawing.Pens.Black, (float)l1.X, (float)l1.Y, (float)l2.X, (float)l2.Y);
                 }
+            }
+
+            
+        }
+
+        static Font eva_font = new Font(FontFamily.GenericSerif, 9);
+        static Brush eva_brush = new SolidBrush(Color.Black);
+        public void drawEvaulation(Graphics g, CoordinateFrame frame)
+        {
+            if (this.net.lastActionPlan == null) return;
+            List<(List<double>,double)> records = this.net.lastActionPlan.actionEvaulationRecords;
+            if (records == null || records.Count <= 0) return;
+            records = records.FindAll(r => !double.IsNaN(r.Item2));
+            if (records == null || records.Count <= 0) return;
+
+            List<double> evas = records.ConvertAll(e => e.Item2);
+            double min = evas.Min();
+            double max = evas.Max();
+            evas = evas.ConvertAll(e => (e - min) / (max - min));
+            List<int> length = evas.ConvertAll(e => (int)(e / 15 + 5));
+            
+            for(int i=0;i< records.Count;i++)
+            {
+                (List<double>, double) r = records[i];
+                double action = r.Item1[0];
+                double futureHeading  = Heading + (action - 0.5) * Max_Rotate_Action * 2;
+                if (Heading < 0) Heading += 2 * Math.PI;
+                
+                double dx = Math.Cos(futureHeading) * length[i];
+                double dy = Math.Sin(futureHeading) * length[i];
+
+                Point2D p2 = new Point2D(this.Location.X+dx,this.Location.Y+dy);
+
+                Point2D l1 = frame.convertToDisplay(this.Location);
+                Point2D l2 = frame.convertToDisplay(p2);
+                g.DrawLine(dash_pen, (float)l1.X, (float)l1.Y, (float)l2.X, (float)l2.Y);
+                g.DrawString(evas[i].ToString(), eva_font, eva_brush, (float)l2.X, (float)l2.Y);
             }
         }
     }

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using System.Linq;
+using Microsoft.ML.Probabilistic.Distributions;
 
 namespace NWSELib.common
 {
@@ -260,6 +261,13 @@ namespace NWSELib.common
             {
                 return rng.NextDouble() * (Max - Min) + Min;
             }
+        }
+
+        public double gaussian_random()
+        {
+            double center = (Max - Min) / 2;
+            Gaussian gaussian = Gaussian.FromMeanAndVariance(center, 0.01);
+            return Math.Max(Math.Min(Max,gaussian.Sample()),Min);
         }
         #endregion
 

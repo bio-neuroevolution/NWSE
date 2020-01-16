@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.ML.Probabilistic.Distributions;
 using NWSELib.common;
 using NWSELib.env;
 using NWSELib.genome;
@@ -14,7 +15,7 @@ namespace NWSELib.net
     public class Network
     {
         #region 基本信息
-        private static Random rng = new Random();
+        public static Random rng = new Random();
         /// <summary>
         /// 染色体
         /// </summary>
@@ -311,7 +312,7 @@ namespace NWSELib.net
         /// </summary>
         /// <param name="obs"></param>
         /// <returns></returns>
-        public List<double> activate(List<double> obs, int time,Session session)
+        public List<double> activate(List<double> obs, int time,Session session,double reward)
         {
             
             //0.初始化
@@ -339,26 +340,28 @@ namespace NWSELib.net
             for (int i=0;i<this.Inferences.Count;i++)
             {
                 Inference inf = this.Inferences[i];
-                inf.Records.ForEach(r => r.adjustAccuracy(this, inf, time));
                 inf.activate(this, time);
             }
             //5. 信息抽象
-            //imagination.doAbstract();
-            imagination.inferences = this.Inferences;
+            imagination.doAbstract();
+            //imagination.inferences = this.Inferences;
 
-            //6. 推理想象、行为决策
+            //6. (上一次)行为评估
+            this.setReward(reward,time,1);
+
+            //7. 推理想象、行为决策
             ActionPlan plan = imagination.doImagination(time, session);
             if (plan == null) plan = createDefaultPlan(time);
             this.actionPlanTraces.Add(plan);
             setEffectValue(time);
 
-            //7.记录行为
+            //8.记录行为
             List<double> actions = this.Effectors.ConvertAll<double>(n => (double)n.Value);
             for(int i=0;i< this.ActionReceptors.Count;i++)
             {
                 this.ActionReceptors[i].activate(this, time, actions[i]);
             }
-            //行为评估不在这里，而是在setReward里
+           
             return actions;
         }
 
@@ -366,7 +369,7 @@ namespace NWSELib.net
         public ActionPlan createDefaultPlan(int time)
         {
             ActionPlan plan = new ActionPlan();
-            if(rng.NextDouble()<=0.5)
+            if(rng.NextDouble()<=0.0)
             {
                 plan.actions = Session.instinctActionHandler(this, time);
                 plan.judgeTime = time;
@@ -387,6 +390,8 @@ namespace NWSELib.net
             if (lastActionPlan == null) return "";
             StringBuilder str = new StringBuilder();
             str.Append("行动方式="+ lastActionPlan.judgeType + System.Environment.NewLine);
+            str.Append("   推理准则="+ lastActionPlan.mode + System.Environment.NewLine);
+            str.Append("   评估值=" + lastActionPlan.evluation.ToString("F3") + System.Environment.NewLine);
             str.Append("   行为=");
             str.Append(showActionText() + System.Environment.NewLine);
 
@@ -409,7 +414,9 @@ namespace NWSELib.net
         {
             for (int i = 0; i < this.Effectors.Count; i++)
             {
-                this.Effectors[i].activate(this, time, this.lastActionPlan.actions[i]);
+                Gaussian gau = Gaussian.FromMeanAndVariance(this.lastActionPlan.actions[i],0.01);
+                //this.Effectors[i].activate(this, time, this.lastActionPlan.actions[i]);
+                this.Effectors[i].activate(this, time, gau.Sample());
             }
         }
 
@@ -425,30 +432,79 @@ namespace NWSELib.net
         {
             return ids.ConvertAll(id => this.getNode(id).Value);
         }
-
-        public List<Vector> getRankedValues(List<int> ids,List<Vector> orginValues)
+        /// <summary>
+        /// 将某个节点的值分解到最小的输入double值,以及每个值的对应基础节点
+        /// </summary>
+        /// <param name="node"></param>
+        /// <param name="values"></param>
+        /// <returns></returns>
+        public (List<double>,List<Node>) flattenValues(Node node,Vector values, List<double> v=null, List<Node> n=null)
         {
-            
-            List<Vector> values = new List<Vector>();
-            for (int j = 0; j < ids.Count; j++)
+            if (v == null) v = new List<double>();
+            if (n == null) n = new List<Node>();
+
+            List<Node> childs = node.getInputNodes(this);
+            if(childs == null || childs.Count<=0)
             {
-                //取得每维的原始值
-                Vector orginValue = orginValues[j];
+                v.Add(values[v.Count]);
+                n.Add(node);
+            }
+            for(int i=0;i<childs.Count;i++)
+            {
+                (v, n) = flattenValues(childs[i], values, v, n);
+            }
+            return (v, n);
+        }
+
+        public Vector getRankedValue(Receptor r, Vector value)
+        {
+            double unrankedValue = value;
+            //取得该维度的分级数和范围
+            NodeGene gene = r.Gene;
+            (int, ValueRange) level = Session.GetConfiguration().getLevel(gene.Id, gene.Name, gene.Cataory);
+            if (level.Item1 == 0)
+                return value;
+            else
+            {
+                double unit = level.Item2.Distance / level.Item1;
+                int levelValue = (int)((unrankedValue - level.Item2.Min) / unit);
+                if (levelValue >= level.Item1)
+                    levelValue = level.Item1 - 1;
+                //newValue = levelValue;
+                double newValue = level.Item2.Min + (levelValue * unit + (levelValue + 1) * unit) / 2.0;
+                return newValue;
+            }
+        }
+
+
+        
+        public List<Vector> getRankedValues(Node node,List<Vector> orginValues)
+        {
+            (Vector flattenValue,List<int> dSize) = orginValues.flatten();
+            (List<double> values, List<Node> nodes) = flattenValues(node, flattenValue);
+
+            List<double> rankedValues = new List<double>();
+            for (int j = 0; j < values.Count; j++)
+            {
+                double unrankedValue = values[j];
                 //取得该维度的分级数和范围
-                NodeGene gene = Genome[ids[j]];
-                List<(int, double)> level = Session.GetConfiguration().getLevel(gene.Id, gene.Name, gene.Cataory);
-                //分级处理
-                Vector newValue = new Vector(true, orginValue.Size);
-                for (int k = 0; k < orginValue.Size; k++)
+                NodeGene gene = nodes[j].Gene;
+                (int, ValueRange) level = Session.GetConfiguration().getLevel(gene.Id, gene.Name, gene.Cataory);
+                if (level.Item1 == 0)
+                    rankedValues.Add(unrankedValue);
+                else
                 {
-                    double unit = level[k].Item2 / level[k].Item1;
-                    int levelValue = (int)(orginValue[k] / unit);
-                    if (levelValue >= level[k].Item1)
-                        levelValue = level[k].Item1 - 1;
-                    newValue[k] = levelValue;
+                    double unit = level.Item2.Distance / level.Item1;
+                    int levelValue = (int)((unrankedValue- level.Item2.Min) / unit);
+                    if (levelValue >= level.Item1)
+                        levelValue = level.Item1 - 1;
+                    //newValue = levelValue;
+                    double newValue = level.Item2.Min + (levelValue * unit + (levelValue + 1) * unit) / 2.0;
+                    rankedValues.Add(newValue);
                 }
             }
-            return values;
+
+            return new Vector(rankedValues).split(dSize);
         }
         
         
@@ -473,49 +529,7 @@ namespace NWSELib.net
             return r;
         }
 
-        /// <summary>
-        /// 查找与envValues输入相似的节点
-        /// </summary>
-        /// <param name="inference">推理</param>
-        /// <param name="values"></param>
-        /// <returns></returns>
-        public (InferenceRecord record, double similarity) recall(Inference inference, List<Vector> envValues)
-        {
-            if (inference == null || inference.Records.Count<=0) return (null,0);
-            List<double> similarities = new List<double>();
-            int envcondCount = inference.splitIds().Item1.Count;
-            //计算相似度
-            for (int i=0;i< inference.Records.Count;i++)
-            {
-                List<Vector> center = inference.Records[i].means;
-                List<Vector> clone = new List<Vector>(center);
-                clone = inference.replaceEnvValue(clone, envValues);
-                double sim = Vector.manhantan_distance(clone, center);
-                //double sim = inference.Records[i].prob(clone) / inference.Records[i].prob(center);
-                similarities.Add(sim);
-            }
-            //相似度从大到小排序
-            List<int> index = similarities.argsort();
-            
-            //相似度上界
-            double tolerable_similarity = Session.GetConfiguration().learning.judge.tolerable_similarity;
-            //寻找满足相似度上界，且评价最高的
-            InferenceRecord record = null;
-            double similarity = 0;
-            double evulation = double.MinValue;
-            for(int i=0;i<index.Count;i++)
-            {
-                if (similarities[index[i]] >= envcondCount*tolerable_similarity) break;
-                if(inference.Records[index[i]].evulation > evulation)
-                {
-                    record = inference.Records[index[i]];
-                    similarity = similarities[index[i]];
-                    evulation = inference.Records[index[i]].evulation;
-                }
-            }
-            return (record, similarity);
-        }
-
+        
         /// <summary>
         /// 因为inference的结果results包含了nextinf的所有输入（动作除外）
         /// 将这些输入提取出来
@@ -559,7 +573,9 @@ namespace NWSELib.net
 
         public void setReward(double reward,int time,int mode = 1,bool clear=true)
         {
+            if (reward == 0) return;
             if (actionPlanTraces.Count <= 0) return;
+            if (reward == 100.0) mode = 3;//如果是摆脱撞墙，这个正向奖励不传播
             for (int i = actionPlanTraces.Count - 1; i >= 0; i--)
             {
                 ActionPlan plan = actionPlanTraces[i];

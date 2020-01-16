@@ -41,12 +41,13 @@
         <sensor name="b" desc="collision" cataory="onoff" group="env.collision"  range="[0 - 1]" level="[2-2]" levelNames="未冲突,冲突">
           <property name="direction" type="float" value="-90"></property>
         </sensor>
+        <sensor name="pos" desc="position" cataory="position" group="env.position"  range="[0 - 1]" level="[0-0]">
+        </sensor>
       </env>
       <gestures>
         <sensor name="heading" desc="heading" cataory="direction" group="body.heading"  range="[0 - 1]" level="[8-8]" levelNames="东,东南,南,西南,西,西北,北,东北">
         </sensor>
-        <sensor name="pos" desc="position" cataory="position" group="body.position"  range="[0 - 1]" level="[0-0]">
-        </sensor>
+        
       </gestures>
       <actions>
         <!-- <sensor name="_a1" cataory="speed" group="action" range="[0 - 1]" level="[5-5]"/>-->
@@ -60,7 +61,7 @@
 
   <learning eplison="0.7">
     <inference accept_prob="0.7" accept_max_count="3" inference_distance="0.1"></inference>
-    <judge tolerable_similarity="0.15"></judge>
+    <judge tolerable_similarity="0.05"></judge>
   </learning>
 
   

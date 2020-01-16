@@ -262,9 +262,24 @@ namespace NWSELib.common
             }
             return d;
         }
+        public double max_manhantan_distance(Vector v)
+        {
+            int size = Math.Min(this.Size, v.Size);
+            double d = double.MinValue;
+            for (int i = 0; i < size; i++)
+            {
+                if (d < Math.Abs(v[i] - this[i]))
+                    d = Math.Abs(v[i] - this[i]);
+            }
+            return d;
+        }
         public static double manhantan_distance(List<Vector> v1, List<Vector> v2)
         {
             return v1.flatten().Item1.manhantan_distance(v2.flatten().Item1);
+        }
+        public static double max_manhantan_distance(List<Vector> v1, List<Vector> v2)
+        {
+            return v1.flatten().Item1.max_manhantan_distance(v2.flatten().Item1);
         }
 
 
@@ -287,7 +302,7 @@ namespace NWSELib.common
             if (v1.Count != v2.Count) return false;
             for (int i = 0; i < v1.Count; i++)
             {
-                if (equals(v1[i],v2[i])) return false;
+                if (!equals(v1[i],v2[i])) return false;
             }
             return true;
         }

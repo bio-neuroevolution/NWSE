@@ -34,6 +34,16 @@ namespace NWSELib.net
         {
             get => this.gene;
         }
+        public override string ToString()
+        {
+            return this.Gene.Text;
+        }
+
+        public virtual List<Node> getInputNodes(Network net)
+        {
+            return new List<Node>();
+        }
+        
         #endregion
 
         #region 状态信息
@@ -96,7 +106,7 @@ namespace NWSELib.net
         {
             int tindex = times.IndexOf(time);
             if (tindex < 0) return null;
-            return this.values[time];
+            return this.values[tindex];
         }
 
 
@@ -161,7 +171,7 @@ namespace NWSELib.net
 
         internal double randomValue(Network net,int time)
         {
-            double value = Session.GetConfiguration().agent.receptors.GetSensor("_"+this.Name).Range.random();
+            double value = Session.GetConfiguration().agent.receptors.GetSensor("_"+this.Name).Range.gaussian_random();
             this.activate(net, time, value);
             return value;
         }
@@ -183,7 +193,8 @@ namespace NWSELib.net
 
         public bool IsThinkCompleted(int time)
         {
-            return this.vtimes.Contains(time);
+            if(this.vtimes.Contains(time))return true;
+            return this.times.Contains(time);
         }
 
         public Vector getThinkValues(int time)

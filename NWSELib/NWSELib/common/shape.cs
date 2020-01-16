@@ -315,6 +315,11 @@ namespace NWSELib.common
 			else
 				return -1;
 		}
+
+
+			
+
+
 		/// <summary>
 		/// Calculates the point of intersection between two line segments
 		/// </summary>
@@ -322,6 +327,7 @@ namespace NWSELib.common
 		/// <param name="found">**Output parameter**, will return false if no intersection exists.</param>
 		public Point2D intersection(Line2D line, out bool found)
 		{
+
 			Point2D pt = new Point2D(0.0, 0.0);
 			Point2D A = Endpoint1;
 			Point2D B = Endpoint2;
