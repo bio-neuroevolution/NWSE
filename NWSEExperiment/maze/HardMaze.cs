@@ -343,7 +343,7 @@ namespace NWSEExperiment.maze
         {
             RobotAgent robot = (RobotAgent)agent;
             if (robot.PrevCollided && !robot.HasCollided)
-                return 100.0;
+                return 10.0;
             else if (!robot.PrevCollided && robot.HasCollided)
                 return -100.0;
             else if (robot.PrevCollided && robot.HasCollided)

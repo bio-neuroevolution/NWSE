@@ -125,75 +125,125 @@ namespace NWSELib.net
             List<List<double>> testActions = createTestActionSet(instinctActions);
             
             //对每一个动作
-            List<(List<double>, double)> actionEvaulationRecords = new List<(List<double>, double)>();
-            List<List<Vector>> obs = new List<List<Vector>>();
+            List<(List<double>, double,List<Vector>)> actionEvaulationRecords = new List<(List<double>, double, List<Vector>)>();
+            
             for (int a=0;a<testActions.Count;a++)
             {
                 List<double> actions = testActions[a];
                 //执行直到无法执行，得到评估值
                 (double evulation,List<Vector> initObs) = doActionImagination(actions,time,session);
-                obs.Add(initObs);
-                actionEvaulationRecords.Add((actions, evulation));
+                actionEvaulationRecords.Add((actions, evulation, initObs));
             }
             //所有评估都是未知的，则这里返回null，这将导致生成随机动作
             if (actionEvaulationRecords.All(ed => double.IsNaN(ed.Item2)))
                 return null;
 
             ActionPlan plan = new ActionPlan();
-            //所有评估要么未知，要么都是负的，则从未知中生成动作
-            if (actionEvaulationRecords.All(ed => double.IsNaN(ed.Item2)|| ed.Item2<0))
+
+            //所有评估都是未知的和0，则维持原动作不变
+            if (actionEvaulationRecords.All(ed => double.IsNaN(ed.Item2) || ed.Item2==0))
             {
-                List<int> indexs = new List<int>();
-                for(int t=0;t< actionEvaulationRecords.Count;t++)
+                plan.actions = actionEvaulationRecords[1].Item1;
+                plan.judgeTime = time;
+                plan.judgeType = ActionPlan.JUDGE_INFERENCE;
+                plan.evluation = actionEvaulationRecords[1].Item2;
+                plan.inputObs = actionEvaulationRecords[1].Item3;
+                plan.mode = "环境未知，动作维持";
+                plan.actionEvaulationRecords = actionEvaulationRecords;
+                return plan;
+            }
+
+            double[] evaulationSections = new double[] { double.MinValue, 0, 0,50,double.MaxValue };
+            int[] evaulationMode = new int[] { -1, 0, 0, 1 };
+            for(int t = evaulationSections.Length-1; t>0;t--)
+            {
+                double max = evaulationSections[t];
+                double min = evaulationSections[t - 1];
+                int mode = evaulationMode[t - 1];
+
+                List<(List<double>, double,List<Vector>)> temp = actionEvaulationRecords.FindAll(r => (max == min) ? r.Item2 == min : (r.Item2 <= max && r.Item2 > min));
+                if (temp == null || temp.Count <= 0) continue;
+
+                if(mode == -1) //进行反向探索操作，当所有评估都是负的，先从无效中挑一个，否则从最差的里挑选相对好的
                 {
-                    if(double.IsNaN(actionEvaulationRecords[t].Item2))
+                    List<(List<double>, double, List<Vector>)> nans = actionEvaulationRecords.FindAll(r => double.IsNaN(r.Item2));
+                    if(nans!=null && nans.Count>0)
                     {
-                        indexs.Add(t);
+                        int s = Network.rng.Next(0, nans.Count);
+                        plan.actions = nans[s].Item1;
+                        plan.judgeTime = time;
+                        plan.judgeType = ActionPlan.JUDGE_INFERENCE;
+                        plan.evluation = nans[s].Item2;
+                        plan.inputObs = nans[s].Item3;
+                        plan.mode = "评估负面，走向未知";
+                        plan.actionEvaulationRecords = actionEvaulationRecords;
+                        return plan;
                     }
-                }
-                if (indexs.Count > 0)
-                {
-                    int s = Network.rng.Next(0, indexs.Count);
-                    plan.actions = actionEvaulationRecords[s].Item1;
+                    double fmax = temp.ConvertAll(ti => ti.Item2).Max();
+                    int fmaxinx = temp.ConvertAll(ti => ti.Item2).IndexOf(fmax);
+                    plan.actions = temp[fmaxinx].Item1;
                     plan.judgeTime = time;
                     plan.judgeType = ActionPlan.JUDGE_INFERENCE;
-                    plan.evluation = actionEvaulationRecords[s].Item2;
-                    plan.inputObs = obs[s];
-                    plan.mode = ActionPlan.MODE_EXPLORATION;
+                    plan.evluation = temp[fmaxinx].Item2;
+                    plan.inputObs = temp[fmaxinx].Item3;
+                    plan.mode = "全部负面，勉强择优";
                     plan.actionEvaulationRecords = actionEvaulationRecords;
                     return plan;
                 }
-            }
+                else if(mode == 0)//没有正向评估，最好的评估就是0，在0里优先选择不变的，其次选择本能动作，在其次随机选择一个
+                {
+                    List<double> dis = temp.ConvertAll(ti => Math.Abs(ti.Item1[0] - 0.5));
+                    if (dis.Min() <= 0.125)
+                    {
+                        int inx = dis.IndexOf(dis.Min());
+                        plan.actions = temp[inx].Item1;
+                        plan.judgeTime = time;
+                        plan.judgeType = ActionPlan.JUDGE_INFERENCE;
+                        plan.evluation = temp[inx].Item2;
+                        plan.inputObs = temp[inx].Item3;
+                        plan.mode = "环境未曾评估，选择最近方向";
+                        plan.actionEvaulationRecords = actionEvaulationRecords;
+                        return plan;
+                    }
+                    else if (temp.ConvertAll(ti => ti.Item1).Exists(ti => Utility.equals(instinctActions, ti))) 
+                    {
+                        plan.actions = actionEvaulationRecords[0].Item1;
+                        plan.judgeTime = time;
+                        plan.judgeType = ActionPlan.JUDGE_INFERENCE;
+                        plan.evluation = actionEvaulationRecords[0].Item2;
+                        plan.inputObs = actionEvaulationRecords[0].Item3;
+                        plan.mode = "环境未曾评估，选择本能方向";
+                        plan.actionEvaulationRecords = actionEvaulationRecords;
+                        return plan;
+                    }
+                    else
+                    {
+                        int s = Network.rng.Next(0, temp.Count);
+                        plan.actions = temp[s].Item1;
+                        plan.judgeTime = time;
+                        plan.judgeType = ActionPlan.JUDGE_INFERENCE;
+                        plan.evluation = temp[s].Item2;
+                        plan.inputObs = temp[s].Item3;
+                        plan.mode = "环境未曾评估，随机选择方向";
+                        plan.actionEvaulationRecords = actionEvaulationRecords;
+                        return plan;
+                    }
             
-            //行动方案第一个是本能行动方案，如果它有效且评估值排在前两位，优先选择它
-            List<int> evaIndex = actionEvaulationRecords.ConvertAll(r=>r.Item2).argsort();
-            if (!double.IsNaN(actionEvaulationRecords[0].Item2) && actionEvaulationRecords[0].Item2 >0 && (evaIndex.IndexOf(0)>= evaIndex.Count-2))
-            {
-                plan.actions = actionEvaulationRecords[0].Item1;
-                plan.judgeTime = time;
-                plan.judgeType = ActionPlan.JUDGE_INSTINCT;
-                plan.evluation = actionEvaulationRecords[0].Item2;
-                plan.inputObs = obs[0];
-                plan.mode = ActionPlan.MODE_INSTINCT;
-                plan.actionEvaulationRecords = actionEvaulationRecords;
-            }
-            else
-            {
-                //在评估值前三个且大于中找根0.5接近的动作（0.5即维持原动作）
-                //生物体出于能耗考虑会尽量维持原有动作
-                //目前系统没考虑这点，只是如果不这样判断，由于系统是稀疏奖励的，
-                //导致Agent太长时间才能发生碰撞，从而得到足够的负面奖励
-                //甚至在一个小区域反复随机游走
-                
-                double m = actionEvaulationRecords.ConvertAll(r=>r.Item2).Max();
-                int inx = actionEvaulationRecords.ConvertAll(r => r.Item2).IndexOf(m);
-                plan.actions = actionEvaulationRecords[inx].Item1;
-                plan.judgeTime = time;
-                plan.judgeType = ActionPlan.JUDGE_INFERENCE;
-                plan.evluation = actionEvaulationRecords[inx].Item2;
-                plan.inputObs = obs[inx];
-                plan.mode = ActionPlan.MODE_EXPLOITATION;
-                plan.actionEvaulationRecords = actionEvaulationRecords;
+                }
+                else//mode == 1，选择评估最大的动作
+                {
+                    double m = temp.ConvertAll(r => r.Item2).Max();
+                    int inx = temp.ConvertAll(r => r.Item2).IndexOf(m);
+                    plan.actions = temp[inx].Item1;
+                    plan.judgeTime = time;
+                    plan.judgeType = ActionPlan.JUDGE_INFERENCE;
+                    plan.evluation = temp[inx].Item2;
+                    plan.inputObs = temp[inx].Item3;
+                    plan.mode = "选择最大证明评估";
+                    plan.actionEvaulationRecords = actionEvaulationRecords;
+                    return plan;
+                }
+
             }
             
 

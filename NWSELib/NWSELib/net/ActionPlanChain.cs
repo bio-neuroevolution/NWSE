@@ -53,7 +53,7 @@ namespace NWSELib.net
         /// <summary>
         /// 所有可能动作的评估记录
         /// </summary>
-        public List<(List<double>, double)> actionEvaulationRecords = new List<(List<double>, double)>();
+        public List<(List<double>, double, List<Vector>)> actionEvaulationRecords = new List<(List<double>, double, List<Vector>)>();
         
 
         /// <summary>

@@ -60,6 +60,12 @@ namespace NWSEExperiment
                 frame = new CoordinateFrame(0.0f, maze.AOIRectangle.Y, 1.1f, 0.0f);
             
             maze.draw(e.Graphics, frame);
+
+            if(btnPolicyShow.Checked && inferencing)
+            {
+                if (this.optimaAgent == null) return;
+                this.optimaAgent.drawEvaulation(e.Graphics, frame);
+            }
         }
 
         private void showOptimaInd(Graphics g)
@@ -167,7 +173,7 @@ namespace NWSEExperiment
         private List<double> actions;
         private double reward;
 
-        private bool policyShow;
+        private bool inferencing;
         /// <summary>
         /// 交互式环境重置
         /// </summary>
@@ -188,7 +194,7 @@ namespace NWSEExperiment
             this.txtMsg.Text += "目标=" + Utility.toString(obs.GetRange(6, 4)) + System.Environment.NewLine; ;
             this.txtMsg.Text += "朝向=" + (gesture[0]* Agent.DRScale).ToString("F3") + System.Environment.NewLine;
             this.txtMsg.Text += System.Environment.NewLine;
-
+            inferencing = false;
             this.Refresh();
             
         }
@@ -209,14 +215,8 @@ namespace NWSEExperiment
             this.txtMsg.Text += this.optima_net.showActionPlan();
 
             interactive_time += 1;
-
-            if(btnPolicyShow.Checked)
-            {
-                if (this.optimaAgent == null) return;
-                Graphics g = panel.CreateGraphics();
-                this.optimaAgent.drawEvaulation(g, frame);
-                g.Dispose();
-            }
+            inferencing = true;
+            this.Refresh();
 
 
         }
@@ -240,7 +240,7 @@ namespace NWSEExperiment
             this.txtMsg.Text += System.Environment.NewLine;
 
             //this.optima_net.setReward(reward, interactive_time);
-
+            inferencing = false;
             this.Refresh();
            
         }
@@ -308,12 +308,9 @@ namespace NWSEExperiment
 
         private void btnPolicyShow_Click(object sender, EventArgs e)
         {
-            policyShow = btnPolicyShow.Checked;
+            
             if (!btnPolicyShow.Checked) return;
-            if (this.optimaAgent == null) return;
-            Graphics g = panel.CreateGraphics();
-            this.optimaAgent.drawEvaulation(g, frame);
-            g.Dispose();
+            this.Refresh();
 
         }
     }

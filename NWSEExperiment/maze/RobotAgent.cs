@@ -328,8 +328,9 @@ namespace NWSEExperiment.maze
         {
             if(dash_pen == null)
             {
-                dash_pen = new Pen(Color.Blue, 12);
-                dash_pen.DashStyle = DashStyle.Dash;
+                dash_pen = new Pen(Color.Green, 1);
+                dash_pen.DashStyle = DashStyle.Dot;
+               
             }
             this.net = net;
             double locationX = maze.start_point.X;
@@ -644,28 +645,28 @@ namespace NWSEExperiment.maze
             
         }
 
-        static Font eva_font = new Font(FontFamily.GenericSerif, 9);
-        static Brush eva_brush = new SolidBrush(Color.Black);
+        Font eva_font = new Font(FontFamily.GenericSerif, 9);
+        Brush eva_brush = new SolidBrush(Color.Black);
         public void drawEvaulation(Graphics g, CoordinateFrame frame)
         {
             if (this.net.lastActionPlan == null) return;
-            List<(List<double>,double)> records = this.net.lastActionPlan.actionEvaulationRecords;
+            List<(List<double>,double,List<Vector>)> records = this.net.lastActionPlan.actionEvaulationRecords;
             if (records == null || records.Count <= 0) return;
-            records = records.FindAll(r => !double.IsNaN(r.Item2));
-            if (records == null || records.Count <= 0) return;
+            //records = records.FindAll(r => !double.IsNaN(r.Item2));
+            //if (records == null || records.Count <= 0) return;
 
             List<double> evas = records.ConvertAll(e => e.Item2);
             double min = evas.Min();
             double max = evas.Max();
-            evas = evas.ConvertAll(e => (e - min) / (max - min));
-            List<int> length = evas.ConvertAll(e => (int)(e / 15 + 5));
+            evas = evas.ConvertAll(e => double.IsNaN(e)?e:(e - min) / (max - min+0.00001));
+            List<int> length = evas.ConvertAll(e => double.IsNaN(e)?100:(int)(e / 200 + 100));
             
             for(int i=0;i< records.Count;i++)
             {
-                (List<double>, double) r = records[i];
+                (List<double>, double,List<Vector>) r = records[i];
                 double action = r.Item1[0];
                 double futureHeading  = Heading + (action - 0.5) * Max_Rotate_Action * 2;
-                if (Heading < 0) Heading += 2 * Math.PI;
+                if (futureHeading < 0) futureHeading += 2 * Math.PI;
                 
                 double dx = Math.Cos(futureHeading) * length[i];
                 double dy = Math.Sin(futureHeading) * length[i];
@@ -675,7 +676,8 @@ namespace NWSEExperiment.maze
                 Point2D l1 = frame.convertToDisplay(this.Location);
                 Point2D l2 = frame.convertToDisplay(p2);
                 g.DrawLine(dash_pen, (float)l1.X, (float)l1.Y, (float)l2.X, (float)l2.Y);
-                g.DrawString(evas[i].ToString(), eva_font, eva_brush, (float)l2.X, (float)l2.Y);
+                //g.DrawLine(System.Drawing.Pens.Red, (float)l1.X, (float)l1.Y, (float)l2.X, (float)l2.Y);
+                g.DrawString(double.IsNaN(records[i].Item2)?"Nan":records[i].Item2.ToString("F2"), eva_font, eva_brush, (float)l2.X, (float)l2.Y);
             }
         }
     }
