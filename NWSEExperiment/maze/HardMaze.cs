@@ -236,10 +236,13 @@ namespace NWSEExperiment.maze
             agent.reset(this.start_point);
             List<double> obs =agent.getObserve();
             obs.Add(0); //没有发生碰撞冲突
+            var poscode = Utility.poscodecompute(this.AOIRectangle, agent.Location.X, agent.Location.Y);
+            obs.Add(poscode.Item1);
+
+            
             List<double> gesture = new List<double>();
             gesture.Add(agent.Heading / (2 * Math.PI));
-            var poscode = agent.computePositionAreaCode(this.AOIRectangle.Width, this.AOIRectangle.Height);
-            gesture.Add(poscode.Item1);
+            
             return (obs,gesture);
         }
 
@@ -252,7 +255,7 @@ namespace NWSEExperiment.maze
             List<double> obs = agent.getObserve();
             obs.Add(agent.HasCollided?1:0);
 
-            var poscode = agent.computePositionAreaCode(this.AOIRectangle.Width, this.AOIRectangle.Height);
+            var poscode = Utility.poscodecompute(this.AOIRectangle,agent.Location.X,agent.Location.Y);
             obs.Add(poscode.Item1);
 
             List<double> gesture = new List<double>();
@@ -309,7 +312,7 @@ namespace NWSEExperiment.maze
             {
                 return new List<double>()
                 {
-                    EngineUtilities.RNG.NextDouble()/2.0,
+                    //EngineUtilities.RNG.NextDouble()/2.0,
                     1.0
                 };
             }//
@@ -317,7 +320,7 @@ namespace NWSEExperiment.maze
             {
                 return new List<double>()
                 {
-                    EngineUtilities.RNG.NextDouble()/2.0+0.5,
+                    //EngineUtilities.RNG.NextDouble()/2.0+0.5,
                     0.75
                 };
             }

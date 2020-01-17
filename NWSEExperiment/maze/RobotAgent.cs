@@ -348,7 +348,7 @@ namespace NWSEExperiment.maze
 
 
             //Heading =EngineUtilities.angletoradian(heading);
-            Heading = heading/ Agent.DRScale;
+            Heading = heading/ Utility.DRScale;
             Velocity = 0.0;
             HasCollided = false;
             this.Timestep = timeStep;
@@ -603,20 +603,7 @@ namespace NWSEExperiment.maze
             }
         }
 
-        public (double,(int,int)) computePositionAreaCode(double w,double h)
-        {
-            //行列各分100，总共10000个网格
-            int grid = 100;
-            double wunit = w / grid;
-            double hunit = h / grid;
-
-            int x = (int)(this.Location.X / wunit);
-            int y = (int)(this.Location.Y / hunit);
-
-            int code = grid * x + y;
-            return (code*1.0/(grid* grid), (x, y));
-
-        }
+        
 
         internal void draw(Graphics g, CoordinateFrame frame,bool showtrail=false)
         {

@@ -81,15 +81,39 @@ namespace NWSELib.net
         /// <param name="xh"></param>
         /// <param name="prefix"></param>
         /// <returns></returns>
-        public string toString(int xh,String prefix="   ")
+        public string toString(Inference inf,int xh,String prefix="   ")
         {
             StringBuilder str = new StringBuilder();
 
-            str.Append("mean" + xh.ToString() + "=" + Utility.toString(means.flatten().Item1.ToList()) + System.Environment.NewLine +
+            str.Append("mean" + xh.ToString() + "=" + meanToString(inf) + System.Environment.NewLine +
                        prefix+"evulation=" + evulation.ToString("F3") + System.Environment.NewLine +
                        prefix+"accuracy=" + accuracyDistance.ToString("F3") + System.Environment.NewLine +
                        prefix+"usedCount=" + usedCount.ToString() + System.Environment.NewLine +
                        prefix+"acceptCount=" + acceptCount.ToString() + System.Environment.NewLine);
+            return str.ToString();
+        }
+        private String meanToString(Inference inf)
+        {
+            List<NodeGene> genes = inf.getGene().dimensions.ConvertAll(d => d.Item1)
+                .ConvertAll(id => inf.getGene().owner[id]);
+            StringBuilder str = new StringBuilder();
+            for(int i=0;i<genes.Count;i++)
+            {
+                if (str.ToString() != "") str.Append(",");
+                if(genes[i].Name == "pos")
+                {
+                    (int x, int y) = Utility.poscodeSplit(this.means[i][0]);
+                    str.Append(this.means[i][0].ToString("F4") + "(" + x.ToString() + "," + y.ToString() + ")");
+                }else if(genes[i].Name == "heading")
+                {
+                    str.Append(this.means[i][0].ToString("F2") + "(" + Utility.headingToDegree(this.means[i][0]).ToString("F2") + ")");
+                }
+                else //a2
+                {
+                    str.Append(this.means[i][0].ToString("F2") + "(" + Utility.actionRotateToDegree(this.means[i][0]).ToString("F2") + ")");
+                }
+
+            }
             return str.ToString();
         }
 
@@ -239,12 +263,51 @@ namespace NWSELib.net
         /// <param name="condValues"></param>
         /// <param name="distance"></param>
         /// <returns></returns>
-        public bool isConditionValueMatch(Network net, Inference inf, List<Vector> condValues,out double distance)
+        public bool isConditionValueMatch2(Network net, Inference inf, List<Vector> condValues,out double distance)
         {
             distance = getConditionValueDistance(net,inf,condValues);
             int size = condValues.size();
             return (distance < Session.GetConfiguration().learning.judge.tolerable_similarity);
         }
+        //for test
+        public bool isConditionValueMatch(Network net, Inference inf, List<Vector> condValues, out double distance)
+        {
+            List<double> distances = new List<double>();
+            bool match = true;
+            List<int> condIds = inf.getGene().getConditions().ConvertAll(c=>c.Item1);
+            List<Node> condNodes = condIds.ConvertAll(id => net.getNode(id));
+            for(int i=0;i<condNodes.Count;i++)
+            {
+                Node node = condNodes[i];
+                if(node.Name=="pos") //只要是在领域内
+                {
+                    double condValue = condValues[i][0];
+                    double meanValue = this.means[i][0];
+                    double d = Utility.poscodeDistance(condValue, meanValue);
+                    distances.Add(d);
+                    if (d > 1) match = false;
+                }
+                else if(node.Name == "heading")
+                {
+                    double condValue = condValues[i][0];
+                    double meanValue = this.means[i][0];
+                    double d = Utility.headingDistance(condValue, meanValue);
+                    distances.Add(d);
+                    if (d > 1) match = false;
+                }
+                else//"_a2"
+                {
+                    double condValue = condValues[i][0];
+                    double meanValue = this.means[i][0];
+                    double d = Utility.actionRotateDistance(condValue, meanValue);
+                    distances.Add(d);
+                    if (d > 1) match = false;
+                }
+            }
+            distance = distances.Average();
+            return match;
+        }
+
         /// <summary>
         /// 本记录的均值中条件部分与输入值的曼哈顿距离
         /// </summary>
@@ -332,7 +395,7 @@ namespace NWSELib.net
             str.Append("记录数=" + Records.Count.ToString() + System.Environment.NewLine);
             for (int j = 0; j < Records.Count; j++)
             {
-                str.Append(Records[j].toString(j));
+                str.Append(Records[j].toString(this,j));
                 
             }
             return str.ToString();
@@ -348,7 +411,7 @@ namespace NWSELib.net
             str.Append("记录数=" + Records.Count.ToString() + System.Environment.NewLine);
             for (int j = 0; j < Records.Count; j++)
             {
-                str.Append(Records[j].toString(j));
+                str.Append(Records[j].toString(this,j));
 
             }
             return str.ToString();
@@ -961,12 +1024,25 @@ namespace NWSELib.net
         /// </summary>
         /// <param name="condvalues"></param>
         /// <returns></returns>
-        public (InferenceRecord, List<Vector>) forward_inference(Network net,List<Vector> condvalues)
+        public (InferenceRecord, List<Vector>,double distance) forward_inference(Network net,List<Vector> condvalues)
         {
             double distance = 0;
-            InferenceRecord matchedRecord = this.records.FirstOrDefault(r => r.isConditionValueMatch(net, this, condvalues,out distance));
-            if (matchedRecord == null) return (null, null);
-            return (matchedRecord, matchedRecord.forward_inference(this, condvalues));
+            InferenceRecord matchedRecord = null;
+            double evaulation = double.MaxValue;
+            foreach(InferenceRecord r in this.records)
+            {
+                double d = 0;
+                if (!r.isConditionValueMatch(net, this, condvalues, out distance))
+                    continue;
+                if(r.evulation < evaulation) //找相近里面评估最差的？
+                {
+                    evaulation = r.evulation;
+                    matchedRecord = r;
+                    distance = d;
+                }
+            }
+            if (matchedRecord == null) return (null, null, distance);
+            return (matchedRecord, matchedRecord.forward_inference(this, condvalues),distance);
         }
         /// <summary>
         /// 前向推理：给定条件，计算结论

@@ -9,7 +9,7 @@ namespace NWSELib.env
     {
         public const double Max_Rotate_Action = Math.PI;
         public const double Max_Speed_Action = 20;
-        public const double DRScale = 57.29578;
+        
 
         public abstract int getId();
         public abstract List<double> getObserve();

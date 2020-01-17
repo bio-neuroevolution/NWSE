@@ -343,8 +343,8 @@ namespace NWSELib.net
                 inf.activate(this, time);
             }
             //5. 信息抽象
-            imagination.doAbstract();
-            //imagination.inferences = this.Inferences;
+            //imagination.doAbstract();
+            imagination.inferences = this.Inferences;
 
             //6. (上一次)行为评估
             this.setReward(reward,time,1);
@@ -402,8 +402,8 @@ namespace NWSELib.net
         {
             List<double> values = this.Effectors.ConvertAll(e => e.Value[0]);
             //double delta_speed = (values[0] - 0.5) * Agent.Max_Speed_Action;
-            double delta_degree = (((values[0] - 0.5) * Agent.Max_Rotate_Action * 2) * Agent.DRScale) % 360;
-            return delta_degree.ToString("F3");
+            double delta_degree = Utility.actionRotateToDegree(values[0]);
+            return (delta_degree>0?"顺时针旋转": "逆时针旋转")+delta_degree.ToString("F3")+"度("+ values[0].ToString("F3")+")";
         }
         /// <summary>
         /// 根据行动计划设定输出
@@ -414,9 +414,9 @@ namespace NWSELib.net
         {
             for (int i = 0; i < this.Effectors.Count; i++)
             {
-                Gaussian gau = Gaussian.FromMeanAndVariance(this.lastActionPlan.actions[i],0.01);
-                //this.Effectors[i].activate(this, time, this.lastActionPlan.actions[i]);
-                this.Effectors[i].activate(this, time, gau.Sample());
+                //Gussian gau = Gaussian.FromMeanAndVariance(this.lastActionPlan.actions[i],0.01);
+                this.Effectors[i].activate(this, time, this.lastActionPlan.actions[i]);
+                //this.Effectors[i].activate(this, time, gau.Sample());
             }
         }
 

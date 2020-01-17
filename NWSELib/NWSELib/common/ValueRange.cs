@@ -266,7 +266,7 @@ namespace NWSELib.common
         public double gaussian_random()
         {
             double center = (Max - Min) / 2;
-            Gaussian gaussian = Gaussian.FromMeanAndVariance(center, 0.01);
+            Gaussian gaussian = Gaussian.FromMeanAndVariance(center, 0.001);
             return Math.Max(Math.Min(Max,gaussian.Sample()),Min);
         }
         #endregion

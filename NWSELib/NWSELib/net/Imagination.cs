@@ -127,7 +127,7 @@ namespace NWSELib.net
             //对每一个动作
             List<(List<double>, double,List<Vector>)> actionEvaulationRecords = new List<(List<double>, double, List<Vector>)>();
             
-            for (int a=0;a<testActions.Count;a++)
+            for (int a=1;a<testActions.Count;a++)
             {
                 List<double> actions = testActions[a];
                 //执行直到无法执行，得到评估值
@@ -140,21 +140,21 @@ namespace NWSELib.net
 
             ActionPlan plan = new ActionPlan();
 
-            //所有评估都是未知的和0，则维持原动作不变
-            if (actionEvaulationRecords.All(ed => double.IsNaN(ed.Item2) || ed.Item2==0))
+            //如果当前行进方向评估未知，则维持不变
+            if (actionEvaulationRecords[1].Item2 ==0 || double.IsNaN(actionEvaulationRecords[1].Item2))
             {
                 plan.actions = actionEvaulationRecords[1].Item1;
                 plan.judgeTime = time;
                 plan.judgeType = ActionPlan.JUDGE_INFERENCE;
                 plan.evluation = actionEvaulationRecords[1].Item2;
                 plan.inputObs = actionEvaulationRecords[1].Item3;
-                plan.mode = "环境未知，动作维持";
+                plan.mode = "当前方向未知，动作维持";
                 plan.actionEvaulationRecords = actionEvaulationRecords;
                 return plan;
             }
 
-            double[] evaulationSections = new double[] { double.MinValue, 0, 0,50,double.MaxValue };
-            int[] evaulationMode = new int[] { -1, 0, 0, 1 };
+            double[] evaulationSections = new double[] { double.MinValue, 0, 0,double.MaxValue };
+            int[] evaulationMode = new int[] { -1, 0, 1 };
             for(int t = evaulationSections.Length-1; t>0;t--)
             {
                 double max = evaulationSections[t];
@@ -186,7 +186,7 @@ namespace NWSELib.net
                     plan.judgeType = ActionPlan.JUDGE_INFERENCE;
                     plan.evluation = temp[fmaxinx].Item2;
                     plan.inputObs = temp[fmaxinx].Item3;
-                    plan.mode = "全部负面，勉强择优";
+                    plan.mode = "全部负面，择优选择";
                     plan.actionEvaulationRecords = actionEvaulationRecords;
                     return plan;
                 }
@@ -201,7 +201,7 @@ namespace NWSELib.net
                         plan.judgeType = ActionPlan.JUDGE_INFERENCE;
                         plan.evluation = temp[inx].Item2;
                         plan.inputObs = temp[inx].Item3;
-                        plan.mode = "环境未曾评估，选择最近方向";
+                        plan.mode = "环境未曾评估，选择就近方向";
                         plan.actionEvaulationRecords = actionEvaulationRecords;
                         return plan;
                     }
@@ -273,13 +273,13 @@ namespace NWSELib.net
                 if(!net.Receptors[i].Gene.IsActionSensor())
                 {
                     Vector tValue = net.Receptors[i].GetValue(time);
-                    tValue = net.getRankedValue(net.Receptors[i],tValue);
+                    //tValue = net.getRankedValue(net.Receptors[i],tValue);
                     obsValues.Add(tValue);
                 }
                 else
                 {
                     Vector tValue = new Vector(actions[index++]);
-                    tValue = net.getRankedValue(net.Receptors[i], tValue);
+                    //tValue = net.getRankedValue(net.Receptors[i], tValue);
                     obsValues.Add(tValue);
                 }
                 observations.Add(net.Receptors[i], obsValues.Last());
@@ -288,13 +288,13 @@ namespace NWSELib.net
 
             
             double evaulation = double.NaN;
-
+            //List<double> evulations = new List<double>();
             //对网络进行虚拟激活，得到新的观察值
-            int maxsteps = 20,step = 0;
+            int maxsteps = 10,step = 0;
             while (true)
             {
                 //初始化感知节点
-                foreach(KeyValuePair<Receptor,Vector> obs in observations)
+                foreach (KeyValuePair<Receptor,Vector> obs in observations)
                 {
                     obs.Key.think(net, time, obs.Value);
                 }
@@ -306,24 +306,19 @@ namespace NWSELib.net
                     net.Handlers.ForEach(n => n.think(net, time, null));
                 }
 
-                
                 List<Inference> infs = getCanThinkInferences(net,time);
                 if (infs == null || infs.Count <= 0)
-                    return (evaulation, initObs);
+                    break;
 
-                List<double> evulations = new List<double>();
                 //准备生成新的观察
                 Dictionary<Receptor, Vector> newObservations = new Dictionary<Receptor, Vector>();
-                index = 0;
-                net.ActionReceptors.ForEach(s =>
-                {
-                    newObservations.Add(s, actions[index++]);
-                });
-                //对每一个整合项进行前向推理
+
+                //对每一个整合项进行前向推理,得到每个推理的评估
+                List<double> newEvaulation = new List<double>();
                 foreach (Inference inte in infs)
                 {
                     List<Vector> condValues = inte.getGene().getConditions().ConvertAll(c=>net.getNode(c.Item1)).ConvertAll(n=>n.getThinkValues(time));
-                    (InferenceRecord matchedRecord,List<Vector> varValues) = inte.forward_inference(net,condValues);
+                    (InferenceRecord matchedRecord,List<Vector> varValues,double distance) = inte.forward_inference(net,condValues);
                     if (matchedRecord == null) continue;
                     List<Receptor> varNodes = inte.getGene().getVariableIds().ConvertAll(id => (Receptor)net.getNode(id));
                     for(int i=0;i<varValues.Count;i++)
@@ -335,29 +330,35 @@ namespace NWSELib.net
                         else newObservations[net.Receptors[inx]] = varValues[i]; //这意味着不同的前向推理会得到冲突项，两次赋值可能会不一致，即允许心理运算存在矛盾
                     }
                     matchedRecord.usedCount += 1;
-                    evulations.Add(matchedRecord.evulation);
+                    if(inte.getGene().hasEnvDenpend())
+                        newEvaulation.Add(matchedRecord.evulation* (1-distance));
                 }
-                //取所有历史评估的最小值
-                if (evulations.Count > 0)
+                //记录本次评估(评估不能都是无效)
+                if (newEvaulation.Count > 0 && !newEvaulation.All(e=>double.IsNaN(e)))
                 {
                     if (double.IsNaN(evaulation))
-                        evaulation = evulations.Min();
-                    else if (evaulation > evulations.Min())
-                        evaulation = evulations.Min();
+                        evaulation = newEvaulation.Max();
+                    else if (evaulation < newEvaulation.Max())
+                        evaulation = newEvaulation.Max();
                 }
-                    
-
                 //检查所否所有的观察值都生成了
-                if (newObservations.Count <= actions.Count)
-                    return (evaulation, initObs);
-
+                if (newObservations.Count <= 0)
+                    break;
+                //在新观察中放入计划执行动作
+                index = 0;
+                net.ActionReceptors.ForEach(s =>
+                {
+                    newObservations.Add(s, actions[index++]);
+                });
                 //继续循环
                 observations = newObservations;
-                if (++step > maxsteps) { return (evaulation, initObs); }
+                if (++step > maxsteps) { break; }
 
                 time += 1;
             }
 
+            //对评估结果进行分析
+           return (evaulation, initObs);
 
         }
 

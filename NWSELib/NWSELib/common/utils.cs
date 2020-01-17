@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Linq;
+using System.Drawing;
 
 namespace NWSELib.common
 {
@@ -150,5 +151,78 @@ namespace NWSELib.common
             }
             return true;
         }
+
+        #region 各种单位的距离计算
+        public static (int x, int y) poscodeSplit(double code)
+        {
+            double c = code * 10000;
+            int x1 = (int)c / 100, y1 = (int)c % 100;
+            return (x1, y1);
+        }
+        /// <summary>
+        /// 两个未知编码的距离计算
+        /// 两个编码对应区域的曼哈顿距离除以基准
+        /// </summary>
+        /// <param name="code1"></param>
+        /// <param name="code2"></param>
+        /// <returns></returns>
+        public static double poscodeDistance(double code1,double code2,double baseValue=16.0)
+        {
+            double c1 = code1 * 10000;
+            double c2 = code2 * 10000;
+            int x1 = (int)c1 / 100, y1 = (int)c1 % 100;
+            int x2 = (int)c2 / 100, y2 = (int)c2 % 100;
+            return (Math.Abs(x1 - x2) + Math.Abs(y1 - y2)) / baseValue;
+        }
+
+        public static (double,(int,int)) poscodecompute(Rectangle range, double x, double y)
+        {
+            int grid = 100;
+            double wunit = range.Width / grid;
+            double hunit = range.Height / grid;
+
+            int px = (int)((x-range.X) / wunit);
+            int py = (int)((y-range.Y) / hunit);
+
+            int code = grid * py + px;
+            return ((code * 1.0) / (grid * grid),(py,px));
+        }
+
+        public const double DRScale = 57.29578;
+        public static double headingToDegree(double heading)
+        {
+            return ((heading * 2 * Math.PI * DRScale) % 360);
+        }
+        /// <summary>
+        /// 两个角度的夹角计算，两个角度都是0-2*pi之间的值
+        /// </summary>
+        /// <param name="h1"></param>
+        /// <param name="h2"></param>
+        /// <returns></returns>
+        public static double headingDistance(double h1,double h2,double baseAngle=45.0/360)
+        {
+            double x1 = Math.Cos(h1);
+            double y1 = Math.Sin(h1);
+            double x2 = Math.Cos(h2);
+            double y2 = Math.Sin(h2);
+
+            double l1 = Math.Sqrt((x1 * x1 + y1 * y1));
+            double l2 = Math.Sqrt((x2 * x2 + y2 * y2));
+
+            double cos = (x1 * x2 + y1 * y2) / (l1 * l2);
+            double angle = Math.Acos(cos);
+            if (angle < 0) angle += Math.PI * 2;
+            return angle / baseAngle;
+        }
+
+        public static double actionRotateDistance(double a1,double a2,double baseRotate=Math.PI/6)
+        {
+            return Math.Abs(a1 - a2)*2 / baseRotate;
+        }
+        public static double actionRotateToDegree(double action)
+        {
+            return (((action - 0.5) * Math.PI * 2) * Utility.DRScale) % 360;
+        }
+        #endregion
     }
 }
