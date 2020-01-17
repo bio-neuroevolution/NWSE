@@ -29,11 +29,6 @@ namespace NWSELib.net
         /// <returns></returns>
         public override Object activate(Network net, int time, Object value = null)
         {
-            
-            double range = Session.GetConfiguration().agent.receptors.GetSensor(this.gene.Name).Range.Distance;
-            double unit = range / ((ReceptorGene)this.gene).SectionCount;
-            sectionIndex = (int)((double)value / unit);
-            sectionValue = (sectionIndex * unit + (sectionIndex + 1) * unit) / 2.0;
 
             Object prevValue = this.Value;
             //prevValue = base.activate(net, time, new Vector(sectionIndex));

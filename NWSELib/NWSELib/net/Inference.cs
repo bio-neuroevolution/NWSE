@@ -12,344 +12,7 @@ using System.Text;
 namespace NWSELib.net
 {
     
-    /// <summary>
-    /// 推理节点中的记录
-    /// </summary>
-    public class InferenceRecord
-    {
-        #region 基本信息   
-        /// <summary>
-        /// 对应每个维的均值
-        /// </summary>
-        public List<Vector> means = new List<Vector>();
-        /// <summary>
-        /// 权重
-        /// </summary>
-        public double weight;
-
-        /// <summary>
-        /// 所有维构成的协方差矩阵
-        /// </summary>
-        public double[,] covariance;
-
-        /// <summary>
-        /// 高斯分布
-        /// </summary>
-        public VectorGaussian gaussian;
-
-        #endregion
-
-        #region 临时数据，用于记录未融合采样
-        /// <summary>
-        /// 密度值
-        /// </summary>
-        public double density;
-
-        /// <summary>
-        /// 接收记录
-        /// </summary>
-        public List<List<Vector>> acceptRecords = new List<List<Vector>>();
-
-        #endregion
-
-        #region 统计数据
-        /// <summary>
-        /// 接收数量
-        /// </summary>
-        public int acceptCount;
-        /// <summary>
-        /// 评估值（表示按此记录做出行动的结果好坏）
-        /// </summary>
-        public double evulation;
-        /// <summary>
-        /// 使用次数
-        /// </summary>
-        public int usedCount;
-        /// <summary>
-        /// 表示该前置条件和后置变量映射关系的准确程度
-        /// </summary>
-        public double accuracyDistance;
-        /// <summary>
-        /// 抽象之前的夏季记录
-        /// </summary>
-        public List<InferenceRecord> childs = new List<InferenceRecord>();
-
-        static ILog logger = LogManager.GetLogger(typeof(Inference));
-        /// <summary>
-        /// 字符串，不需要反向解析，因为记录为后天学习，不遗传
-        /// </summary>
-        /// <param name="xh"></param>
-        /// <param name="prefix"></param>
-        /// <returns></returns>
-        public string toString(Inference inf,int xh,String prefix="   ")
-        {
-            StringBuilder str = new StringBuilder();
-
-            str.Append("mean" + xh.ToString() + "=" + meanToString(inf) + System.Environment.NewLine +
-                       prefix+"evulation=" + evulation.ToString("F3") + System.Environment.NewLine +
-                       prefix+"accuracy=" + accuracyDistance.ToString("F3") + System.Environment.NewLine +
-                       prefix+"usedCount=" + usedCount.ToString() + System.Environment.NewLine +
-                       prefix+"acceptCount=" + acceptCount.ToString() + System.Environment.NewLine);
-            return str.ToString();
-        }
-        private String meanToString(Inference inf)
-        {
-            List<NodeGene> genes = inf.getGene().dimensions.ConvertAll(d => d.Item1)
-                .ConvertAll(id => inf.getGene().owner[id]);
-            StringBuilder str = new StringBuilder();
-            for(int i=0;i<genes.Count;i++)
-            {
-                if (str.ToString() != "") str.Append(",");
-                if(genes[i].Name == "pos")
-                {
-                    (int x, int y) = Utility.poscodeSplit(this.means[i][0]);
-                    str.Append(this.means[i][0].ToString("F4") + "(" + x.ToString() + "," + y.ToString() + ")");
-                }else if(genes[i].Name == "heading")
-                {
-                    str.Append(this.means[i][0].ToString("F2") + "(" + Utility.headingToDegree(this.means[i][0]).ToString("F2") + ")");
-                }
-                else //a2
-                {
-                    str.Append(this.means[i][0].ToString("F2") + "(" + Utility.actionRotateToDegree(this.means[i][0]).ToString("F2") + ")");
-                }
-
-            }
-            return str.ToString();
-        }
-
-        
-
-        #endregion
-
-        #region  统计学习功能
-        /// <summary>
-        /// 高斯采样
-        /// </summary>
-        /// <param name="count"></param>
-        /// <returns></returns>
-        public List<List<Vector>> sample(int count)
-        {
-            this.initGaussian();
-            try
-            {
-                List<int> dimension = means.ConvertAll(v => v.Size);
-                List<List<Vector>> r = new List<List<Vector>>();
-                for (int i = 0; i < count; i++)
-                    r.Add(this.gaussian.Sample().fromMathVector(dimension));
-                return r;
-            }catch(Exception e)
-            {
-                //这里异常一般是协方差矩阵是奇异矩阵造成的，修改协方差矩阵
-                logger.Error(e.Message);
-                for (int i = 0; i < this.covariance.GetLength(0); i++)
-                    this.covariance[i, i] += 0.001;
-                this.gaussian = null;
-                this.initGaussian();
-                return sample(count);
-            }
-        }
-        /// <summary>
-        /// 根据均值和协方差数据生成高斯对象
-        /// </summary>
-        public void initGaussian()
-        {
-            if (gaussian != null) return;
-            Microsoft.ML.Probabilistic.Math.Vector mean = null;
-            Microsoft.ML.Probabilistic.Math.PositiveDefiniteMatrix covar = null;
-            try
-            {
-                mean = this.means.toMathVector();
-                covar = new Microsoft.ML.Probabilistic.Math.PositiveDefiniteMatrix(covariance);
-                gaussian = VectorGaussian.FromMeanAndVariance(mean, covar);
-            }catch(Exception e)
-            {
-                //这里异常的主要原因是得到的协方差矩阵不是正定矩阵。
-                //This happens if the diagonal values of the covariance matrix are (very close to) zero. 
-                //A simple fix is add a very small constant number to c.
-                logger.Error(e.Message);
-                for(int i=0;i<covariance.GetLength(0); i++)
-                {
-                    for(int j=0;j<covariance.GetLength(1);j++)
-                    {
-                        if (i == j) covariance[i, j] += 0.001;
-                        //if (i == j && covariance[i, j] < 0) covariance[i, j] += 0.01;
-                        //if (i != j) covariance[i,j] = 0;
-                    }
-                }
-                covar = new Microsoft.ML.Probabilistic.Math.PositiveDefiniteMatrix(covariance);
-                gaussian = VectorGaussian.FromMeanAndVariance(mean, covar);
-            }
-        }
-
-        /// <summary>
-        /// 高斯分布概率值
-        /// </summary>
-        /// <param name="values"></param>
-        /// <returns></returns>
-        internal double prob(List<Vector> values)
-        {
-            this.initGaussian();
-            Microsoft.ML.Probabilistic.Math.Vector v = values.toMathVector();
-            return Math.Exp(gaussian.GetLogProb(v));
-        }
-        /// <summary>
-        /// 给定值距均值的马氏距离
-        /// </summary>
-        /// <param name="values"></param>
-        /// <returns></returns>
-        public double mahalanobis_distance(List<Vector> values)
-        {
-            Microsoft.ML.Probabilistic.Math.Vector value = values.toMathVector();
-
-            Microsoft.ML.Probabilistic.Math.Matrix m = new Microsoft.ML.Probabilistic.Math.Matrix(value.Count, 1);
-            m.SetTo(value.ToArray());
-
-            return Math.Sqrt((m.Transpose() * this.gaussian.GetVariance().Inverse() * m)[0,0]);
-        }
-        /// <summary>
-        /// 前向推理
-        /// 单个高斯的前向推理有两种方案：
-        /// 1.只要条件满足，返回均值
-        /// 2.只要条件满足，返回高斯采样中和条件最近的
-        /// 目前实现的只是第1种
-        /// </summary>
-        /// <param name="inf"></param>
-        /// <param name="allCondValues"></param>
-        /// <returns></returns>
-        public List<Vector> forward_inference(Inference inf, List<Vector> allCondValues)
-        {
-            int[] index = inf.getGene().getVariableIndexs();
-            List<Vector> r = new List<Vector>();
-            for (int i = 0; i < index.Length; i++)
-            {
-                r.Add(this.means[index[i]]);
-            }
-            return r;
-        }
-        #endregion
-
-        #region 自适应学习
-        /// <summary>
-        /// 对推理记录的均值和协方差矩阵进行调整
-        /// Adjust the mean and covariance matrix of the record of inference node
-        /// </summary>
-        /// <param name="net"></param>
-        /// <param name="inf"></param>
-        internal void do_adjust(Network net,Inference inf)
-        {
-            List<int> dimensions = inf.getDimensionLength(net);
-            int totaldimension = dimensions.Sum();
-            List<List<Vector>> values = new List<List<Vector>>();
-            for (int i = 0; i < Session.GetConfiguration().learning.inference.accept_max_count; i++)
-                values.Add(this.means);
-            for (int i = 0; i < this.acceptRecords.Count; i++)
-                values.Add(this.acceptRecords[i]);
-            List<Vector> flatten = values.ConvertAll(v => v.flatten()).ConvertAll(p=>p.Item1);
-            Vector flatten_mean = flatten.average();
-            this.covariance = Vector.covariance(flatten.ToArray());
-            
-            this.gaussian = null;
-            this.initGaussian();
-
-            this.acceptRecords.Clear();
-
-        }
-
-        /// <summary>
-        /// 给定的条件值是否与本记录均值条件部分匹配（足够近）
-        /// </summary>
-        /// <param name="net"></param>
-        /// <param name="inf"></param>
-        /// <param name="condValues"></param>
-        /// <param name="distance"></param>
-        /// <returns></returns>
-        public bool isConditionValueMatch2(Network net, Inference inf, List<Vector> condValues,out double distance)
-        {
-            distance = getConditionValueDistance(net,inf,condValues);
-            int size = condValues.size();
-            return (distance < Session.GetConfiguration().learning.judge.tolerable_similarity);
-        }
-        //for test
-        public bool isConditionValueMatch(Network net, Inference inf, List<Vector> condValues, out double distance)
-        {
-            List<double> distances = new List<double>();
-            bool match = true;
-            List<int> condIds = inf.getGene().getConditions().ConvertAll(c=>c.Item1);
-            List<Node> condNodes = condIds.ConvertAll(id => net.getNode(id));
-            for(int i=0;i<condNodes.Count;i++)
-            {
-                Node node = condNodes[i];
-                if(node.Name=="pos") //只要是在领域内
-                {
-                    double condValue = condValues[i][0];
-                    double meanValue = this.means[i][0];
-                    double d = Utility.poscodeDistance(condValue, meanValue);
-                    distances.Add(d);
-                    if (d > 1) match = false;
-                }
-                else if(node.Name == "heading")
-                {
-                    double condValue = condValues[i][0];
-                    double meanValue = this.means[i][0];
-                    double d = Utility.headingDistance(condValue, meanValue);
-                    distances.Add(d);
-                    if (d > 1) match = false;
-                }
-                else//"_a2"
-                {
-                    double condValue = condValues[i][0];
-                    double meanValue = this.means[i][0];
-                    double d = Utility.actionRotateDistance(condValue, meanValue);
-                    distances.Add(d);
-                    if (d > 1) match = false;
-                }
-            }
-            distance = distances.Average();
-            return match;
-        }
-
-        /// <summary>
-        /// 本记录的均值中条件部分与输入值的曼哈顿距离
-        /// </summary>
-        /// <param name="net"></param>
-        /// <param name="inf"></param>
-        /// <param name="condValues"></param>
-        /// <returns></returns>
-        public double getConditionValueDistance(Network net, Inference inf,List<Vector> condValues)
-        {
-            (List<Vector> meanCondValues, List<Vector> meanVarValues) = inf.splitRecordMeans2(net, this);
-            
-            return Vector.max_manhantan_distance(condValues, meanCondValues);
-        }
-        
-        /// <summary>
-        /// 根据前后观察验证该记录的准确度
-        /// 以time为后置变量获得时间，若前置条件匹配，则检查后置变量是否与实际匹配
-        /// </summary>
-        /// <param name="net"></param>
-        /// <returns></returns>
-        public double adjustAccuracy(Network net,Inference inf,int time)
-        {
-            //取得inf的真实条件值和后置变量值
-            (List<Vector> realCondValues, List<Vector> realVarValues) = inf.getValues2(net,time);
-            //取得记录中心点的真实条件值和后置变量值
-            (List<Vector> meanCondValues, List<Vector> meanVarValues) = inf.splitRecordMeans2(net, this);
-            //条件值的总维度
-            int size = realCondValues.size();
-            //条件部分是否匹配
-            double dis = Vector.max_manhantan_distance(realCondValues, meanCondValues);
-            if (dis >= Session.GetConfiguration().learning.judge.tolerable_similarity)
-                return this.accuracyDistance;
-
-            this.accuracyDistance = Vector.manhantan_distance(realVarValues, meanVarValues);
-            return this.accuracyDistance;
-        }
-
-        
-        #endregion
-
-
-    }
+   
     /// <summary>
     /// 推理节点
     /// </summary>
@@ -366,11 +29,11 @@ namespace NWSELib.net
         /// </summary>
         public List<InferenceRecord> Records { get => this.records; }
         /// <summary>
-        /// 新样本
+        /// 新样本,尚未归属到任何记录中，因为要积累一些才进行记录融合
         /// </summary>
         public List<List<Vector>> unclassified_samples = new List<List<Vector>>();
         /// <summary>
-        /// 新样本的密度值
+        /// 新样本的密度值，作为密度聚类的依据，其数量应与unclassified_samples始终一致
         /// </summary>
         public List<double> density = new List<double>();
 
@@ -427,77 +90,44 @@ namespace NWSELib.net
         {
             return (InferenceGene)gene;
         }
-        /// <summary>
-        /// 取得各个维度的长度
-        /// </summary>
-        /// <param name="net"></param>
-        /// <returns></returns>
-        public List<int> getDimensionLength(Network net)
-        {
-            
-            List<int> dimension = new List<int>();
-            for (int i = 0; i < ((InferenceGene)this.gene).dimensions.Count; i++)
-            {
-                (int id, int t) = ((InferenceGene)this.gene).dimensions[i];
-                Node node = net.Nodes.FirstOrDefault(n => n.Id == id);
-                dimension.Add(node.Dimension);
-            }
-            return dimension;
-        }
+        
         /// <summary>
         /// 取得所有维度的节点id
         /// </summary>
         /// <returns></returns>
         public List<int> getIdList()
         {
-            return this.getGene().dimensions.ConvertAll(d => d.Item1);
+            return this.getGene().getDimensions().ConvertAll(d => d.Item1);
         }
 
-        public (List<int>,List<int>) splitCondAndPost()
-        {
-            List<int> e = new List<int>();
-            List<int> v = new List<int>();
-
-            (int t1, int t2) = this.getGene().getTimeDiff();
-            List<(int, int)> ds = this.getGene().dimensions;
-            for (int i = 0; i < ds.Count; i++)
-            {
-                if (ds[i].Item2 == t2) v.Add(ds[i].Item1);
-                else e.Add(ds[i].Item1);
-            }
-            return (e, v);
-        }
+        
 
         /// <summary>
-        /// 将各维度的id分解为环境类、动作类、后置变量类
+        /// 将各维度的id分解为环境类(含姿态)、动作类、后置变量类
         /// </summary>
         /// <returns></returns>
         public (List<int>, List<int>, List<int>) splitIds()
         {
             List<int> e = new List<int>();
             List<int> a = new List<int>();
-            List<int> v = new List<int>();
+            List<int> v = this.getGene().variables.ConvertAll(var => var.Item1);
 
-            (int t1, int t2) = this.getGene().getTimeDiff();
-            List<(int, int)> ds = this.getGene().dimensions;
+            
+            List<(int, int)> ds = this.getGene().conditions;
             for (int i = 0; i < ds.Count; i++)
             {
-                if (ds[i].Item2 == t2) v.Add(ds[i].Item1);
+                NodeGene g = this.getGene().owner[ds[i].Item1];
+                if (g.IsActionSensor())
+                    a.Add(ds[i].Item1);
                 else
-                {
-                    NodeGene g = this.getGene().owner[ds[i].Item1];
-                    if (g.IsActionSensor())
-                        a.Add(ds[i].Item1);
-                    else
-                        e.Add(ds[i].Item1);
-                }
+                    e.Add(ds[i].Item1);
             }
             return (e, a, v);
         }
 
         public override List<Node> getInputNodes(Network net)
         {
-            return this.getGene().dimensions.ConvertAll(d=>net.getNode(d.Item1));
+            return this.getGene().getDimensions().ConvertAll(d=>net.getNode(d.Item1));
         }
         #endregion
 
@@ -509,7 +139,7 @@ namespace NWSELib.net
         /// <returns></returns>
         public List<Vector> getInputValues(Network net,int time)
         {
-            return this.getGene().dimensions.ConvertAll(d => net.getNode(d.Item1).GetValue(time - d.Item2));
+            return this.getGene().getDimensions().ConvertAll(d => net.getNode(d.Item1).GetValue(time - d.Item2));
         }
         /// <summary>
         /// 取得前置条件和后置变量值
@@ -519,18 +149,15 @@ namespace NWSELib.net
         /// <returns></returns>
         public (List<Vector>,List<Vector>) getValues2(Network net, int time)
         {
-            List<Vector> c = new List<Vector>();
-            List<Vector> v = new List<Vector>();
-            (int t1, int t2) = this.getGene().getTimeDiff();
-            List<(int, int)> dimensions = this.getGene().dimensions;
-            for(int i=0;i<dimensions.Count;i++)
-            {
-                if (dimensions[i].Item2 == t2)
-                    v.Add(net.getNode(dimensions[i].Item1).GetValue(time- dimensions[i].Item2));
-                else
-                    c.Add(net.getNode(dimensions[i].Item1).GetValue(time- dimensions[i].Item2));
+            List<Vector> c = this.getGene().conditions
+                .ConvertAll(item=>(net[item.Item1],item.Item2))
+                .ConvertAll(item=>item.Item1.GetValue(time-item.Item2));
 
-            }
+            List<Vector> v = this.getGene().variables
+                .ConvertAll(item => (net[item.Item1], item.Item2))
+                .ConvertAll(item => item.Item1.GetValue(time - item.Item2));
+            
+
             return (c, v);
         }
 
@@ -539,123 +166,40 @@ namespace NWSELib.net
             List<Vector> ce = new List<Vector>();
             List<Vector> ca = new List<Vector>();
             List<Vector> v = new List<Vector>();
-            (int t1, int t2) = this.getGene().getTimeDiff();
-            List<(int, int)> dimensions = this.getGene().dimensions;
-            for (int i = 0; i < dimensions.Count; i++)
+
+            List<(int, int)> conditions = this.getGene().conditions;
+            for (int i = 0; i < conditions.Count; i++)
             {
-                if (dimensions[i].Item2 == t2)
-                    v.Add(net.getNode(dimensions[i].Item1).GetValue(time - dimensions[i].Item2));
+                Node node = net.getNode(conditions[i].Item1);
+                if (node.Gene.IsActionSensor())
+                    ca.Add(node.GetValue(time - conditions[i].Item2));
                 else
-                {
-                    Node node = net.getNode(dimensions[i].Item1);
-                    if (node.Gene.IsActionSensor())
-                        ca.Add(node.GetValue(time- dimensions[i].Item2));
-                    else 
-                        ce.Add(node.GetValue(time - dimensions[i].Item2));
-                }
+                    ce.Add(node.GetValue(time - conditions[i].Item2));
             }
             return (ce,ca,v);
         }
 
-        
+
 
         /// <summary>
         /// 将所有值中的环境部分（非动作部分）用envValues替换
+        /// 其中allValue和envValues维度相同，且只包含条件部分
         /// </summary>
         /// <param name="allValue"></param>
         /// <param name="envValues"></param>
         /// <returns></returns>
         internal List<Vector> replaceEnvValue(List<Vector> allValue, List<Vector> envValues)
         {
-            (int t1, int t2) = this.getGene().getTimeDiff();
+
             List<Vector> r = new List<Vector>(allValue);
-            for (int i = 0; i < this.getGene().dimensions.Count; i++)
+            for (int i = 0; i < this.getGene().conditions.Count; i++)
             {
-                if (this.getGene().dimensions[i].Item2 != t1) continue;
-                NodeGene gene = this.getGene().owner[this.getGene().dimensions[i].Item1];
-                if (gene.Group.Contains("action")) continue;
+                NodeGene gene = this.getGene().owner[this.getGene().conditions[i].Item1];
+                if (gene.IsActionSensor()) continue;
                 r[i] = envValues[i];
 
             }
             return r;
-        }
-
-
-        /// <summary>
-        /// 将记录值分解为环境、动作、后置变量三部分
-        /// 这里的动作部分总是包含全部动作，即使inf中不需要动作，也会产生所有动作的缺省值
-        /// </summary>
-        /// <param name="net"></param>
-        /// <param name="record"></param>
-        /// <returns></returns>
-        public (List<Vector>, List<Vector>, List<Vector>) splitRecordMeans3(Network net, InferenceRecord record)
-        {
-            //待返回结果
-            List<Vector> env = new List<Vector>();
-            List<Vector> actions = new List<Vector>();
-            List<Vector> expects = new List<Vector>();
-
-            //动作比较特殊，每个动作都要设置结构，尽管该节点可能不涉及
-            int actioncount = net.Effectors.Count;
-            for (int i = 0; i < actioncount; i++)
-                actions.Add(new Vector(0.5));//0.5表示啥都不做
-
-            //分解record的均值
-            (int t1, int t2) = this.getGene().getTimeDiff();
-            List<(int, int)> dimensions = this.getGene().dimensions;
-            for (int i = 0; i < dimensions.Count; i++)
-            {
-                if (dimensions[i].Item2 == t2)
-                {
-                    expects.Add(record.means[i]);
-                }
-                else
-                {
-                    Node node = net.getNode(dimensions[i].Item1);
-                    if (node.Gene.Group.Contains("action"))
-                    {
-                        Effector effector = (Effector)net.Effectors.FirstOrDefault(e => "_" + e.Name == node.Name);
-                        int effectorIndex = net.Effectors.IndexOf(effector);
-                        actions[effectorIndex] = record.means[i];
-                    }
-                    else
-                    {
-                        env.Add(record.means[i]);
-                    }
-                }
-            }
-            return (env, actions, expects);
-        }
-
-        // <summary>
-        /// 将记录值分解为环境、后置变量部分
-        /// </summary>
-        /// <param name="net"></param>
-        /// <param name="record"></param>
-        /// <returns></returns>
-        public (List<Vector>, List<Vector>) splitRecordMeans2(Network net, InferenceRecord record)
-        {
-            //待返回结果
-            List<Vector> env = new List<Vector>();
-            List<Vector> expects = new List<Vector>();
-
-            
-            //分解record的均值
-            (int t1, int t2) = this.getGene().getTimeDiff();
-            List<(int, int)> dimensions = this.getGene().dimensions;
-            for (int i = 0; i < dimensions.Count; i++)
-            {
-                if (dimensions[i].Item2 == t2)
-                {
-                    expects.Add(record.means[i]);
-                }
-                else
-                {
-                    Node node = net.getNode(dimensions[i].Item1);
-                    env.Add(record.means[i]);
-                }
-            }
-            return (env, expects);
         }
 
         public List<InferenceRecord> getMatchRecordsInThink(Network net,int time)
@@ -666,6 +210,38 @@ namespace NWSELib.net
             );
             double distance = 0.0;
             return this.records.FindAll(r => r.isConditionValueMatch(net, this, values, out distance));
+        }
+
+        /// <summary>
+        /// 取得部分条件啊匹配的记录，用于推理合成
+        /// </summary>
+        /// <param name="condIds"></param>
+        /// <param name="condValues"></param>
+        /// <returns></returns>
+        public List<InferenceRecord> getPartialMatchRecords(Network net,List<int> condIds, List<Vector> condValues)
+        {
+            List<InferenceRecord> r = new List<InferenceRecord>();
+            foreach(InferenceRecord record in this.records)
+            {
+                List<Vector> meanValues = record.getConditionValueByIds(condIds);
+                if (meanValues == null || meanValues.size() != condValues.size()) continue;
+                (Vector meanValue,List<Node> meanNode) = net.flattenValues(condIds, meanValues);
+                (Vector condValue, List<Node> condNode) = net.flattenValues(condIds, condValues);
+                if (meanValue.Size != condValue.Size) continue;
+
+                bool match = true;
+                for(int i=0;i<meanNode.Count;i++)
+                {
+                    if (!MeasureTools.GetMeasure(meanNode[i].Gene.Cataory).match(meanValue[i], condValue[i]))
+                    {
+                        match = false;break;
+                    }
+                
+                }
+                if (match) r.Add(record);
+
+            }
+            return r;
         }
         #endregion
 
@@ -712,7 +288,7 @@ namespace NWSELib.net
             //Create a new record if there are no nodes in current inference node, 
             if (this.records.Count <= 0)
             {
-                InferenceRecord record = new InferenceRecord();
+                InferenceRecord record = new InferenceRecord(this);
                 record.means = values;
                 record.covariance = new double[totaldimesion, totaldimesion];
                 for (int i = 0; i < totaldimesion; i++) //缺省协方差矩阵为单位阵
@@ -737,7 +313,7 @@ namespace NWSELib.net
                 this.records[pindex].acceptRecords.Add(values);
                 if(this.records[pindex].acceptCount >= Session.GetConfiguration().learning.inference.accept_max_count)
                 {
-                    this.records[pindex].do_adjust(net,this);
+                    this.records[pindex].do_adjust(net);
                 }
                 activeValue = this.records[pindex].means.flatten().Item1;
                 base.activate(net, time, activeValue);
@@ -747,7 +323,7 @@ namespace NWSELib.net
             //判断是否需要加入到未归类样本中:如果节点中记录非常少，则尽量增加记录
             if(this.records.Count<=30)
             {
-                InferenceRecord record = new InferenceRecord();
+                InferenceRecord record = new InferenceRecord(this);
                 record.means = values;
                 record.covariance = new double[totaldimesion, totaldimesion];
                 for (int i = 0; i < totaldimesion; i++) //缺省协方差矩阵为单位阵
@@ -929,7 +505,7 @@ namespace NWSELib.net
         /// <returns></returns>
         public InferenceRecord create_newrecord_bysamples(List<List<Vector>> vs,List<double> densitys=null)
         {
-            InferenceRecord r = new InferenceRecord();
+            InferenceRecord r = new InferenceRecord(this);
             r.acceptCount = vs.Count;
 
             List<int> dimensions = vs[0].ConvertAll(v => v.Size);
@@ -1032,7 +608,7 @@ namespace NWSELib.net
             foreach(InferenceRecord r in this.records)
             {
                 double d = 0;
-                if (!r.isConditionValueMatch(net, this, condvalues, out distance))
+                if (!r.isConditionValueMatch(net, this, condvalues, out d))
                     continue;
                 if(r.evulation < evaulation) //找相近里面评估最差的？
                 {
@@ -1044,125 +620,9 @@ namespace NWSELib.net
             if (matchedRecord == null) return (null, null, distance);
             return (matchedRecord, matchedRecord.forward_inference(this, condvalues),distance);
         }
-        /// <summary>
-        /// 前向推理：给定条件，计算结论
-        /// 在多元高斯模型上进行前向推理
-        /// </summary>
-        /// <param name="condvalues"></param>
-        /// <returns></returns>
-        public Vector forward_inference_bysamples(List<Vector> condvalues)
-        {
-            //按照混合高斯分布进行采样
-            List<List<Vector>> samples = this.samples(Session.GetConfiguration().agent.inferencesamples);
-            //在采样中选择距离condValues最近的点
-            int varindex = ((InferenceGene)this.gene).getVariableIndex();
-            List<double> dis = new List<double>();
-            for(int i=0;i<samples.Count;i++)
-            {
-                List<Vector>  t = new List<Vector>(samples[i]);
-                t.RemoveAt(varindex);
-                Vector d1 = new Vector(t.toDoubleArray());
-                List<Vector> temp = new List<Vector>(condvalues);
-                Vector d2 = new Vector(temp.toDoubleArray());
-                dis.Add(d1.distance(d2));
-            }
-            int argminindex = dis.argmin();
-            return samples[argminindex][varindex];
-        }
-        /// <summary>
-        /// 给定后置变量的值，推理条件部分的值
-        /// </summary>
-        /// <param name="varValue"></param>
-        /// <returns></returns>
-        public (List<Vector>, int) backinference(Vector varValue)
-        {
-            //按照混合高斯分布进行采样
-            List<List<Vector>> samples = this.samples(Session.GetConfiguration().agent.inferencesamples);
-            int varindex = ((InferenceGene)this.gene).getVariableIndex();
-            //在采样中寻找与varValue最接近的值
-            double dis = double.MaxValue - 1;
-            List<Vector> vs = null;
-            for(int i=0;i<samples.Count;i++)
-            {
-                Vector v = samples[i][varindex];
-                double d = v.distance(varValue);
-                if(d < dis)
-                {
-                    d = dis;
-                    vs = samples[i];
-                }
-            }
-            //返回该采样
-            return (vs, varindex);
-        }
         
-        /// <summary>
-        /// 求变量最大或者最小推理
-        /// </summary>
-        /// <param name="arg">argmin还是argmax</param>
-        /// <returns>
-        /// 记忆值（推理的依据）
-        /// 变量索引位置
-        /// 推理结果：得到的变量值
-        /// 所使用的记录索引
-        /// </returns>
-        public (List<Vector>, int,double,int) arginference(string arg)
-        {
-            //当前记忆推理节点还没有任何记录
-            if (this.records.Count <= 0)
-            {
-                return (null, -1, double.NaN, -1);
-            }
-            
-            //根据arg选择varId最大或者最小的那个节点
-            InferenceRecord argRecord = null;
-            int argRecordIndex = -1;
-            double value = arg == "argmin" ? double.MaxValue - 1 : double.MinValue + 1;
-            int varindex = ((InferenceGene)this.gene).getVariableIndex();
-
-            if(this.records.Count<=0)
-            {
-                return (null,-1,double.NaN,-1);
-            }
-            for(int i=0;i<this.records.Count;i++)
-            {
-                double len = this.records[i].means[varindex].length();
-                if(arg == "argmin" && len < value)
-                {
-                    argRecord = this.records[i];
-                    value = len;
-                }else if(arg == "argmax" && len > value)
-                {
-                    argRecord = this.records[i];
-                    value = len;
-                }
-            }
-            argRecordIndex = this.records.IndexOf(argRecord);
-
-            //对这个节点根据分布进行采样
-            List<List<Vector>> samples = argRecord.sample(Session.GetConfiguration().agent.inferencesamples);
-            //选择采样中使得varId最大或者最小的那个节点
-            List<Vector> values = null;
-            value = arg == "argmin" ? double.MaxValue - 1 : double.MinValue + 1;
-            for (int i=0;i<samples.Count;i++)
-            {
-                double len = samples[i][varindex].length();
-                if (arg == "argmin" && len < value)
-                {
-                    values = samples[i];
-                    value = len;
-                }
-                else if (arg == "argmax" && len > value)
-                {
-                    values = samples[i];
-                    value = len;
-                }
-            }
-
-            //返回该节点的条件和变量的值
-            return (values, varindex, value, argRecordIndex);
-            
-        }
+        
+        
 
         /// <summary>
         /// 在混合高斯模型上采样

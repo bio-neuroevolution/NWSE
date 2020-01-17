@@ -50,6 +50,7 @@ namespace NWSELib
             if(config == null)
             {
                 config = (Configuration)new XmlSerializer(typeof(Configuration)).Deserialize(new FileStream("config.xml",FileMode.Open));
+                MeasureTools.init();
             }
             return config;
         }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace NWSELib.genome
 {
@@ -7,7 +8,7 @@ namespace NWSELib.genome
     /// </summary>
     public class ReceptorGene : NodeGene
     {
-
+        public override List<int> Dimensions { get => new List<int>(); }
 
         /// <summary>
         /// 将动作感知基因转为动作基因
@@ -19,8 +20,7 @@ namespace NWSELib.genome
                 Id = this.Id,
                 name = this.name.Substring(1),
                 generation = this.generation,
-                cataory = this.cataory,
-                sectionCount = this.sectionCount
+                cataory = this.cataory
             };
         }
 
@@ -34,7 +34,7 @@ namespace NWSELib.genome
         /// <returns></returns>
         public override string ToString()
         {
-            return name + ":" + this.sectionCount;
+            return name + ":" ;
         }
         /// <summary>
         /// 解析字符串
@@ -46,7 +46,6 @@ namespace NWSELib.genome
             String[] ss = s.Split(':');
             ReceptorGene gene = new ReceptorGene(null);
             gene.name = ss[0].Trim();
-            gene.sectionCount = int.Parse(ss[1].Trim());
             return gene;
 
         }

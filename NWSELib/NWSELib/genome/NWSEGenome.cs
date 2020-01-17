@@ -12,6 +12,7 @@ namespace NWSELib.genome
     /// </summary>
     public class NWSEGenome
     {
+        public static Random rng = new Random();
         #region 染色体组成
         /// <summary>
         /// 染色体Id
@@ -38,12 +39,7 @@ namespace NWSELib.genome
         public readonly List<InferenceGene> infrernceGenes = new List<InferenceGene>();
 
         
-        /// <summary>
-        /// 评判基因
-        /// </summary>
-        public readonly List<JudgeGene> judgeGenes = new List<JudgeGene>();
-
-
+        
         /// <summary>
         /// 无效推理基因
         /// </summary>
@@ -76,7 +72,7 @@ namespace NWSELib.genome
             genome.handlerSelectionProb.AddRange(handlerSelectionProb);
             handlerGenes.ForEach(h => genome.handlerGenes.Add(h.clone<HandlerGene>()));
             infrernceGenes.ForEach(i => genome.infrernceGenes.Add(i.clone<InferenceGene>()));
-            judgeGenes.ForEach(j => genome.judgeGenes.Add(j.clone()));
+           
             invaildInferenceNodes.ForEach(inf => genome.invaildInferenceNodes.Add(inf.clone<NodeGene>()));
             vaildInferenceNodes.ForEach(vf => genome.vaildInferenceNodes.Add(vf.clone<NodeGene>()));
 
@@ -192,8 +188,7 @@ namespace NWSELib.genome
         {
             if (gene is ReceptorGene) return new List<NodeGene>();
             if (gene is HandlerGene) return ((HandlerGene)gene).inputs.ConvertAll(g => this[g]);
-            if (gene is InferenceGene) return ((InferenceGene)gene).dimensions.ConvertAll(x => this[x.Item1]);
-            if(gene is JudgeGene)return new List<NodeGene>();
+            if (gene is InferenceGene) return ((InferenceGene)gene).getDimensions().ConvertAll(x => this[x.Item1]);
             return new List<NodeGene>();
         }
 
@@ -242,7 +237,6 @@ namespace NWSELib.genome
                 if (t < d + 1) i.Depth = d + 1;
             });
             d = this.infrernceGenes.ConvertAll(i => i.Depth).Max();
-            this.judgeGenes.ForEach(j=>j.Depth = d + 1);
         }
         
         #endregion
@@ -313,7 +307,6 @@ namespace NWSELib.genome
                 receptorGene.Generation = session.Generation;
                 receptorGene.Group = sensors[i].group;
                 receptorGene.Name = sensors[i].name;
-                receptorGene.SectionCount = (int)sensors[i].Level.random();
                 receptorGene.Id = session.GetIdGenerator().getGeneId(receptorGene);
                 genome.receptorGenes.Add(receptorGene);
             }
@@ -324,32 +317,20 @@ namespace NWSELib.genome
             inferenceGene.Generation = session.Generation;
 
 
-            inferenceGene.dimensions = new List<(int, int)>();
-            inferenceGene.dimensions.Add((genome["d1"].Id, 1));
-            inferenceGene.dimensions.Add((genome["d2"].Id, 1));
-            inferenceGene.dimensions.Add((genome["d3"].Id, 1));
-            inferenceGene.dimensions.Add((genome["d4"].Id, 1));
-            inferenceGene.dimensions.Add((genome["d5"].Id, 1));
-            inferenceGene.dimensions.Add((genome["d6"].Id, 1));
-            inferenceGene.dimensions.Add((genome["_a2"].Id, 1));
-
-            inferenceGene.dimensions.Add((genome["d3"].Id, 0));
+            inferenceGene.conditions = new List<(int, int)>();
+            inferenceGene.variables = new List<(int, int)>();
+            inferenceGene.conditions.Add((genome["d1"].Id, 1));
+            inferenceGene.conditions.Add((genome["d2"].Id, 1));
+            inferenceGene.conditions.Add((genome["d3"].Id, 1));
+            inferenceGene.conditions.Add((genome["d4"].Id, 1));
+            inferenceGene.conditions.Add((genome["d5"].Id, 1));
+            inferenceGene.conditions.Add((genome["d6"].Id, 1));
+            inferenceGene.conditions.Add((genome["_a2"].Id, 1));
+            inferenceGene.variables.Add((genome["d3"].Id, 0));
             inferenceGene.sort_dimension();
             inferenceGene.Id = Session.idGenerator.getGeneId(inferenceGene);
             genome.infrernceGenes.Add(inferenceGene);
 
-
-
-            //生成判定基因
-
-            JudgeGene judgeItem = new JudgeGene(genome);
-            judgeItem.conditions.Add(genome["_a2"].Id);
-            judgeItem.variable = genome["d3"].Id;
-            judgeItem.expression = JudgeGene.ARGMAX;
-            judgeItem.weight = 1.0;
-            judgeItem.Generation = session.Generation;
-            judgeItem.Id = Session.idGenerator.getGeneId(judgeItem);
-            genome.judgeGenes.Add(judgeItem);
 
             genome.id = Session.idGenerator.getGenomeId();
             genome.computeNodeDepth();
@@ -363,17 +344,9 @@ namespace NWSELib.genome
         public NWSEGenome mutate(Session session)
         {
             NWSEGenome genome = this.clone();
-            Random rng = new Random();
-            //对感受器的分段数进行变异
-            for (int i = 0; i < genome.receptorGenes.Count; i++)
-            {
-                if (this.isVaildGene(genome.receptorGenes[i])) continue;
-                Configuration.Sensor sensor = Session.GetConfiguration().agent.receptors.GetSensor(genome.receptorGenes[i].Name);
-                int min1 = (int)sensor.Level.Min;
-                int max1 = (int)sensor.Level.Max;
-                if(rng.NextDouble() <= 0.5)
-                    genome.receptorGenes[i].SectionCount = new Random().Next(min1,max1+1);
-            }
+            
+            
+            
 
             //选择一个处理器对参数进行变异
             for(int i=0;i< genome.handlerGenes.Count;i++)
@@ -444,26 +417,25 @@ namespace NWSELib.genome
             {
                 int index = rng.Next(0, this.infrernceGenes.Count);
                 double operation = rng.NextDouble();
-                if(operation <= 0.3)//添加一个维度
+                if(operation <= 0.3)//添加一个维度,目前只添加条件
                 {
-                    (int t1, int t2) = infrernceGenes[index].getTimeDiff();
                     int i = rng.Next(0, inputs.Count);
-                    genome.infrernceGenes[index].dimensions.Add((inputs[i].Id, t2));
+                    genome.infrernceGenes[index].conditions.Add((inputs[i].Id,1));
                     genome.infrernceGenes[index].sort_dimension();
                     session.triggerEvent(Session.EVT_NAME_MESSAGE, "A inference gene is modified in " + genome.id.ToString() + ":" + genome.infrernceGenes[index].Text);
                 }
-                else if(operation <= 0.6 && this.infrernceGenes[index].dimensions.Count > 2) //删除一个维度
+                else if(operation <= 0.6 && this.infrernceGenes[index].conditions.Count > 2) //删除一个维度
                 {
                     List<(int, int)> conds = this.infrernceGenes[index].getConditions();
                     int i = rng.Next(0, conds.Count);
-                    genome.infrernceGenes[index].dimensions.Remove(conds[i]);
+                    genome.infrernceGenes[index].conditions.Remove(conds[i]);
                     session.triggerEvent(Session.EVT_NAME_MESSAGE, "A inference gene is modifiedd in " + genome.id.ToString() + ":" + genome.infrernceGenes[index].Text);
                 }
                 else //修改一个维度
                 {
                     int i = rng.Next(0, inputs.Count);
-                    int j = rng.Next(0, this.infrernceGenes[index].dimensions.Count);
-                    genome.infrernceGenes[index].dimensions[j] = (inputs[i].Id, this.infrernceGenes[index].dimensions[j].Item2);
+                    int j = rng.Next(0, this.infrernceGenes[index].conditions.Count);
+                    genome.infrernceGenes[index].conditions[j] = (inputs[i].Id, this.infrernceGenes[index].conditions[j].Item2);
                     session.triggerEvent(Session.EVT_NAME_MESSAGE, "A inference gene is modifiedx in " + genome.id.ToString() + ":" + genome.infrernceGenes[index].Text);
                 }
                 genome.infrernceGenes[index].sort_dimension();
@@ -474,26 +446,26 @@ namespace NWSELib.genome
             {
                 //维度
                 int count = rng.Next(2, inputs.Count);
-                List<(int, int)> diemesnion = new List<(int, int)>();
+                List<(int, int)> variables = new List<(int, int)>();
                 //选择一个作为变量
                 int varindex = -1;
                 while(varindex == -1 || inputs[varindex].Group.StartsWith("action"))
                 {
                     varindex = rng.Next(0, inputs.Count);
                 }
-                diemesnion.Add((inputs[varindex].Id,0));
+                variables.Add((inputs[varindex].Id,0));
                 //选择前置条件
-                List<int> conds = new List<int>();
-                while(conds.Count<count-1)
+                List<(int, int)> conditions = new List<(int, int)>();
+                while (conditions.Count<count-1)
                 {
                     int condindex = rng.Next(0, inputs.Count);
-                    if (conds.Contains(condindex)) continue;
-                    conds.Add(condindex);
-                    diemesnion.Add((inputs[condindex].Id, 1));
+                    if (conditions.Contains((inputs[condindex].Id,1))) continue;
+                    conditions.Add((inputs[condindex].Id, 1));
                 }
 
                 InferenceGene inferenceGene = new InferenceGene(this);
-                inferenceGene.dimensions = diemesnion;
+                inferenceGene.conditions = conditions;
+                inferenceGene.variables = variables;
                 inferenceGene.Cataory = inputs[varindex].Cataory;
                 inferenceGene.Generation = session.Generation;
                 inferenceGene.Id = Session.idGenerator.getGeneId(inferenceGene);

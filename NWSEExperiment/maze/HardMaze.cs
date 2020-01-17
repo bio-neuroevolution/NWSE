@@ -236,7 +236,7 @@ namespace NWSEExperiment.maze
             agent.reset(this.start_point);
             List<double> obs =agent.getObserve();
             obs.Add(0); //没有发生碰撞冲突
-            var poscode = Utility.poscodecompute(this.AOIRectangle, agent.Location.X, agent.Location.Y);
+            var poscode = MeasureTools.Position.poscodeCompute(this.AOIRectangle, agent.Location.X, agent.Location.Y);
             obs.Add(poscode.Item1);
 
             
@@ -255,7 +255,7 @@ namespace NWSEExperiment.maze
             List<double> obs = agent.getObserve();
             obs.Add(agent.HasCollided?1:0);
 
-            var poscode = Utility.poscodecompute(this.AOIRectangle,agent.Location.X,agent.Location.Y);
+            var poscode = MeasureTools.Position.poscodeCompute(this.AOIRectangle,agent.Location.X,agent.Location.Y);
             obs.Add(poscode.Item1);
 
             List<double> gesture = new List<double>();

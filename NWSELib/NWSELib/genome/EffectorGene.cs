@@ -1,7 +1,11 @@
+using System.Collections.Generic;
+
 namespace NWSELib.genome
 {
     public class EffectorGene : NodeGene
     {
+        public override List<int> Dimensions { get => new List<int>();}
+
         public override T clone<T>() 
         {
             return new EffectorGene(this.owner).copy<T>(this);

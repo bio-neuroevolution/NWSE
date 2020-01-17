@@ -83,7 +83,7 @@ namespace NWSEExperiment
             float mazeX, mazeY;
             frame.convertFromDisplay(e.X, e.Y, out mazeX, out mazeY);
 
-            (double poscode,(int gridx,int gridy)) = Utility.poscodecompute(maze.AOIRectangle,mazeX,mazeY);
+            (double poscode,(int gridx,int gridy)) = MeasureTools.Position.poscodeCompute(maze.AOIRectangle,mazeX,mazeY);
             if(poscode<=0)
                 this.statusXY.Text = String.Format("X={0:000.00},Y={1:000.00}", mazeX, mazeY);
             else
@@ -195,12 +195,12 @@ namespace NWSEExperiment
             (obs, gesture) = maze.reset(optima_net);
             optimaAgent = maze.Agents[0];
 
-            (int ptx, int pty) = Utility.poscodeSplit(obs[11]);
+            (int ptx, int pty) = MeasureTools.Position.poscodeSplit(obs[11]);
             this.txtMsg.Text = "第" + interactive_time.ToString() + "次交互" + System.Environment.NewLine;
             this.txtMsg.Text += "障碍=" + Utility.toString(obs.GetRange(0, 6)) + System.Environment.NewLine; ;
             this.txtMsg.Text += "位置=" + obs[11].ToString("F4") + "(" + ptx.ToString() + "," + pty.ToString() + ")" + System.Environment.NewLine;
             this.txtMsg.Text += "目标=" + Utility.toString(obs.GetRange(6, 4)) + System.Environment.NewLine; ;
-            this.txtMsg.Text += "朝向=" + Utility.headingToDegree(gesture[0]).ToString("F2") + System.Environment.NewLine;
+            this.txtMsg.Text += "朝向=" + MeasureTools.Heading.headingToDegree(gesture[0]).ToString("F2") + System.Environment.NewLine;
             this.txtMsg.Text += System.Environment.NewLine;
             inferencing = false;
             this.Refresh();
@@ -238,13 +238,13 @@ namespace NWSEExperiment
         {
             (obs,gesture,actions,reward) = ((IEnv)this.maze).action(this.optima_net,
                 this.optima_net.Effectors.ConvertAll(x => x.Value[0]));
-            (int ptx, int pty) = Utility.poscodeSplit(obs[11]);
+            (int ptx, int pty) = MeasureTools.Position.poscodeSplit(obs[11]);
 
             this.txtMsg.Text += "第" + interactive_time.ToString() + "次交互" + System.Environment.NewLine;
             this.txtMsg.Text += "障碍=" + Utility.toString(obs.GetRange(0, 6)) + System.Environment.NewLine; ;
             this.txtMsg.Text += "目标=" + Utility.toString(obs.GetRange(6, 4)) + System.Environment.NewLine; ;
             this.txtMsg.Text += "位置=" + obs[11].ToString("F4")+"("+ ptx.ToString()+","+pty.ToString()+")"+System.Environment.NewLine;
-            this.txtMsg.Text += "朝向=" + Utility.headingToDegree(gesture[0]).ToString("F2") + System.Environment.NewLine;
+            this.txtMsg.Text += "朝向=" + MeasureTools.Heading.headingToDegree(gesture[0]).ToString("F2") + System.Environment.NewLine;
             this.txtMsg.Text += "奖励=" + this.reward+ System.Environment.NewLine;
             this.txtMsg.Text += "障碍=" + this.optimaAgent.PrevCollided.ToString() + "->" + optimaAgent.HasCollided.ToString();
             this.txtMsg.Text += System.Environment.NewLine;

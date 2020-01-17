@@ -52,7 +52,7 @@ namespace NWSELib.net
                 List<List<int>> usedCounts = new List<List<int>>();
 
                 //取得各个维，以及各个维的分级方式
-                List<(int, int)> dimensions = inff.getGene().dimensions;
+                List<(int, int)> dimensions = inff.getGene().getDimensions();
                 List<int> ids = dimensions.ConvertAll(d => d.Item1);
                 
                 //对每一个记录做分级处理
@@ -73,6 +73,8 @@ namespace NWSELib.net
                 }
             }
         }
+
+
         /// <summary>
         /// 为原记录和中心点的新值选择放到新记录中去
         /// </summary>
@@ -94,7 +96,7 @@ namespace NWSELib.net
                 newRecord.childs.Add(orginRecord);
                 return i;
             }
-            newRecord = new InferenceRecord();
+            newRecord = new InferenceRecord(absIntegration);
             absIntegration.Records.Add(newRecord);
             accuracies.Add(new List<double>());
             evaulations.Add(new List<double>());
@@ -113,6 +115,103 @@ namespace NWSELib.net
         #endregion
 
         #region 推理
+        public List<Inference> doInference(int time,Session session)
+        {
+            List<Inference> newinfs = new List<Inference>();
+            for (int i=0;i<this.inferences.Count;i++)
+            {
+                for(int j=0;j<this.inferences.Count;j++)
+                {
+                    if (i == j) continue;
+                    Inference inf1 = this.inferences[i];
+                    Inference inf2 = this.inferences[j];
+                    if(inf1.getGene().contains(inf2.getGene()))
+                    {
+                        Inference newinf = this.mergeInference(inf1, inf2,session);
+                        newinfs.Add(newinf);
+                    }
+                }
+            }
+            this.inferences.AddRange(newinfs);
+            return newinfs;
+        }
+        /// <summary>
+        /// 合并推理
+        /// </summary>
+        /// <param name="inf1"></param>
+        /// <param name="inf2"></param>
+        /// <returns></returns>
+        public Inference mergeInference(Inference inf1, Inference inf2, Session session)
+        {
+            List<(int, int)> c1 = new List<(int, int)>(inf1.getGene().conditions);
+            List<(int, int)> c2 = inf2.getGene().conditions;
+            //将大推理中的小推理条件部分去掉
+            for(int i=0;i<c2.Count;i++)
+            {
+                if(c1.Contains(c2[i]))
+                {
+                    c1.Remove(c2[i]);
+                }
+            }
+            //将小推理的后置部分放入到大推理的前提中
+            c1.AddRange(inf2.getGene().variables);
+
+            //创建基因
+            InferenceGene gene = new InferenceGene(net.Genome);
+            gene.conditions = new List<(int, int)>(c1);
+            gene.variables = new List<(int, int)>(inf1.getGene().variables);
+            gene.Depth = inf1.getGene().Depth;
+            gene.Generation = session.Generation;
+            gene.Group = inf1.Group;
+            gene.Name = gene.Text;
+            gene.UsedCount = inf1.getGene().UsedCount + inf2.getGene().UsedCount;
+            gene.Id = session.GetIdGenerator().getGeneId(gene);
+            gene.sort_dimension();
+            net.Genome.infrernceGenes.Add(gene); //虽然加入到染色体中，但是并不遗传
+            
+            //创建推理节点
+            Inference newInf = new Inference(gene);
+            net.Inferences.Add(newInf);
+
+            //合并推理节点记录
+            for(int i=0;i<inf2.Records.Count;i++)
+            {
+                (List<Vector> smallCondValues, List<Vector> smallVarValues) = inf2.Records[i].getMeanValues();
+                List<InferenceRecord> matchRecords = inf1.getPartialMatchRecords(net,inf2.getGene().getConditionIds(), smallCondValues);
+                if (matchRecords == null || matchRecords.Count <= 0) continue;
+                for(int j=0;j< matchRecords.Count;j++)
+                {
+                    (List<Vector> largeCondValues, List<Vector> largeVarValues) = matchRecords[j].getMeanValues();
+
+                    InferenceRecord nRecord = new InferenceRecord(newInf);
+                    for(int k=0;k<newInf.getGene().conditions.Count;k++)
+                    {
+                        int sindex = inf1.getGene().conditions.IndexOf(newInf.getGene().conditions[k]);
+                        if (sindex >= 0)
+                        {
+                            nRecord.means.Add(largeCondValues[sindex]);
+                        }
+                        else
+                        {
+                            sindex = inf2.getGene().variables.IndexOf(newInf.getGene().conditions[k]);
+                            nRecord.means.Add(smallVarValues[sindex]);
+                        }
+                    }
+                    nRecord.means.AddRange(largeVarValues);
+                    nRecord.acceptCount = Math.Max(matchRecords[j].acceptCount, inf2.Records[i].acceptCount);
+                    nRecord.accuracyDistance = Math.Max(matchRecords[j].accuracyDistance, inf2.Records[i].accuracyDistance);
+                    nRecord.evulation = Math.Min(matchRecords[j].evulation, inf2.Records[i].evulation);
+                    nRecord.usedCount = Math.Max(matchRecords[j].usedCount, inf2.Records[i].usedCount);
+                    nRecord.covariance = nRecord.createDefaultCoVariance();
+                    newInf.Records.Add(nRecord);
+                }
+            }
+            newInf.adjust_weights();
+            return newInf;
+        }
+        #endregion
+
+        #region 价值判断
         /// <summary>
         /// 进行推理，返回推理后得到的动作
         /// </summary>
@@ -230,8 +329,25 @@ namespace NWSELib.net
                     }
             
                 }
-                else//mode == 1，选择评估最大的动作
+                else//mode == 1，评估大于0的动作中优先选择本能方向，其次是原方向，最后是评估最大的动作
                 {
+                    for(int i=0;i<=5;i++)
+                    {
+                        int index = temp.IndexOf(actionEvaulationRecords[i]);
+                        if (index >=0)
+                        {
+                            plan.actions = temp[index].Item1;
+                            plan.judgeTime = time;
+                            plan.judgeType = ActionPlan.JUDGE_INFERENCE;
+                            plan.evluation = temp[index].Item2;
+                            plan.inputObs = temp[index].Item3;
+                            plan.mode = i==0?"选择最优中的本能方向": "选择最优中的临近方向";
+                            plan.actionEvaulationRecords = actionEvaulationRecords;
+                            return plan;
+                        }
+                    }
+                    
+            
                     double m = temp.ConvertAll(r => r.Item2).Max();
                     int inx = temp.ConvertAll(r => r.Item2).IndexOf(m);
                     plan.actions = temp[inx].Item1;
@@ -239,7 +355,7 @@ namespace NWSELib.net
                     plan.judgeType = ActionPlan.JUDGE_INFERENCE;
                     plan.evluation = temp[inx].Item2;
                     plan.inputObs = temp[inx].Item3;
-                    plan.mode = "选择最大证明评估";
+                    plan.mode = "选择最优评估方向";
                     plan.actionEvaulationRecords = actionEvaulationRecords;
                     return plan;
                 }

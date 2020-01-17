@@ -12,14 +12,38 @@ namespace NWSELib.genome
     public class InferenceGene : NodeGene
     {
         /// <summary>
-        /// 推断各维的节点ID或者名称,以及时间项
+        /// 推断各维的前提条件节点ID或者名称,以及时间项
         /// </summary>
-        public List<(int, int)> dimensions = new List<(int, int)>();
+        public List<(int, int)> conditions = new List<(int, int)>();
 
+        /// <summary>
+        /// 推断各维的后置变量节点ID或者名称,以及时间项
+        /// </summary>
+        public List<(int, int)> variables = new List<(int, int)>();
+        /// <summary>
+        /// 合并前提和后置
+        /// </summary>
+        /// <returns></returns>
+        public List<(int,int)> getDimensions()
+        {
+            List<(int, int)> r = new List<(int, int)>(conditions);
+            r.AddRange(variables);
+            return r;
+
+        }
+
+        public override List<int> Dimensions
+        {
+            get
+            {
+                return getDimensions().ConvertAll(d => this.owner[d.Item1].Dimension);
+            }
+        }
         public override T clone<T>()
         {
             InferenceGene gene = new InferenceGene(this.owner).copy<InferenceGene>(this);
-            gene.dimensions.AddRange(this.dimensions);
+            gene.conditions.AddRange(this.conditions);
+            gene.variables.AddRange(this.variables);
             return (T)(Object)gene;
         }
         public InferenceGene(NWSEGenome genome):base(genome)
@@ -32,15 +56,16 @@ namespace NWSELib.genome
         {
             get
             {
-                (int t1, int t2) = this.getTimeDiff();
-                return this.getConditions()
+                String s1 = this.getConditions()
                     .ConvertAll(c => c.Item1)
                     .ConvertAll(id => owner[id])
                     .ConvertAll(g => g.Text)
-                    .Aggregate((x, y) => x + "," + y) +
-                    (t1 == t2 ? "<=>" : "=>") +
-                owner[this.getVariable().Item1].Text;
-                //.Aggregate((x, y) => "["+x+"],[" + y+"]") +
+                    .Aggregate((x, y) => x + "," + y);
+                String s2 = this.getVariables().ConvertAll(c => c.Item1)
+                    .ConvertAll(id => owner[id])
+                    .ConvertAll(g => g.Text)
+                    .Aggregate((x, y) => x + "," + y);
+                return s1 + (s2 == null || s2.Trim() == "" ? "" : "=>" + s2);
             }
         }
 
@@ -91,139 +116,42 @@ namespace NWSELib.genome
         }
         public void sort_dimension()
         {
-            this.dimensions.Sort(comp_dimension);
+            this.conditions.Sort(comp_dimension);
+            this.variables.Sort(comp_dimension);
         }
 
-        /// <summary>
-        /// 两个推理基因的关系
-        /// </summary>
-        /// <param name="gene">基因</param>
-        /// <returns>0表示一致；1表示this包含另外一个；-1表示this被包含；2表示交叉；-2表示没有交叉</returns>
-        public int relation(InferenceGene gene)
-        {
-            int[] rs = { 1, 1, 1, 1, 1 };
-            int[] r = { 0, 1, -1, 2, -2 };
-            for(int i=0;i<dimensions.Count;i++)
-            {
-                if (!gene.dimensions.Exists(d => d.Item1 == this.dimensions[i].Item1))
-                {
-                    rs[0] = rs[2] = 0;
-                    continue;
-                }
-                if (!gene.dimensions.Exists(d => d.Item1 == this.dimensions[i].Item1 && d.Item2 == this.dimensions[i].Item2))
-                {
-                    rs[0] = 0;
-                }
-                else rs[4] = 0;
-
-            }
-
-            for (int i = 0; i < gene.dimensions.Count; i++)
-            {
-                if (!dimensions.Exists(d => d.Item1 == gene.dimensions[i].Item1))
-                {
-                    rs[0] = rs[1] = 0;
-                    continue;
-                }
-                if (!dimensions.Exists(d => d.Item1 == gene.dimensions[i].Item1 && d.Item2 == gene.dimensions[i].Item2))
-                {
-                    rs[0] = 0;
-                }
-                else rs[4] = 0;
-
-            }
-            for (int i = 0; i < rs.Length; i++)
-                if (rs[i] != 0) return r[i];
-            throw new ExecutionEngineException();
-
-        }
         
         /// <summary>
         /// 后置变量数
         /// </summary>
-        public int VariableCount
-        {
-            get
-            {
-                return this.dimensions.FindAll(d => d.Item2 == 0).Count;
-            }
-        }
+        public int VariableCount { get => this.variables.Count; }
+        
         /// <summary>
         /// 前置条件数
         /// </summary>
-        public int ConditionCount
-        {
-            get
-            {
-                return this.dimensions.FindAll(d => d.Item2 == 1).Count;
-            }
-        }
+        public int ConditionCount { get => this.conditions.Count; }
 
-        /// <summary>
-        /// 得到推理变量Id对应的索引
-        /// </summary>
-        /// <param name="varId"></param>
-        /// <returns></returns>
-        public int getVariableIndex(int varId=-1)
-        {
-            (int t1, int t2) = this.getTimeDiff();
-            for (int i = 0; i < dimensions.Count; i++)
-            {
-                if ((varId == -1 || dimensions[i].Item1 == varId) && dimensions[i].Item2 == t2)
-                    return i;
-            }
-            return -1;
-        }
+        
 
-        public int[] getVariableIndexs()
-        {
-            (int t1, int t2) = this.getTimeDiff();
-            
-            List<int> r = new List<int>();
-            
-            for (int i = 0; i < dimensions.Count; i++)
-            {
-                if (dimensions[i].Item2 == t2)
-                    r.Add(i);
-            }
-            return r.ToArray();
-        }
 
-        /// <summary>
-        /// 得到条件Id对应的索引
-        /// </summary>
-        /// <param name="condId"></param>
-        /// <returns></returns>
-        public int getConditionIndex(int condId)
-        {
-            (int t1, int t2) = this.getTimeDiff();
-            for (int i = 0; i < dimensions.Count; i++)
-            {
-                if (dimensions[i].Item1 == condId && dimensions[i].Item2 == t1)
-                    return i;
-            }
-            return -1;
-        }
-        /// <summary>
-        /// 取得条件和后置变量的时间差
-        /// </summary>
-        /// <returns></returns>
-        public (int, int) getTimeDiff()
-        {
-            (int t1, int t2) = (
-                dimensions.ConvertAll<int>(d => Math.Abs(d.Item2)).Max(),
-                dimensions.ConvertAll<int>(d => Math.Abs(d.Item2)).Min()
-                );
-            return (t1, t2);
-        }
+
+
         /// <summary>
         /// 得到所有的条件，包括Id和相对时间
         /// </summary>
         /// <returns></returns>
         public List<(int, int)> getConditions()
         {
-            (int t1, int t2) = this.getTimeDiff();
-            return dimensions.FindAll(d => d.Item2 == t1);
+            return this.conditions;
+        }
+
+        /// <summary>
+        /// 得到所有的条件Id
+        /// </summary>
+        /// <returns></returns>
+        public List<int> getConditionIds()
+        {
+            return this.conditions.ConvertAll(c=>c.Item1);
         }
         /// <summary>
         /// 得到后置变量Id和相对时间
@@ -231,72 +159,44 @@ namespace NWSELib.genome
         /// <returns></returns>
         public (int, int) getVariable()
         {
-            (int t1, int t2) = this.getTimeDiff();
-            return dimensions.FirstOrDefault<(int,int)>(d => d.Item2 == t2);
+            return this.variables.Count > 0 ? this.variables[0] : (0, 0);
         }
         
-        /// <summary>
-        /// 条件是否匹配
-        /// </summary>
-        /// <param name="allmatched">要求全部匹配</param>
-        /// <param name="conditions">条件Id</param>
-        /// <returns></returns>
-        public bool matchVariable(params int[] conditions)
-        {
-            (int t1, int t2) = this.getTimeDiff();
-            if(t1 == t2) //该节点各项无时间差异，属于关联记忆节点
-            {
-                List<int> conds = conditions.ToList();
-                return Utility.intersection<int>(conditions.ToList(), conds);
-            }
-            else
-            {
-                int varid = this.getVariable().Item1;
-                return conditions.Contains(varid);
-            }
-            
-        }
+        
 
         public List<(int,int)> getVariables()
         {
-            (int t1, int t2) = this.getTimeDiff();
-            return this.dimensions.FindAll(d => d.Item2 == t2);
+            return this.variables;
         }
 
         public List<int> getVariableIds()
         {
-            (int t1, int t2) = this.getTimeDiff();
-            return this.dimensions.FindAll(d => d.Item2 == t2).ConvertAll(d => d.Item1);
+            return this.variables.ConvertAll(c => c.Item1);
         }
 
         public List<int> getConditionsExcludeActionSensor()
         {
-            List<int> r = new List<int>();
-            (int t1, int t2) = this.getTimeDiff();
-            for (int i=0;i<dimensions.Count;i++)
-            {
-                if (dimensions[i].Item2 != t1) continue;
-                if (this.owner[dimensions[i].Item1].Group.Contains("action"))
-                    continue;
-                r.Add(dimensions[i].Item1);
-
-            }
-            return r;
+            return this.conditions.FindAll(c => !owner[c.Item1].IsActionSensor())
+                .ConvertAll(c => c.Item1);
+            
         }
 
         public List<int> getActionSensorsConditions()
         {
-            List<int> r = new List<int>();
-            (int t1, int t2) = this.getTimeDiff();
-            for (int i = 0; i < dimensions.Count; i++)
-            {
-                if (dimensions[i].Item2 != t1) continue;
-                if (!this.owner[dimensions[i].Item1].Group.Contains("action"))
-                    continue;
-                r.Add(dimensions[i].Item1);
+            return this.conditions.FindAll(c => owner[c.Item1].IsActionSensor())
+                .ConvertAll(c => c.Item1);
+        }
 
+        public bool contains(InferenceGene gene)
+        {
+            if (gene == null) return false;
+            foreach((int,int) small in gene.conditions)
+            {
+                int index = this.conditions.ConvertAll(d => d.Item1).IndexOf(small.Item1);
+                if (index < 0) return false;
+                if (this.conditions[index].Item2 != small.Item2) continue;
             }
-            return r;
+            return true;
         }
 
         

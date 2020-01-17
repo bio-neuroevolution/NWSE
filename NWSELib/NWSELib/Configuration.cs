@@ -92,6 +92,11 @@ namespace NWSELib
             [XmlAttribute]
             public int dimension;
             [XmlAttribute]
+            public double tolerate;
+            [XmlAttribute]
+            public String typeName;
+
+            [XmlAttribute]
             public String ranges;
             [XmlAttribute]
             public String levels;

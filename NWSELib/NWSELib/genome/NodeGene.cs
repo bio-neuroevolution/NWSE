@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace NWSELib.genome
 {
@@ -36,11 +37,10 @@ namespace NWSELib.genome
         /// 深度
         /// </summary>
         protected int depth;
+        
         /// <summary>
-        /// 显示文本
+        /// id值
         /// </summary>
-        protected String text="";
-
         public int Id { get => id; set => id = value; }
         /// <summary>
         /// 对应感受器名称
@@ -72,25 +72,58 @@ namespace NWSELib.genome
         /// 显示文本
         /// </summary>
         public virtual String Text { get => Name; } 
-            
 
+        /// <summary>
+        /// 其各个子节点的维度，没有子节点返回空列表
+        /// </summary>
+        public abstract List<int> Dimensions { get; }
+        /// <summary>
+        /// 当前节点数据的总维度
+        /// </summary>
+        public virtual int Dimension { get => Dimensions.Sum()<=0?1: Dimensions.Sum(); }
+
+
+        #endregion
+
+        #region 性质
+
+        /// <summary>
+        /// 是否动作感知
+        /// </summary>
+        /// <returns></returns>
         public bool IsActionSensor()
         {
             return this is ReceptorGene && this.Group.StartsWith("action");
         }
+        /// <summary>
+        /// 是否环境感知
+        /// </summary>
+        /// <returns></returns>
         public bool IsEnvSensor()
         {
             return this is ReceptorGene && this.Group.StartsWith("env");
         }
+        /// <summary>
+        /// 是否姿态感知
+        /// </summary>
+        /// <returns></returns>
         public bool IsGestureSensor()
         {
             return this is ReceptorGene && this.Group.StartsWith("body");
         }
-
+        /// <summary>
+        /// 是否根环境相关
+        /// </summary>
+        /// <returns></returns>
         public bool hasEnvDenpend()
         {
             return hasEnvDenpend(this);
         }
+        /// <summary>
+        /// 递归判断是否根环境相关，即其子节点树中有一个是环境感知
+        /// </summary>
+        /// <param name="gene"></param>
+        /// <returns></returns>
         private bool hasEnvDenpend(NodeGene gene)
         {
             
@@ -110,18 +143,7 @@ namespace NWSELib.genome
         
         #endregion
 
-       #region 变异信息
-       /// <summary>
-            /// 分段数
-            /// </summary>
-        protected int sectionCount;
-
-        /// <summary>
-        /// 每层的分段数
-        /// </summary>
-        public int SectionCount { get => sectionCount; set => sectionCount = value; }
-
-        #endregion
+       
 
         #region 统计信息       
         /// <summary>
@@ -159,7 +181,10 @@ namespace NWSELib.genome
             this.cataory = gene.cataory;
             this.generation = gene.generation;
             this.group = gene.group;
-            this.sectionCount = gene.sectionCount;
+            this.usedCount = gene.usedCount;
+            this.owner = gene.owner;
+            this.depth = gene.depth;
+            
             return (T)this;
 
         }
@@ -170,8 +195,7 @@ namespace NWSELib.genome
         public override string ToString()
         {
             return this.GetType().Name + ": id=" + this.id.ToString() + ",name=" + this.name +
-                ",generation=" + this.generation + ",cataory=" + this.cataory + ",group=" + this.group +
-                ",sectionCount=" + this.sectionCount.ToString();
+                ",generation=" + this.generation + ",cataory=" + this.cataory + ",group=" + this.group;
         }
         /// <summary>
         /// 字符串转
@@ -213,7 +237,7 @@ namespace NWSELib.genome
             i2 = str.IndexOf("=", i1 + 1);
             i3 = str.IndexOf(",", i2 + 1);
             s = str.Substring(i2 + 1, i3 - i2 - 1);
-            sectionCount = int.Parse(s);
+            
         }
         /// <summary>
         /// 构造函数

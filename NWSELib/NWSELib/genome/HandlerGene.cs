@@ -27,6 +27,14 @@ namespace NWSELib.genome
             }
         }
 
+        public override List<int> Dimensions
+        {
+            get
+            {
+                List<NodeGene> inputs = this.inputs.ConvertAll(i => owner[i]);
+                return inputs.ConvertAll(e => e.Dimension);
+            }
+        }
         public override T clone<T>()
         {
             return new HandlerGene(this.owner,this.function,this.inputs,this.param.ToArray()).copy<T>(this);

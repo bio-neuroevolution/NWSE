@@ -144,6 +144,16 @@ namespace NWSELib.net
         {
             return this.nodes.FirstOrDefault(n => n.Name == name);
         }
+
+        public Node this[Object idorname]
+        {
+            get 
+            {
+                if (idorname is int) return getNode((int)idorname);
+                else if(idorname is String)return getNode((String)idorname);
+                return null;
+            }
+        }
         public int getActionIdByName(String name)
         {
             Node n = this.Effectors.FirstOrDefault(e => e.Name == name || e.Name == name.Substring(1));
@@ -221,9 +231,9 @@ namespace NWSELib.net
             for (int i = 0; i < genome.infrernceGenes.Count; i++)
             {
                 int k1 = idToIndex(genome.infrernceGenes[i].Id);
-                for (int j = 0; j < genome.infrernceGenes[i].dimensions.Count; j++)
+                for (int j = 0; j < genome.infrernceGenes[i].getDimensions().Count; j++)
                 {
-                    int k2 = idToIndex(genome.infrernceGenes[i].dimensions[j].Item1);
+                    int k2 = idToIndex(genome.infrernceGenes[i].getDimensions()[j].Item1);
                     this.adjMatrix[k2, k1] = 1;
                 }
             }
@@ -402,7 +412,7 @@ namespace NWSELib.net
         {
             List<double> values = this.Effectors.ConvertAll(e => e.Value[0]);
             //double delta_speed = (values[0] - 0.5) * Agent.Max_Speed_Action;
-            double delta_degree = Utility.actionRotateToDegree(values[0]);
+            double delta_degree = MeasureTools.Rotate.actionRotateToDegree(values[0]);
             return (delta_degree>0?"顺时针旋转": "逆时针旋转")+delta_degree.ToString("F3")+"度("+ values[0].ToString("F3")+")";
         }
         /// <summary>
@@ -431,6 +441,26 @@ namespace NWSELib.net
         public List<Vector> getValues(List<int> ids)
         {
             return ids.ConvertAll(id => this.getNode(id).Value);
+        }
+
+        public (Vector value, List<Node> nodes) flattenValues(List<int> ids, List<Vector> values)
+        {
+            Vector rv = new Vector(true, values.size());
+            List<Node> rn = new List<Node>();
+
+            int index = 0;
+            for (int i=0;i<ids.Count;i++)
+            {
+                Node node = this[ids[i]];
+                (List<double> vs, List<Node> nodes) = flattenValues(node, values[i]);
+                for(int j=0;j<vs.Count;j++)
+                {
+                    rv[index++]=vs[j];
+                    rn.Add(nodes[j]);
+                }
+            }
+            return (rv, rn);
+            
         }
         /// <summary>
         /// 将某个节点的值分解到最小的输入double值,以及每个值的对应基础节点

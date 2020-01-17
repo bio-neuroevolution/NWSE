@@ -22,7 +22,6 @@ namespace NWSELib.genome
                 receptorGene.Generation = session.Generation;
                 receptorGene.Group = sensors[i].group;
                 receptorGene.Name = sensors[i].name;
-                receptorGene.SectionCount = (int)sensors[i].Level.random();
                 receptorGene.Id = session.GetIdGenerator().getGeneId(receptorGene);
                 genome.receptorGenes.Add(receptorGene);
             }
@@ -41,33 +40,24 @@ namespace NWSELib.genome
             inferenceGene.Generation = session.Generation;
 
 
-            inferenceGene.dimensions = new List<(int, int)>();
-            inferenceGene.dimensions.Add((genome["d1"].Id, 1));
-            inferenceGene.dimensions.Add((genome["d2"].Id, 1));
-            inferenceGene.dimensions.Add((genome["d3"].Id, 1));
-            inferenceGene.dimensions.Add((genome["d4"].Id, 1));
-            inferenceGene.dimensions.Add((genome["d5"].Id, 1));
-            inferenceGene.dimensions.Add((genome["d6"].Id, 1));
-            inferenceGene.dimensions.Add((genome["_a2"].Id, 1));
+            inferenceGene.conditions = new List<(int, int)>();
+            inferenceGene.variables = new List<(int, int)>();
+            inferenceGene.conditions.Add((genome["d1"].Id, 1));
+            inferenceGene.conditions.Add((genome["d2"].Id, 1));
+            inferenceGene.conditions.Add((genome["d3"].Id, 1));
+            inferenceGene.conditions.Add((genome["d4"].Id, 1));
+            inferenceGene.conditions.Add((genome["d5"].Id, 1));
+            inferenceGene.conditions.Add((genome["d6"].Id, 1));
+            inferenceGene.conditions.Add((genome["_a2"].Id, 1));
 
-            inferenceGene.dimensions.Add((genome["d3"].Id, 0));
+            inferenceGene.variables.Add((genome["d3"].Id, 0));
             inferenceGene.sort_dimension();
             inferenceGene.Id = Session.idGenerator.getGeneId(inferenceGene);
             genome.infrernceGenes.Add(inferenceGene);
 
 
 
-            //生成判定基因
-
-            JudgeGene judgeItem = new JudgeGene(genome);
-            judgeItem.conditions.Add(genome["_a2"].Id);
-            judgeItem.variable = genome["d3"].Id;
-            judgeItem.expression = JudgeGene.ARGMAX;
-            judgeItem.weight = 1.0;
-            judgeItem.Generation = session.Generation;
-            judgeItem.Id = Session.idGenerator.getGeneId(judgeItem);
-            genome.judgeGenes.Add(judgeItem);
-
+            
             genome.id = Session.idGenerator.getGenomeId();
             genome.computeNodeDepth();
             return genome;
@@ -85,10 +75,11 @@ namespace NWSELib.genome
             //生成推理节点:1 
             inferenceGene = new InferenceGene(genome);
             inferenceGene.Generation = session.Generation;
-            inferenceGene.dimensions = new List<(int, int)>();
-            inferenceGene.dimensions.Add((genome["heading"].Id, 1));
-            inferenceGene.dimensions.Add((genome["_a2"].Id, 1));
-            inferenceGene.dimensions.Add((genome["heading"].Id, 0));
+            inferenceGene.conditions = new List<(int, int)>();
+            inferenceGene.variables = new List<(int, int)>();
+            inferenceGene.conditions.Add((genome["heading"].Id, 1));
+            inferenceGene.conditions.Add((genome["_a2"].Id, 1));
+            inferenceGene.variables.Add((genome["heading"].Id, 0));
             inferenceGene.sort_dimension();
             inferenceGene.Id = Session.idGenerator.getGeneId(inferenceGene);
             genome.infrernceGenes.Add(inferenceGene);
@@ -96,11 +87,12 @@ namespace NWSELib.genome
             //生成推理节点:2 
             inferenceGene = new InferenceGene(genome);
             inferenceGene.Generation = session.Generation;
-            inferenceGene.dimensions = new List<(int, int)>();
-            inferenceGene.dimensions.Add((genome["pos"].Id, 1));
-            inferenceGene.dimensions.Add((genome["heading"].Id, 1));
-            inferenceGene.dimensions.Add((genome["_a2"].Id, 1));
-            inferenceGene.dimensions.Add((genome["b"].Id, 0));
+            inferenceGene.conditions = new List<(int, int)>();
+            inferenceGene.variables = new List<(int, int)>();
+            inferenceGene.conditions.Add((genome["pos"].Id, 1));
+            inferenceGene.conditions.Add((genome["heading"].Id, 1));
+            inferenceGene.conditions.Add((genome["_a2"].Id, 1));
+            inferenceGene.variables.Add((genome["b"].Id, 0));
             inferenceGene.sort_dimension();
             inferenceGene.Id = Session.idGenerator.getGeneId(inferenceGene);
             genome.infrernceGenes.Add(inferenceGene);
@@ -108,11 +100,12 @@ namespace NWSELib.genome
             //生成推理节点:3 
             inferenceGene = new InferenceGene(genome);
             inferenceGene.Generation = session.Generation;
-            inferenceGene.dimensions = new List<(int, int)>();
-            inferenceGene.dimensions.Add((genome["pos"].Id, 1));
-            inferenceGene.dimensions.Add((genome["heading"].Id, 1));
-            inferenceGene.dimensions.Add((genome["_a2"].Id, 1));
-            inferenceGene.dimensions.Add((genome["pos"].Id, 0));
+            inferenceGene.conditions = new List<(int, int)>();
+            inferenceGene.variables = new List<(int, int)>();
+            inferenceGene.conditions.Add((genome["pos"].Id, 1));
+            inferenceGene.conditions.Add((genome["heading"].Id, 1));
+            inferenceGene.conditions.Add((genome["_a2"].Id, 1));
+            inferenceGene.variables.Add((genome["pos"].Id, 0));
             inferenceGene.sort_dimension();
             inferenceGene.Id = Session.idGenerator.getGeneId(inferenceGene);
             genome.infrernceGenes.Add(inferenceGene);
@@ -164,15 +157,16 @@ namespace NWSELib.genome
             //生成推理节点:3
             inferenceGene = new InferenceGene(genome);
             inferenceGene.Generation = session.Generation;
-            inferenceGene.dimensions = new List<(int, int)>();
-            inferenceGene.dimensions.Add((genome["pos"].Id, 1));
-            inferenceGene.dimensions.Add((genome["heading"].Id, 1));
-            inferenceGene.dimensions.Add((genome["d3"].Id, 1));
+            inferenceGene.conditions = new List<(int, int)>();
+            inferenceGene.variables = new List<(int, int)>();
+            inferenceGene.conditions.Add((genome["pos"].Id, 1));
+            inferenceGene.conditions.Add((genome["heading"].Id, 1));
+            inferenceGene.conditions.Add((genome["d3"].Id, 1));
             //inferenceGene.dimensions.Add((genome["_a1"].Id, 1));
-            inferenceGene.dimensions.Add((genome["_a2"].Id, 1));
-            inferenceGene.dimensions.Add((genome["pos"].Id, 0));
-            inferenceGene.dimensions.Add((genome["heading"].Id, 0));
-            inferenceGene.dimensions.Add((genome["d3"].Id, 0));
+            inferenceGene.conditions.Add((genome["_a2"].Id, 1));
+            inferenceGene.variables.Add((genome["pos"].Id, 0));
+            inferenceGene.variables.Add((genome["heading"].Id, 0));
+            inferenceGene.variables.Add((genome["d3"].Id, 0));
             inferenceGene.sort_dimension();
             inferenceGene.Id = Session.idGenerator.getGeneId(inferenceGene);
             genome.infrernceGenes.Add(inferenceGene);

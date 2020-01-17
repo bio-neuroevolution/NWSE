@@ -348,7 +348,7 @@ namespace NWSEExperiment.maze
 
 
             //Heading =EngineUtilities.angletoradian(heading);
-            Heading = heading/ Utility.DRScale;
+            Heading = heading/ MeasureTools.DRScale;
             Velocity = 0.0;
             HasCollided = false;
             this.Timestep = timeStep;
