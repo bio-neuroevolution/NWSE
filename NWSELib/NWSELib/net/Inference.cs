@@ -243,6 +243,21 @@ namespace NWSELib.net
             }
             return r;
         }
+
+        public List<InferenceRecord> getVariableMatchRecords(Network net, int time,List<Vector> varValues=null)
+        {
+            //变量值无效，则从环境取
+            if(varValues == null || varValues.Count<=0)
+            {
+                varValues = this.getValues2(net,time).Item2;
+            }
+            //变量值无效
+            if (varValues.Contains(null)) return null;
+
+            double tempDis = 0;
+            return this.records.FindAll(r => r.isVariableMatch(varValues,out tempDis));
+            
+        }
         #endregion
 
         #region 激活和自适应调整
@@ -599,7 +614,27 @@ namespace NWSELib.net
         /// 目前用的是第三种
         /// </summary>
         /// <param name="condvalues"></param>
-        /// <returns></returns>
+        /// <returns>最近的记录,,是否在容忍距离内,距离值,评估值</returns>
+        public (InferenceRecord, List<Vector>, bool vaildDistance,double distance) forward_inference2(Network net, List<Vector> condvalues)
+        {
+            double distance = double.MaxValue;
+            InferenceRecord record = null;
+            bool recordMatched = false;
+            foreach (InferenceRecord r in this.records)
+            {
+                double d = 0;
+                bool match = r.isConditionValueMatch(net, this, condvalues, out d);
+                if(d < distance)
+                {
+                    record = r;
+                    distance = d;
+                    recordMatched = match;
+                }
+                
+            }
+            
+            return (record, (record==null?null:record.getMeanValues().varValues), recordMatched, distance);
+        }
         public (InferenceRecord, List<Vector>,double distance) forward_inference(Network net,List<Vector> condvalues)
         {
             double distance = 0;
@@ -642,6 +677,7 @@ namespace NWSELib.net
                 int index = zt.Sample();
                 result.Add(this.records[index].sample(1)[0]);
             }
+            
             return result;
 
             /*

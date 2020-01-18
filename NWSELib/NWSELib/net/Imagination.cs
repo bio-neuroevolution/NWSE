@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Linq;
+using static NWSELib.Configuration;
 
 namespace NWSELib.net
 {
@@ -125,6 +126,8 @@ namespace NWSELib.net
                     if (i == j) continue;
                     Inference inf1 = this.inferences[i];
                     Inference inf2 = this.inferences[j];
+                    if (inf1.getGene().ConditionCount == inf2.getGene().ConditionCount)
+                        continue;
                     if(inf1.getGene().contains(inf2.getGene()))
                     {
                         Inference newinf = this.mergeInference(inf1, inf2,session);
@@ -200,7 +203,7 @@ namespace NWSELib.net
                     nRecord.means.AddRange(largeVarValues);
                     nRecord.acceptCount = Math.Max(matchRecords[j].acceptCount, inf2.Records[i].acceptCount);
                     nRecord.accuracyDistance = Math.Max(matchRecords[j].accuracyDistance, inf2.Records[i].accuracyDistance);
-                    nRecord.evulation = Math.Min(matchRecords[j].evulation, inf2.Records[i].evulation);
+                    nRecord.evulation = 0;// Math.Min(matchRecords[j].evulation, inf2.Records[i].evulation);
                     nRecord.usedCount = Math.Max(matchRecords[j].usedCount, inf2.Records[i].usedCount);
                     nRecord.covariance = nRecord.createDefaultCoVariance();
                     newInf.Records.Add(nRecord);
@@ -226,7 +229,7 @@ namespace NWSELib.net
             //对每一个动作
             List<(List<double>, double,List<Vector>)> actionEvaulationRecords = new List<(List<double>, double, List<Vector>)>();
             
-            for (int a=1;a<testActions.Count;a++)
+            for (int a=0;a<testActions.Count;a++)
             {
                 List<double> actions = testActions[a];
                 //执行直到无法执行，得到评估值
@@ -329,25 +332,38 @@ namespace NWSELib.net
                     }
             
                 }
-                else//mode == 1，评估大于0的动作中优先选择本能方向，其次是原方向，最后是评估最大的动作
+                else//mode == 1，评估大于0的动作中优先选择本能方向，其次是与本能方向较近的方向，其次是原方向，最后是评估最大的动作
                 {
-                    for(int i=0;i<=5;i++)
+                    int index = temp.IndexOf(actionEvaulationRecords[0]);
+                    if (index >= 0)
                     {
-                        int index = temp.IndexOf(actionEvaulationRecords[i]);
-                        if (index >=0)
+                        plan.actions = temp[index].Item1;
+                        plan.judgeTime = time;
+                        plan.judgeType = ActionPlan.JUDGE_INFERENCE;
+                        plan.evluation = temp[index].Item2;
+                        plan.inputObs = temp[index].Item3;
+                        plan.mode = "选择最优中的本能方向";
+                        plan.actionEvaulationRecords = actionEvaulationRecords;
+                        return plan;
+                    }
+
+                    for(int i=1;i<=5;i++)
+                    {
+                        index = temp.IndexOf(actionEvaulationRecords[i]);
+                        if (index >= 0)
                         {
                             plan.actions = temp[index].Item1;
                             plan.judgeTime = time;
                             plan.judgeType = ActionPlan.JUDGE_INFERENCE;
                             plan.evluation = temp[index].Item2;
                             plan.inputObs = temp[index].Item3;
-                            plan.mode = i==0?"选择最优中的本能方向": "选择最优中的临近方向";
+                            plan.mode = "选择最优中的当前附近方向";
                             plan.actionEvaulationRecords = actionEvaulationRecords;
                             return plan;
                         }
                     }
                     
-            
+
                     double m = temp.ConvertAll(r => r.Item2).Max();
                     int inx = temp.ConvertAll(r => r.Item2).IndexOf(m);
                     plan.actions = temp[inx].Item1;
@@ -376,11 +392,12 @@ namespace NWSELib.net
         /// <returns></returns>
         private (double, List<Vector>) doActionImagination(List<double> actions,int time,Session session)
         {
+            List<double> tempActions = new List<double>(actions);
             //虚拟初始化
             net.thinkReset();
             //取得动作对应的效应器
             List<Effector> effetors = net.Effectors;
-            //计算当前环境观察值(动作感知替换中测试推理动作值)
+            //计算当前环境观察值(其中要把实施动作以后heading的变化推理出来，即计算实施动作以后沿着方向不变的评估)
             Dictionary<Receptor, Vector> observations = new Dictionary<Receptor, Vector>();
             List<Vector> obsValues = new List<Vector>();
             int index = 0;
@@ -389,13 +406,27 @@ namespace NWSELib.net
                 if(!net.Receptors[i].Gene.IsActionSensor())
                 {
                     Vector tValue = net.Receptors[i].GetValue(time);
-                    //tValue = net.getRankedValue(net.Receptors[i],tValue);
+                    //暂时这样写
+                    if(net.Receptors[i].Name == "heading")
+                    {
+                        double act = actions[0];
+                        double h = tValue[0]* (2 * Math.PI);
+                        h += (act - 0.5) * NWSELib.env.Agent.Max_Rotate_Action * 2;
+                        if (h < 0) h += 2 * Math.PI;
+                        h = h / (2 * Math.PI);
+                        tValue = new Vector(h);
+                        tempActions[0] = 0.5;
+                    }
+                    if(Session.GetConfiguration().learning.imagination.abstractLevel>0)
+                        tValue = net.getRankedValue(net.Receptors[i],tValue);
                     obsValues.Add(tValue);
                 }
                 else
                 {
-                    Vector tValue = new Vector(actions[index++]);
-                    //tValue = net.getRankedValue(net.Receptors[i], tValue);
+
+                    Vector tValue = 0.5;// new Vector(actions[index++]);
+                    if (Session.GetConfiguration().learning.imagination.abstractLevel > 0)
+                        tValue = net.getRankedValue(net.Receptors[i], tValue);
                     obsValues.Add(tValue);
                 }
                 observations.Add(net.Receptors[i], obsValues.Last());
@@ -406,7 +437,7 @@ namespace NWSELib.net
             double evaulation = double.NaN;
             //List<double> evulations = new List<double>();
             //对网络进行虚拟激活，得到新的观察值
-            int maxsteps = 10,step = 0;
+            int maxsteps = 3,step = 0;
             while (true)
             {
                 //初始化感知节点
@@ -434,10 +465,11 @@ namespace NWSELib.net
                 foreach (Inference inte in infs)
                 {
                     List<Vector> condValues = inte.getGene().getConditions().ConvertAll(c=>net.getNode(c.Item1)).ConvertAll(n=>n.getThinkValues(time));
-                    (InferenceRecord matchedRecord,List<Vector> varValues,double distance) = inte.forward_inference(net,condValues);
+                    //(InferenceRecord matchedRecord,List<Vector> varValues,bool vaildDistance,double distance) = inte.forward_inference(net,condValues);
+                    (InferenceRecord matchedRecord, List<Vector> varValues,double distance) = inte.forward_inference(net, condValues);
                     if (matchedRecord == null) continue;
                     List<Receptor> varNodes = inte.getGene().getVariableIds().ConvertAll(id => (Receptor)net.getNode(id));
-                    for(int i=0;i<varValues.Count;i++)
+                    for (int i = 0; i < varValues.Count; i++)
                     {
                         int inx = net.Receptors.IndexOf(varNodes[i]);
                         if (inx < 0) continue;
@@ -446,16 +478,21 @@ namespace NWSELib.net
                         else newObservations[net.Receptors[inx]] = varValues[i]; //这意味着不同的前向推理会得到冲突项，两次赋值可能会不一致，即允许心理运算存在矛盾
                     }
                     matchedRecord.usedCount += 1;
-                    if(inte.getGene().hasEnvDenpend())
-                        newEvaulation.Add(matchedRecord.evulation* (1-distance));
+                    if (inte.getGene().hasEnvDenpend())
+                        newEvaulation.Add(matchedRecord.evulation* Math.Abs(1-distance));
                 }
                 //记录本次评估(评估不能都是无效)
                 if (newEvaulation.Count > 0 && !newEvaulation.All(e=>double.IsNaN(e)))
                 {
                     if (double.IsNaN(evaulation))
                         evaulation = newEvaulation.Max();
-                    else if (evaulation < newEvaulation.Max())
-                        evaulation = newEvaulation.Max();
+                    else
+                    {
+                        List<double> te = newEvaulation.FindAll(e => Math.Abs(e) >= 0.0001);
+                        if (te.Count > 0 && evaulation > -100 && evaulation < te.Max())
+                            evaulation = te.Max();
+                    }
+                    
                 }
                 //检查所否所有的观察值都生成了
                 if (newObservations.Count <= 0)
@@ -464,7 +501,7 @@ namespace NWSELib.net
                 index = 0;
                 net.ActionReceptors.ForEach(s =>
                 {
-                    newObservations.Add(s, actions[index++]);
+                    newObservations.Add(s, tempActions[index++]);
                 });
                 //继续循环
                 observations = newObservations;

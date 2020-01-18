@@ -29,6 +29,20 @@ namespace NWSELib
             return distance(d1, d2) <= tolerate;
         }
 
+
+        #endregion
+
+        #region 分级处理
+        public virtual double getRankedValue(double originValue, int abstractLevel)
+        {
+            double unit = Level.Step;
+            int sectionCount = (int)(Level.Distance / Level.Step);
+            int levelIndex = (int)((originValue - Level.Min) / unit);
+            if (levelIndex >= sectionCount)
+                levelIndex = sectionCount - 1;
+            double newValue = Level.Min + (levelIndex * unit + (levelIndex + 1) * unit) / 2.0;
+            return newValue;
+        }
         #endregion
 
         #region 显示
@@ -42,11 +56,11 @@ namespace NWSELib
         #region 初始化
         public MeasureTools(Configuration.Mensuration m)
         {
-            this.caption = m == null ? "position" : m.caption;
+            this.caption = m == null ? "" : m.caption;
             this.dimension = m == null ? 1 : m.dimension;
             this.levelNames = m == null ? "" : m.levelNames;
             this.levels = m == null ? "" : m.levels;
-            this.name = m == null ? "position" : m.name;
+            this.name = m == null ? "" : m.name;
             this.ranges = m == null ? "[0.0-1.0]" : m.ranges;
             this.tolerate = m == null ? 0 : m.tolerate;
         }
@@ -137,11 +151,15 @@ namespace NWSELib
     
     public class HeadingMeasure : MeasureTools
     {
-        public double default_tolerate_angle = 45.0 / 360;
+        public double default_tolerate_angle = 90.0 / 360;
 
         public HeadingMeasure(Configuration.Mensuration m):base(m)
         {
+            this.caption = m == null ? "heading" : m.caption;
+            this.name = m == null ? "heading" : m.name;
             if (tolerate <= 0) tolerate = default_tolerate_angle;
+            if (this.levels == null || this.levels.Trim() == "")
+                this.levels = "[0.0-1.0+0.125]";
         }
 
         public double headingToDegree(double heading)
@@ -166,6 +184,7 @@ namespace NWSELib
 
             double cos = (x1 * x2 + y1 * y2) / (l1 * l2);
             double angle = Math.Acos(cos);
+            if (double.IsNaN(angle)) return 0;
             if (angle < 0) angle += Math.PI * 2;
             return angle / tolerate;
         }
@@ -186,8 +205,10 @@ namespace NWSELib
 
         public PositionCodeMeasure(Configuration.Mensuration m):base(m)
         {
-            
+            this.caption = m == null ? "position" : m.caption;
+            this.name = m == null ? "position" : m.name;
             if (this.tolerate <= 0) tolerate = default_tolerate_distance;
+            
         }
 
         public override double distance(double d1,double d2)
@@ -199,7 +220,21 @@ namespace NWSELib
             int x2 = (int)c2 / 100, y2 = (int)c2 % 100;
             return (Math.Abs(x1 - x2) + Math.Abs(y1 - y2)) / tolerate;
         }
-        
+
+        #region 分级处理
+        public override double getRankedValue(double originValue, int abstractLevel)
+        {
+            int group = 4;//每group*group组成一个
+            (int x, int y) = poscodeSplit(originValue);
+            x = x / group;
+            y = y / group;
+
+            int grid = 25;
+
+            int newcode = grid * x + y;
+            return newcode * 1.0 / (grid * grid);
+        }
+        #endregion
 
         public (double, (int, int)) poscodeCompute(Rectangle range, double x, double y)
         {
@@ -226,6 +261,19 @@ namespace NWSELib
             (int x, int y) = poscodeSplit(v);
             return v.ToString("F4") + "(" + x.ToString() + "," + y.ToString() + ")";
         }
+
+        internal double getUpLevelValue(double code)
+        {
+            int group = 4;//每group*group组成一个
+            (int x, int y) = poscodeSplit(code);
+            x = x / group;
+            y = y / group;
+
+            int grid = 25;
+            
+            int newcode = grid * x + y;
+            return newcode*1.0/(grid*grid);
+        }
         #endregion
 
     }
@@ -236,7 +284,11 @@ namespace NWSELib
 
         public ActionRotateMeasure(Configuration.Mensuration m) : base(m)
         {
+            this.caption = m == null ? "rotate" : m.caption;
+            this.name = m == null ? "rotate" : m.name;
             if (tolerate <= 0) tolerate = default_tolerate_rotate;
+            if (this.levels == null || this.levels.Trim() == "")
+                this.levels = "[0.0-1.0+0.0625]";
         }
 
         public override double distance(double a1, double a2)
@@ -262,7 +314,10 @@ namespace NWSELib
 
         public CollisionMeasure(Configuration.Mensuration m) : base(m)
         {
-            
+            this.caption = m == null ? "collision" : m.caption;
+            this.name = m == null ? "collision" : m.name;
+            if (this.levels == null || this.levels.Trim() == "")
+                this.levels = "[0.0-1.0+0.5]";
         }
 
         public override double distance(double a1, double a2)

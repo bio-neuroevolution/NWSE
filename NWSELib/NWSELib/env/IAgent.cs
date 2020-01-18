@@ -8,7 +8,7 @@ namespace NWSELib.env
     public abstract class Agent
     {
         public const double Max_Rotate_Action = Math.PI;
-        public const double Max_Speed_Action = 5;
+        public const double Max_Speed_Action = 20;
         
 
         public abstract int getId();

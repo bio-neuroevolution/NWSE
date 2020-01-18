@@ -327,6 +327,9 @@ namespace NWSELib
             [XmlElement]
             public LearningInfernece inference = new LearningInfernece();
             [XmlElement]
+            public LearningImagination imagination = new LearningImagination();
+
+            [XmlElement]
             public LearningJudge judge = new LearningJudge();
         }
         public class LearningInfernece
@@ -346,6 +349,12 @@ namespace NWSELib
             public double tolerable_similarity;
         }
 
+        public class LearningImagination
+        {
+            [XmlAttribute(AttributeName = "abstrac")]
+            public int abstractLevel;
+        }
+       
         
         public class Evaluation
         {

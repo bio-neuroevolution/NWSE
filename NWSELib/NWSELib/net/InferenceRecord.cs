@@ -127,7 +127,10 @@ namespace NWSELib.net
             return str.ToString();
         }
 
-
+        public override string ToString()
+        {
+            return this.means.toString();
+        }
 
         #endregion
 
@@ -407,6 +410,24 @@ namespace NWSELib.net
             return match;
         }
 
+        public bool isVariableMatch(List<Vector> varValues,out double distance)
+        {
+            List<double> distances = new List<double>();
+            bool match = true;
+            List<int> ids = inf.getGene().variables.ConvertAll(c => c.Item1);
+            List<NodeGene> gens = ids.ConvertAll(id => inf.Gene.owner[id]);
+            int condCount = inf.getGene().ConditionCount;
+            for (int i = 0; i < ids.Count; i++)
+            {
+                double varValue = varValues[i][0];
+                double meanValue = this.means[condCount+i][0];
+                double d = MeasureTools.GetMeasure(gens[i].Cataory).distance(varValue, meanValue);
+                distances.Add(d);
+                if (d > 1) match = false;
+            }
+            distance = distances.Average();
+            return match;
+        }
         /// <summary>
         /// 本记录的均值中条件部分与输入值的曼哈顿距离
         /// </summary>

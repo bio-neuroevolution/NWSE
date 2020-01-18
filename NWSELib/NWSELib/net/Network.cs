@@ -352,20 +352,26 @@ namespace NWSELib.net
                 Inference inf = this.Inferences[i];
                 inf.activate(this, time);
             }
-            //5. 信息抽象
-            //imagination.doAbstract();
-            imagination.inferences = this.Inferences;
+            //5. 归纳
+            if (Session.GetConfiguration().learning.imagination.abstractLevel > 0)
+                imagination.doAbstract();
+            else
+                imagination.inferences = new List<Inference>(this.Inferences);
+            //imagination.inferences = this.Inferences;
 
-            //6. (上一次)行为评估
+            //6. 推理
+            //imagination.doInference(time, session);
+
+            //7. (上一次)行为评估
             this.setReward(reward,time,1);
 
-            //7. 推理想象、行为决策
+            //8. 推理想象、行为决策
             ActionPlan plan = imagination.doImagination(time, session);
             if (plan == null) plan = createDefaultPlan(time);
             this.actionPlanTraces.Add(plan);
             setEffectValue(time);
 
-            //8.记录行为
+            //9.记录行为
             List<double> actions = this.Effectors.ConvertAll<double>(n => (double)n.Value);
             for(int i=0;i< this.ActionReceptors.Count;i++)
             {
@@ -492,7 +498,13 @@ namespace NWSELib.net
             //取得该维度的分级数和范围
             NodeGene gene = r.Gene;
             (int, ValueRange) level = Session.GetConfiguration().getLevel(gene.Id, gene.Name, gene.Cataory);
-            if (level.Item1 == 0)
+            if (gene.Cataory == "position")
+            {
+                //未知编码分级特殊处理
+                double newValue = MeasureTools.Position.getUpLevelValue(unrankedValue);
+                return newValue;
+            }
+            else if (level.Item1 == 0)
                 return value;
             else
             {
@@ -520,7 +532,13 @@ namespace NWSELib.net
                 //取得该维度的分级数和范围
                 NodeGene gene = nodes[j].Gene;
                 (int, ValueRange) level = Session.GetConfiguration().getLevel(gene.Id, gene.Name, gene.Cataory);
-                if (level.Item1 == 0)
+                if(gene.Cataory == "position")
+                {
+                    //未知编码分级特殊处理
+                    double newValue = MeasureTools.Position.getUpLevelValue(unrankedValue);
+                    rankedValues.Add(newValue);
+                }
+                else if (level.Item1 == 0)
                     rankedValues.Add(unrankedValue);
                 else
                 {
@@ -601,6 +619,72 @@ namespace NWSELib.net
         public const int REWARD_MEAN = 2;
         public const int REWARD_ONCE = 3;
 
+        public void setReward2(double reward, int time, int mode = 1, bool clear = true)
+        {
+            if (reward == 0) return;
+            if (reward == 100.0) mode = 3;//如果是摆脱撞墙，这个正向奖励不传播
+
+            List<InferenceRecord> rs = new List<InferenceRecord>();
+            foreach (Inference inf in imagination.inferences) 
+            {
+                List<InferenceRecord> records = inf.getVariableMatchRecords(this,time);
+                if (records == null || records.Count <= 0) continue;
+                rs.AddRange(records);
+            }
+            if (rs.Count <= 0) return;
+            propagateReward(reward,time, 0, rs, mode);
+        }
+        private void propagateReward(double reward, int time,int level, List<InferenceRecord> records,int mode = 1)
+        {
+            //检查传播终止条件
+            if (records == null || records.Count <= 0) return;
+            if (records.All(r => !r.inf.getGene().hasEnvDenpend())) return;
+            
+            //计算奖励并分配
+            double rr = reward;
+            if (mode == 1) rr = Math.Exp(-level) * reward;
+            records.ForEach(r => { if (r.inf.getGene().hasEnvDenpend()) r.evulation += rr; });
+            if (mode == 3) return;
+            if (level >= 5) return;
+
+            //反向传播
+            List<InferenceRecord> nextRecords = new List<InferenceRecord>();
+            for(int i=0;i<records.Count;i++)
+            {
+                
+                List<Inference> infs = this.getInverseMatchInference(records[i].inf,this.imagination.inferences);
+                if (infs == null || infs.Count <= 0) continue;
+                foreach(Inference nextInf in infs)
+                {
+                    List<int> varIds = nextInf.getGene().getVariableIds();
+                    List<Vector> varValues = records[i].getConditionValueByIds(varIds);
+                    List<InferenceRecord> temprecords = nextInf.getVariableMatchRecords(this,time, varValues);
+                    //if (temprecords.Contains(records[i])) temprecords.Remove(records[i]);
+                    if (temprecords == null || temprecords.Count <= 0) continue;
+                    foreach(InferenceRecord temp in temprecords)
+                    {
+                        if (nextRecords.Contains(temp)) continue;
+                        nextRecords.Add(temp);
+                    }
+                }
+            }
+
+            if (nextRecords.Count <= 0) return;
+
+            propagateReward(reward,time,level+1,nextRecords,mode);
+
+        }
+
+        public List<Inference> getInverseMatchInference(Inference inf,List<Inference> infs)
+        {
+            if (inf == null || infs==null || infs.Count<=0) return null;
+            List<int> condIds = inf.getGene().getConditionIds();
+
+            return infs.FindAll(i =>
+                Utility.ContainsAll(condIds,i.getGene().getVariableIds())
+            );
+
+        }
         public void setReward(double reward,int time,int mode = 1,bool clear=true)
         {
             if (reward == 0) return;
