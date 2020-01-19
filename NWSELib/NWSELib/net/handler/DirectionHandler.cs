@@ -11,7 +11,7 @@ namespace NWSELib.net.handler
     /// </summary>
     public class DirectionHandler : Handler
     {
-        public DirectionHandler(NodeGene gene) : base(gene)
+        public DirectionHandler(NodeGene gene, Network net) : base(gene,net)
         {
         }
         public override Object activate(Network net, int time, Object value = null)

@@ -49,7 +49,7 @@ namespace NWSELib.net
         /// 构造函数
         /// </summary>
         /// <param name="gene"></param>
-        public Inference(NodeGene gene) : base(gene) { }
+        public Inference(NodeGene gene,Network net) : base(gene,net) { }
         
         public override string ToString()
         {
@@ -141,6 +141,34 @@ namespace NWSELib.net
         {
             return this.getGene().getDimensions().ConvertAll(d => net.getNode(d.Item1).GetValue(time - d.Item2));
         }
+
+        /// <summary>
+        /// 取得给定值的文本显示信息
+        /// </summary>
+        /// <param name="value">为空，则取当前最新值</param>
+        /// <returns></returns>
+        public override String getValueText(Vector value = null)
+        {
+            if (value == null) value = Value;
+            if (value == null) return "";
+            List<Receptor> receptors = this.getGene().getLeafGenes().ConvertAll(g=>(Receptor)net[g.Id]);
+            int condCount = this.getGene().ConditionCount;
+            int varCount = this.getGene().VariableCount;
+
+            StringBuilder str = new StringBuilder();
+            for(int i=0;i<receptors.Count;i++)
+            {
+                if(str.ToString() != "")
+                {
+                    if(i == condCount && varCount > 0)
+                        str.Append("=>");
+                    else str.Append(",");
+                }
+                str.Append(receptors[i].getValueText(new Vector(value[i])));
+            }
+            return str.ToString();
+        }
+
         /// <summary>
         /// 取得前置条件和后置变量值
         /// </summary>

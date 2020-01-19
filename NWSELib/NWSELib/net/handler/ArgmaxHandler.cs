@@ -10,7 +10,7 @@ namespace NWSELib.net.handler
 {
     public class ArgmaxHandler : Handler
     {
-        public ArgmaxHandler(NodeGene gene) : base(gene)
+        public ArgmaxHandler(NodeGene gene,Network net) : base(gene,net)
         {
         }
         public override Object activate(Network net, int time, Object value = null)

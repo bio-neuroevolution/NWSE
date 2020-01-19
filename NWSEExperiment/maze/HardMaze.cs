@@ -15,6 +15,8 @@ namespace NWSEExperiment.maze
 {
     public class HardMaze : IEnv
     {
+        #region 原有代码
+         
         #region Instance variables
 
         // Legacy naming convention used to maintain compatibility with old experiment/CurrentEnvironment files. Do not modify.
@@ -43,28 +45,7 @@ namespace NWSEExperiment.maze
 
         #endregion
 
-        #region 增加的内容
-        [XmlIgnore]
-        private ConcurrentDictionary<int, RobotAgent> agents = new ConcurrentDictionary<int, RobotAgent>();
-        [XmlIgnore]
-        List<List<Point2D>> optimaTraces = new List<List<Point2D>>();
-        public bool AgentVisible { get; set; }
-
-        [XmlIgnore]
-        public List<RobotAgent> Agents { get => agents.Values.ToList(); }
-
-        RobotAgent currentAgent = null;
-        RobotAgent CurrentAgent { 
-            get
-            {
-                if (agents.Count == 1)
-                    return currentAgent = this.agents.Values.ToList()[0];
-                return currentAgent;
-            }
-        }
-
-        public bool ShowTrail { get; set; }
-        #endregion
+        
 
         #region Constructors
 
@@ -81,9 +62,6 @@ namespace NWSEExperiment.maze
         #endregion
 
         #region Methods
-
-        
-
         /// <summary>
         /// Save the CurrentEnvironment to the specified XML file.
         /// </summary>
@@ -127,35 +105,7 @@ namespace NWSEExperiment.maze
             return null;
         }
 
-        /// <summary>
-        /// Resets the CurrentEnvronment to a small, blank square.
-        /// </summary>
-        public void reload()
-        {
-
-            HardMaze newMaze = HardMaze.loadEnvironment(this.name);
-
-            walls = newMaze.walls;
-            name = newMaze.name;
-            AOIRectangle = newMaze.AOIRectangle;
-            POIPosition = newMaze.POIPosition;
-            maxDistance = newMaze.maxDistance;
-            start_point = newMaze.start_point;
-            goal_point = newMaze.goal_point;
-
-            group_orientation = newMaze.group_orientation;
-            robot_spacing = newMaze.robot_spacing;
-            robot_heading = newMaze.robot_heading;
-            seed = newMaze.seed;
-            view_x = newMaze.view_x;
-            view_y = newMaze.view_y;
-            view_scale = newMaze.view_scale;
-
-            stagger = newMaze.stagger;
-
-            this.agents.Clear();
-            initOptimaTraces();
-        }
+        
 
         /// <summary>
         /// Tests collision between the specified robot and all walls and other robots in the CurrentEnvironment.
@@ -169,9 +119,6 @@ namespace NWSEExperiment.maze
                 int intersectionType = wall.Line.intersection(robotLine, out intePt);
                 if (intersectionType == 1) return true; 
             }
-
-            
-
             return false;
         }
 
@@ -220,10 +167,40 @@ namespace NWSEExperiment.maze
             List<RobotAgent> agents = this.agents.Values.ToList();
             foreach(RobotAgent agent in agents)
             {
-               
                 agent.draw(g, frame,agent==CurrentAgent?ShowTrail:false);
             }
         }
+        #endregion
+        #endregion
+
+        #region 增加的内容
+
+        #region 机器人信息
+        [XmlIgnore]
+        private ConcurrentDictionary<int, RobotAgent> agents = new ConcurrentDictionary<int, RobotAgent>();
+        [XmlIgnore]
+        List<List<Point2D>> optimaTraces = new List<List<Point2D>>();
+        public bool AgentVisible { get; set; }
+
+        [XmlIgnore]
+        public List<RobotAgent> Agents { get => agents.Values.ToList(); }
+
+        RobotAgent currentAgent = null;
+        RobotAgent CurrentAgent
+        {
+            get
+            {
+                if (agents.Count == 1)
+                    return currentAgent = this.agents.Values.ToList()[0];
+                return currentAgent;
+            }
+        }
+
+        public bool ShowTrail { get; set; }
+
+        #endregion
+
+        #region 交互
 
         public (List<double>, List<double>) reset(Network net)
         {
@@ -247,6 +224,7 @@ namespace NWSEExperiment.maze
         }
 
         
+
         (List<double>, List<double>, List<double>, double) IEnv.action(Network net, List<double> actions)
         {
             RobotAgent agent = this.agents.Values.ToList().FirstOrDefault(a => a.getId() == net.Id);
@@ -267,30 +245,27 @@ namespace NWSEExperiment.maze
             return (obs, gesture, actions,reward);
         }
 
-        private void initOptimaTraces()
+        public static List<double> createInstinctAction(Network net, int time)
         {
-            this.optimaTraces = new List<List<Point2D>>();
-            List<Point2D> t1 = new List<Point2D>();
-            t1.Add(new Point2D(this.start_point.X, this.start_point.Y));
-            t1.Add(new Point2D(469,738));
-            t1.Add(new Point2D(254, 738));
-            t1.Add(new Point2D(254, 1109));
-            t1.Add(new Point2D(379, 1142));
-            t1.Add(new Point2D(this.goal_point.X,this.goal_point.Y));
-            optimaTraces.Add(t1);
+            String[] g = { "g1", "g2", "g3", "g4" };
+            double[] cAngle = { 0, Math.PI / 2, Math.PI, Math.PI * 3 / 2 };
+            for(int i =0;i<g.Length;i++)
+            {
+                double v = net.getNode(g[i]).GetValue(time)[0];
+                if (v <= 0) continue;
+                v = (v - 0.5) * 2;
+                double angle = Math.Acos(Math.Abs(v));
+                if (v < 0) angle = cAngle[i] - angle;
+                else angle = cAngle[i] + angle;
+                if (angle < 0) angle += Math.PI * 2;
+                if (angle > Math.PI * 2) angle -= Math.PI * 2;
+                angle = (angle - Math.PI) / Math.PI + 0.5;
+                return new double[] { angle }.ToList();
 
-            List<Point2D> t2 = new List<Point2D>();
-            t2.Add(new Point2D(this.start_point.X, this.start_point.Y));
-            t2.Add(new Point2D(469, 738));
-            t2.Add(new Point2D(683, 738));
-            t2.Add(new Point2D(683, 1129));
-            t2.Add(new Point2D(568, 1129));
-            t2.Add(new Point2D(this.goal_point.X, this.goal_point.Y));
-            optimaTraces.Add(t2);
-        }
 
-        public static List<double> createInstinctAction(Network net,int time)
-        {
+            }
+            return new double[] { 0.5 }.ToList(); ;
+            /*
             //如果面朝目标，则直接向前走
             if (net.getNode("g1").GetValue(time)[0] == 1)
             {
@@ -328,8 +303,37 @@ namespace NWSEExperiment.maze
             {
                 return null;
             }
+            */
         }
 
+
+        #endregion
+
+        #region 计算奖励
+
+        private void initOptimaTraces()
+        {
+            this.optimaTraces = new List<List<Point2D>>();
+            List<Point2D> t1 = new List<Point2D>();
+            t1.Add(new Point2D(this.start_point.X, this.start_point.Y));
+            t1.Add(new Point2D(469,738));
+            t1.Add(new Point2D(254, 738));
+            t1.Add(new Point2D(254, 1109));
+            t1.Add(new Point2D(379, 1142));
+            t1.Add(new Point2D(this.goal_point.X,this.goal_point.Y));
+            optimaTraces.Add(t1);
+
+            List<Point2D> t2 = new List<Point2D>();
+            t2.Add(new Point2D(this.start_point.X, this.start_point.Y));
+            t2.Add(new Point2D(469, 738));
+            t2.Add(new Point2D(683, 738));
+            t2.Add(new Point2D(683, 1129));
+            t2.Add(new Point2D(568, 1129));
+            t2.Add(new Point2D(this.goal_point.X, this.goal_point.Y));
+            optimaTraces.Add(t2);
+        }
+
+        
         public double compute_reward(Agent agent)
         {
             if (Session.GetConfiguration().evaluation.reward_method == "collision")
@@ -419,6 +423,8 @@ namespace NWSEExperiment.maze
         {
             this.agents.Clear();
         }
+        #endregion
+
         #endregion
     }
 }

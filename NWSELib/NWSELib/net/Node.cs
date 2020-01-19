@@ -12,74 +12,121 @@ namespace NWSELib.net
     public abstract class Node
     {
         #region 基本信息
+        /// <summary>所属网络</summary>
+        protected Network net;
 
         /// <summary>节点基因</summary>
         protected NodeGene gene;
 
         /// <summary>节点Id</summary>
         public int Id { get => this.gene.Id;}
+        /// <summary>
+        /// 名称
+        /// </summary>
         public String Name
         {
             get => gene.Name;
         }
+        /// <summary>
+        /// 类别
+        /// </summary>
         public string Cataory
         {
             get => gene.Cataory;
         }
+        /// <summary>
+        /// 分组
+        /// </summary>
         public String Group
         {
             get => gene.Group;
         }
+        /// <summary>
+        /// 基因
+        /// </summary>
         public NodeGene Gene
         {
             get => this.gene;
         }
+        /// <summary>
+        /// 显示
+        /// </summary>
+        /// <returns></returns>
         public override string ToString()
         {
             return this.Gene.Text;
         }
-
+        /// <summary>
+        /// 取得输入节点
+        /// </summary>
+        /// <param name="net"></param>
+        /// <returns></returns>
         public virtual List<Node> getInputNodes(Network net)
         {
             return new List<Node>();
         }
-        
-        #endregion
 
-        #region 状态信息
-
-        protected readonly List<Vector> values = new List<Vector>();
-        protected readonly List<int> times = new List<int>();
-        public int BeginTime
-        {
-            get => (times == null || times.Count<=0)?0: times[0];
-        }
-        public int CurTime
-        {
-            get { return times.Count<=0?-1:times[times.Count - 1]; }
-        }
+        /// <summary>
+        /// 短时记忆时间容量
+        /// </summary>
         public int TimeCapacity
         {
             get => Session.GetConfiguration().agent.shorttermcapacity;
         }
-        
+        /// <summary>
+        /// 维度
+        /// </summary>
+        public int Dimension
+        {
+            get => this.gene.Dimension;
+        }
 
-        public Vector Value
+        #endregion
+
+        #region 状态信息
+        /// <summary>
+        /// 值
+        /// </summary>
+        protected readonly List<Vector> values = new List<Vector>();
+        /// <summary>
+        /// 时间
+        /// </summary>
+        protected readonly List<int> times = new List<int>();
+        /// <summary>
+        /// 起始时间
+        /// </summary>
+        public int BeginTime
+        {
+            get => (times == null || times.Count<=0)?0: times[0];
+        }
+        /// <summary>
+        /// 最新时间
+        /// </summary>
+        public int CurTime
+        {
+            get { return times.Count<=0?-1:times[times.Count - 1]; }
+        }
+        /// <summary>
+        /// 取得给定值的文本显示信息
+        /// </summary>
+        /// <param name="value">为空，则取当前最新值</param>
+        /// <returns></returns>
+        public virtual String getValueText(Vector value=null) 
+        { 
+            throw new NotImplementedException(); 
+        }
+        
+        public virtual Vector Value
         {
             get { return values.Count<=0?null:values.ToArray()[values.Count - 1]; }
         }
 
-        public int Dimension
-        {
-            get => values.Count<=0?0:values[0].Size;
-        }
-
-        public List<Vector> ValueList
+        public virtual List<Vector> ValueList
         {
             get => new List<Vector>(this.values);
         }
 
-        public List<Vector> GetValues(int new_time, int count)
+        public virtual List<Vector> GetValues(int new_time, int count)
         {
             List<int> ts = this.times.ToList();
             int tindex = times.IndexOf(new_time);
@@ -95,27 +142,24 @@ namespace NWSELib.net
             return r;
         }
 
-        public Vector GetValue(int time, int backIndex)
+        public virtual Vector GetValue(int time, int backIndex)
         {
             int tindex = times.IndexOf(time);
             if (tindex < 0) return null;
             if (tindex - backIndex < 0) return null;
             return this.ValueList[tindex - backIndex];
         }
-        public Vector GetValue(int time)
+        public virtual Vector GetValue(int time)
         {
             int tindex = times.IndexOf(time);
             if (tindex < 0) return null;
             return this.values[tindex];
         }
 
-
-
-
-        public Node(NodeGene gene)
+        public Node(NodeGene gene,Network net)
         {
             this.gene = gene;
-
+            this.net = net;
         }
         #endregion
 
@@ -202,7 +246,7 @@ namespace NWSELib.net
             int index = this.vtimes.IndexOf(time);
             if (index >= 0) return vvalues[index];
             return this.GetValue(time);
-;        }
+        }
 
         private static Object putTimeAndValue(List<int> times,List<Vector> values,int time,Object value)
         {

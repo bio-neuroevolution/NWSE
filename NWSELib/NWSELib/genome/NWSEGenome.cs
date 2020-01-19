@@ -295,47 +295,7 @@ namespace NWSELib.genome
             return 0;
         }
 
-        public static NWSEGenome create(Session session)
-        {
-            NWSEGenome genome = new NWSEGenome();
-            //生成感受器
-            List<Configuration.Sensor> sensors = Session.GetConfiguration().agent.receptors.GetAllSensor();
-            for(int i=0;i< sensors.Count;i++)
-            {
-                ReceptorGene receptorGene = new ReceptorGene(genome);
-                receptorGene.Cataory = sensors[i].cataory;
-                receptorGene.Generation = session.Generation;
-                receptorGene.Group = sensors[i].group;
-                receptorGene.Name = sensors[i].name;
-                receptorGene.Id = session.GetIdGenerator().getGeneId(receptorGene);
-                genome.receptorGenes.Add(receptorGene);
-            }
-
-
-            //生成缺省推理节点
-            InferenceGene inferenceGene = new InferenceGene(genome);
-            inferenceGene.Generation = session.Generation;
-
-
-            inferenceGene.conditions = new List<(int, int)>();
-            inferenceGene.variables = new List<(int, int)>();
-            inferenceGene.conditions.Add((genome["d1"].Id, 1));
-            inferenceGene.conditions.Add((genome["d2"].Id, 1));
-            inferenceGene.conditions.Add((genome["d3"].Id, 1));
-            inferenceGene.conditions.Add((genome["d4"].Id, 1));
-            inferenceGene.conditions.Add((genome["d5"].Id, 1));
-            inferenceGene.conditions.Add((genome["d6"].Id, 1));
-            inferenceGene.conditions.Add((genome["_a2"].Id, 1));
-            inferenceGene.variables.Add((genome["d3"].Id, 0));
-            inferenceGene.sort_dimension();
-            inferenceGene.Id = Session.idGenerator.getGeneId(inferenceGene);
-            genome.infrernceGenes.Add(inferenceGene);
-
-
-            genome.id = Session.idGenerator.getGenomeId();
-            genome.computeNodeDepth();
-            return genome;
-        }
+        
         /// <summary>
         /// 变异
         /// </summary>
@@ -344,9 +304,6 @@ namespace NWSELib.genome
         public NWSEGenome mutate(Session session)
         {
             NWSEGenome genome = this.clone();
-            
-            
-            
 
             //选择一个处理器对参数进行变异
             for(int i=0;i< genome.handlerGenes.Count;i++)

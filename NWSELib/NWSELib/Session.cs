@@ -145,11 +145,9 @@ namespace NWSELib
             
             logger = LogManager.GetLogger(typeof(Session));
             this.generation = 1;
-            
-
 
             //初始化初代个体
-            orginGenome = NWSEGenome.create(this);
+            orginGenome = new NWSEGenomeFactory().createSimpleGenome(this);
             orginNet = new Network(orginGenome);
             inds.Clear();
             inds.Add(orginNet);

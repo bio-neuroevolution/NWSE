@@ -8,7 +8,7 @@ namespace NWSELib.net.handler
 {
     public class DiffHandler : Handler
     {
-        public DiffHandler(NodeGene gene) : base(gene)
+        public DiffHandler(NodeGene gene,Network net) : base(gene,net)
         {
         }
         public override Object activate(Network net, int time, Object value = null)

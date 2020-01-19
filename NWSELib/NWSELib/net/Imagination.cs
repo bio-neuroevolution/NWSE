@@ -37,13 +37,18 @@ namespace NWSELib.net
         public void doAbstract()
         {
             inferences.Clear();
-
             if (net.Inferences.Count <= 0) return;
+            int abstractLevel = Session.GetConfiguration().learning.imagination.abstractLevel;
+            if(abstractLevel <= 0)
+            {
+                this.inferences = new List<Inference>(net.Inferences);
+                return;
+            }
             //对每一个融合节点
             foreach(Inference inff in net.Inferences)
             {
                 //创建一个对应
-                Inference absIntegration = new Inference(inff.Gene)
+                Inference absIntegration = new Inference(inff.Gene,net)
                 {
                     Reability = inff.Reability
                 };
@@ -60,7 +65,7 @@ namespace NWSELib.net
                 for (int i=0;i<inff.Records.Count;i++)
                 {
                     InferenceRecord orginRecord = inff.Records[i];
-                    List<Vector> values = net.getRankedValues(inff, orginRecord.means);
+                    List<Vector> values = net.getRankedValues(inff, orginRecord.means,abstractLevel);
                     //检查下新值应归属到哪里
                     int index = putValue(absIntegration, orginRecord, values, accuracies, evaulations, usedCounts);
                 }
@@ -173,7 +178,7 @@ namespace NWSELib.net
             net.Genome.infrernceGenes.Add(gene); //虽然加入到染色体中，但是并不遗传
             
             //创建推理节点
-            Inference newInf = new Inference(gene);
+            Inference newInf = new Inference(gene,net);
             net.Inferences.Add(newInf);
 
             //合并推理节点记录
@@ -400,6 +405,7 @@ namespace NWSELib.net
             //计算当前环境观察值(其中要把实施动作以后heading的变化推理出来，即计算实施动作以后沿着方向不变的评估)
             Dictionary<Receptor, Vector> observations = new Dictionary<Receptor, Vector>();
             List<Vector> obsValues = new List<Vector>();
+            int abstractLevel = Session.GetConfiguration().learning.imagination.abstractLevel;
             int index = 0;
             for (int i=0;i< net.Receptors.Count;i++)
             {
@@ -417,16 +423,17 @@ namespace NWSELib.net
                         tValue = new Vector(h);
                         tempActions[0] = 0.5;
                     }
-                    if(Session.GetConfiguration().learning.imagination.abstractLevel>0)
-                        tValue = net.getRankedValue(net.Receptors[i],tValue);
+                    
+                    if (abstractLevel > 0)
+                        tValue = net.getRankedValue(net.Receptors[i],tValue, abstractLevel);
                     obsValues.Add(tValue);
                 }
                 else
                 {
 
                     Vector tValue = 0.5;// new Vector(actions[index++]);
-                    if (Session.GetConfiguration().learning.imagination.abstractLevel > 0)
-                        tValue = net.getRankedValue(net.Receptors[i], tValue);
+                    if (abstractLevel > 0)
+                        tValue = net.getRankedValue(net.Receptors[i], tValue, abstractLevel);
                     obsValues.Add(tValue);
                 }
                 observations.Add(net.Receptors[i], obsValues.Last());

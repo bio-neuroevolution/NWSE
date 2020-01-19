@@ -33,25 +33,42 @@ namespace NWSELib
         #endregion
 
         #region 分级处理
-        public virtual double getRankedValue(double originValue, int abstractLevel)
+        /// <summary>
+        /// 根据分级层次，分段数计算分级后的值
+        /// </summary>
+        /// <param name="originValue"></param>
+        /// <param name="abstractLevel"></param>
+        /// <param name="sectionCount"></param>
+        /// <returns></returns>
+        public virtual double getRankedValue(double originValue, int abstractLevel,int sectionCount)
         {
-            double unit = Level.Step;
-            int sectionCount = (int)(Level.Distance / Level.Step);
-            int levelIndex = (int)((originValue - Level.Min) / unit);
+            if (abstractLevel == 0) return originValue;
+            
+            double unit = this.Range.Distance / sectionCount;
+            int levelIndex = (int)((originValue - Range.Min) / unit);
             if (levelIndex >= sectionCount)
                 levelIndex = sectionCount - 1;
-            double newValue = Level.Min + (levelIndex * unit + (levelIndex + 1) * unit) / 2.0;
+            double newValue = Range.Min + (levelIndex * unit + (levelIndex + 1) * unit) / 2.0;
             return newValue;
         }
-        #endregion
-
-        #region 显示
-        public virtual String getText(double v,String format="F3")
+        /// <summary>
+        /// 根据分级层次，分段数计算分级后的索引
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="abstractLevel"></param>
+        /// <param name="sectionCount"></param>
+        /// <returns></returns>
+        public virtual int getRankedIndex(double value, int abstractLevel, int sectionCount)
         {
-            return v.ToString(format);
+            if (sectionCount == 0) sectionCount = this.Levels[0];
+            double unit = this.Range.Distance / sectionCount;
+            int levelIndex = (int)((value - Range.Min) / unit);
+            if (levelIndex >= sectionCount)
+                levelIndex = sectionCount - 1;
+            return levelIndex;
         }
-        #endregion
 
+        #endregion
 
         #region 初始化
         public MeasureTools(Configuration.Mensuration m)
@@ -61,21 +78,32 @@ namespace NWSELib
             this.levelNames = m == null ? "" : m.levelNames;
             this.levels = m == null ? "" : m.levels;
             this.name = m == null ? "" : m.name;
-            this.ranges = m == null ? "[0.0-1.0]" : m.ranges;
+            this.range = m == null ? "[0.0-1.0]" : m.range;
             this.tolerate = m == null ? 0 : m.tolerate;
         }
         #endregion
 
         #region 常用测量
-        public static HeadingMeasure Heading
+        public static DistanceMeasure Distance
         {
             get
             {
-                HeadingMeasure ma = (HeadingMeasure)Measures.FirstOrDefault(m => m.name == "heading");
+                DistanceMeasure ma = (DistanceMeasure)Measures.FirstOrDefault(m => m.name == "heading");
                 if (ma != null)
                     return ma;
-                Measures.Add(new HeadingMeasure(null));
-                return (HeadingMeasure)Measures.Last();
+                Measures.Add(new DistanceMeasure(null));
+                return (DistanceMeasure)Measures.Last();
+            }
+        }
+        public static DirectionMeasure Direction
+        {
+            get
+            {
+                DirectionMeasure ma = (DirectionMeasure)Measures.FirstOrDefault(m => m.name == "heading");
+                if (ma != null)
+                    return ma;
+                Measures.Add(new DirectionMeasure(null));
+                return (DirectionMeasure)Measures.Last();
             }
         }
         public static PositionCodeMeasure Position
@@ -89,30 +117,17 @@ namespace NWSELib
                 return (PositionCodeMeasure)Measures.Last();
             }
         }
-        public static ActionRotateMeasure Rotate
+        public static OnoffMeasure Onoff
         {
             get
             {
-                ActionRotateMeasure ma = (ActionRotateMeasure)Measures.FirstOrDefault(m => m.name == "rotate");
+                OnoffMeasure ma = (OnoffMeasure)Measures.FirstOrDefault(m => m.name == "collision");
                 if (ma != null)
                     return ma;
-                Measures.Add(new ActionRotateMeasure(null));
-                return (ActionRotateMeasure)Measures.Last();
+                Measures.Add(new OnoffMeasure(null));
+                return (OnoffMeasure)Measures.Last();
             }
         }
-
-        public static CollisionMeasure Collision
-        {
-            get
-            {
-                CollisionMeasure ma = (CollisionMeasure)Measures.FirstOrDefault(m => m.name == "collision");
-                if (ma != null)
-                    return ma;
-                Measures.Add(new CollisionMeasure(null));
-                return (CollisionMeasure)Measures.Last();
-            }
-        }
-
 
         public static List<MeasureTools> Measures = new List<MeasureTools>();
         public static MeasureTools GetMeasure(String name)
@@ -136,35 +151,73 @@ namespace NWSELib
                     Measures.Add(mt);
             }
 
-            String s = Heading.ToString();
+            String s = Direction.ToString();
             s += Position.ToString();
-            s += Rotate.ToString();
-            s += Collision.ToString();
+            s += Onoff.ToString();
+            s += Distance.ToString();
 
-        }
-            
-            
-
+        } 
         #endregion
     }
 
-    
-    public class HeadingMeasure : MeasureTools
+    public class DistanceMeasure : MeasureTools
+    {
+        public double default_tolerate_distance = 0.2;
+        public DistanceMeasure(Configuration.Mensuration m) : base(m)
+        {
+            this.caption = m == null ? "distance" : m.caption;
+            this.name = m == null ? "distance" : m.name;
+            if (tolerate <= 0) tolerate = default_tolerate_distance;
+            if (this.levels == null || this.levels.Trim() == "")
+            {
+                this.levels = "5";
+                this.levelNames = "极小,较小,中等,较大,较大";
+            }   
+        }
+        /// <summary>
+        /// 两个角度的夹角计算，两个角度都是0-2*pi之间的值
+        /// </summary>
+        /// <param name="h1"></param>
+        /// <param name="h2"></param>
+        /// <returns></returns>
+        public override double distance(double h1, double h2)
+        {
+            return Math.Abs(h1-h2);
+        }
+
+    }
+    public class DirectionMeasure : MeasureTools
     {
         public double default_tolerate_angle = 90.0 / 360;
 
-        public HeadingMeasure(Configuration.Mensuration m):base(m)
+        public DirectionMeasure(Configuration.Mensuration m):base(m)
         {
-            this.caption = m == null ? "heading" : m.caption;
-            this.name = m == null ? "heading" : m.name;
+            this.caption = m == null ? "direction" : m.caption;
+            this.name = m == null ? "direction" : m.name;
             if (tolerate <= 0) tolerate = default_tolerate_angle;
             if (this.levels == null || this.levels.Trim() == "")
-                this.levels = "[0.0-1.0+0.125]";
+            {
+                this.levels = "8";
+                this.levelNames = "东,东南,南,西南,西,西北,北,东北";
+            }
         }
-
+        /// <summary>
+        /// 位置朝向（0-1）（0-2pi）信息转换为角度（0-360）
+        /// </summary>
+        /// <param name="heading"></param>
+        /// <returns></returns>
         public double headingToDegree(double heading)
         {
             return ((heading * 2 * Math.PI * MeasureTools.DRScale) % 360);
+        }
+        /// <summary>
+        /// 将旋转角度（0-1）（-pi-pi）转换为角度（-180-180）
+        /// </summary>
+        /// <param name="rotate"></param>
+        /// <returns></returns>
+        public double actionRotateToDegree(double rotate)
+        {
+            return (rotate - 0.5) * 2 * Math.PI * MeasureTools.DRScale;
         }
         /// <summary>
         /// 两个角度的夹角计算，两个角度都是0-2*pi之间的值
@@ -189,12 +242,7 @@ namespace NWSELib
             return angle / tolerate;
         }
 
-        #region 显示
-        public override String getText(double v, String format = "F3")
-        {
-            return v.ToString("F2") + "(" + MeasureTools.Heading.headingToDegree(v).ToString("F2") + ")";
-        }
-        #endregion
+        
     }
 
 
@@ -202,13 +250,19 @@ namespace NWSELib
     public class PositionCodeMeasure : MeasureTools
     {
         public const double default_tolerate_distance = 32.0;
+        public const int default_grid = 100;
 
         public PositionCodeMeasure(Configuration.Mensuration m):base(m)
         {
-            this.caption = m == null ? "position" : m.caption;
-            this.name = m == null ? "position" : m.name;
+            this.caption = m == null ? "poscode" : m.caption;
+            this.name = m == null ? "poscode" : m.name;
             if (this.tolerate <= 0) tolerate = default_tolerate_distance;
-            
+            if (this.levels == null || this.levels.Trim() == "")
+            {
+                this.levels = "4";
+                this.levelNames = "";
+            }
+
         }
 
         public override double distance(double d1,double d2)
@@ -222,23 +276,57 @@ namespace NWSELib
         }
 
         #region 分级处理
-        public override double getRankedValue(double originValue, int abstractLevel)
+        /// <summary>
+        /// 根据分级层次，分段数计算分级后的值
+        /// </summary>
+        /// <param name="originValue"></param>
+        /// <param name="abstractLevel"></param>
+        /// <param name="sectionCount"></param>
+        /// <returns></returns>
+        public override double getRankedValue(double originValue, int abstractLevel, int sectionCount)
         {
-            int group = 4;//每group*group组成一个
+            if (abstractLevel == 0) return originValue;
+
+            int group = sectionCount;//每group*group组成一个
             (int x, int y) = poscodeSplit(originValue);
             x = x / group;
             y = y / group;
 
-            int grid = 25;
+            int grid = default_grid/group;
 
             int newcode = grid * x + y;
             return newcode * 1.0 / (grid * grid);
         }
+        /// <summary>
+        /// 根据分级层次，分段数计算分级后的索引
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="abstractLevel"></param>
+        /// <param name="sectionCount"></param>
+        /// <returns></returns>
+        public override int getRankedIndex(double value, int abstractLevel, int sectionCount)
+        {
+            (int x, int y) = this.poscodeSplit(value);
+            int grid = default_grid;
+            if (abstractLevel > 0) grid = default_grid / sectionCount;
+            return grid * x + y;
+        }
+
+
+
         #endregion
 
+        #region 编码处理
+         /// <summary>
+         /// 根据实际范围和坐标生成网格编码，以及网格行列号
+         /// </summary>
+         /// <param name="range"></param>
+         /// <param name="x"></param>
+         /// <param name="y"></param>
+         /// <returns></returns>
         public (double, (int, int)) poscodeCompute(Rectangle range, double x, double y)
         {
-            int grid = 100;
+            int grid = default_grid;
             double wunit = range.Width / grid;
             double hunit = range.Height / grid;
 
@@ -248,76 +336,39 @@ namespace NWSELib
             int code = grid * py + px;
             return ((code * 1.0) / (grid * grid), (py, px));
         }
-
-        public (int x, int y) poscodeSplit(double code)
+        /// <summary>
+        /// 将网格编码分解成行列号
+        /// </summary>
+        /// <param name="code"></param>
+        /// <returns></returns>
+        public (int x, int y) poscodeSplit(double code,int abstraceLevel=0,int sectionCount=0)
         {
-            double c = code * 10000;
-            int x1 = (int)c / 100, y1 = (int)c % 100;
+            int grid = default_grid;
+            if (sectionCount > 0) grid /= sectionCount;
+            double c = code * (grid* grid);
+            int x1 = (int)c / grid, y1 = (int)c % grid;
             return (x1, y1);
         }
-        #region 显示
-        public override String getText(double v, String format = "F3")
-        {
-            (int x, int y) = poscodeSplit(v);
-            return v.ToString("F4") + "(" + x.ToString() + "," + y.ToString() + ")";
-        }
+        
 
-        internal double getUpLevelValue(double code)
-        {
-            int group = 4;//每group*group组成一个
-            (int x, int y) = poscodeSplit(code);
-            x = x / group;
-            y = y / group;
-
-            int grid = 25;
-            
-            int newcode = grid * x + y;
-            return newcode*1.0/(grid*grid);
-        }
+        
         #endregion
 
     }
 
-    public class ActionRotateMeasure : MeasureTools
+    
+
+    public class OnoffMeasure : MeasureTools
     {
-        public const double default_tolerate_rotate = Math.PI / 6;
-
-        public ActionRotateMeasure(Configuration.Mensuration m) : base(m)
+        public OnoffMeasure(Configuration.Mensuration m) : base(m)
         {
-            this.caption = m == null ? "rotate" : m.caption;
-            this.name = m == null ? "rotate" : m.name;
-            if (tolerate <= 0) tolerate = default_tolerate_rotate;
+            this.caption = m == null ? "onoff" : m.caption;
+            this.name = m == null ? "onoff" : m.name;
             if (this.levels == null || this.levels.Trim() == "")
-                this.levels = "[0.0-1.0+0.0625]";
-        }
-
-        public override double distance(double a1, double a2)
-        {
-            return Math.Abs(a1 - a2) * 2 / this.tolerate;
-        }
-        public  double actionRotateToDegree(double action)
-        {
-            return (((action - 0.5) * Math.PI * 2) * DRScale) % 360;
-        }
-
-        #region 显示
-        public override String getText(double v, String format = "F3")
-        {
-            return v.ToString("F2") + "(" + actionRotateToDegree(v).ToString("F2") + ")";
-        }
-        #endregion
-    }
-
-    public class CollisionMeasure : MeasureTools
-    {
-       
-
-        public CollisionMeasure(Configuration.Mensuration m) : base(m)
-        {
-            this.caption = m == null ? "collision" : m.caption;
-            this.name = m == null ? "collision" : m.name;
-            if (this.levels == null || this.levels.Trim() == "")
-                this.levels = "[0.0-1.0+0.5]";
+            {
+                this.levels = "2";
+                this.levelNames = "无,有";
+            }
         }
 
         public override double distance(double a1, double a2)
@@ -326,12 +377,7 @@ namespace NWSELib
         }
         
 
-        #region 显示
-        public override String getText(double v, String format = "F3")
-        {
-            return v.ToString("F2") + "(" + (v >= 0.5 ? "有障碍" : "无障碍 ") + ")";
-        }
-        #endregion
+        
     }
 
 

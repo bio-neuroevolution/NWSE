@@ -103,35 +103,14 @@ namespace NWSEExperiment.maze
         
     }
 	
-    /// <summary>
-    /// Base class for all collision managers. 
-    /// </summary>
-	public abstract class CollisionManager
-    {
-        #region Instance variables
-
-        public bool AgentVisible;
-        public bool AgentCollide;
-
-        #endregion
-
-        #region Methods
-
-        //public abstract CollisionManager copy();
-		//public abstract void initialize(Environment environment, SimulatorExperiment experiment, List<Robot> robots);
-		public virtual void simulationStepCallback() { }
-		//public abstract bool robotCollide(Robot robot);
-		//public abstract double raycast(double angle, double maxRange, Point2D point, Robot owner, out SimulatorObject hit, bool absolute = false);
-
-        #endregion
-    }
+    
 	
     /// <summary>
     /// A class containing various math utilities and methods supporting sensing and collision detection.
     /// </summary>
     public class EngineUtilities
     {
-        #region Instance variables
+
 
         public static Random RNG = new Random();
 
@@ -146,56 +125,6 @@ namespace NWSEExperiment.maze
 
         public static SolidBrush voiceColorBrush = new SolidBrush(Color.FromArgb(64, Color.Black));
         public static SolidBrush backGroundColorBrush = new SolidBrush( Color.White ); 
-        #endregion
-
-        #endregion
-
-        #region Methods
-
-        #region Collision Handling
-
-        public static float addNoise(float val,float percentage)
-		{
-			percentage/=100.0f;
-			float p1 = 1.0f -percentage;
-			float p2 = percentage;
-			float rval = (float)new Random().NextDouble();
-			return p1*val+p2*rval;
-		}
-
-
-        
-
-        public static bool collide(Wall wall, Point2D robot)
-        {
-            Point2D a1 = new Point2D(wall.Line.Endpoint1);
-            Point2D a2 = new Point2D(wall.Line.Endpoint2);
-            Point2D b = robot;
-            if (!wall.Visible)
-                return false;
-            double rad = RobotAgent.RADIUS;
-            double r = ((b.X - a1.X) * (a2.X - a1.X) + (b.Y - a1.Y) * (a2.Y - a1.Y)) / wall.Line.squaredLength();
-            double px = a1.X + r * (a2.X - a1.X);
-            double py = a1.Y + r * (a2.Y - a1.Y);
-            Point2D np = new Point2D(px, py);
-            double rad_sq = rad * rad;
-
-            if (r >= 0.0f && r <= 1.0f)
-            {
-                if (np.squaredDistance(b) < rad_sq)
-                    return true;
-                else
-                    return false;
-            }
-
-            double d1 = b.squaredDistance(a1);
-            double d2 = b.squaredDistance(a2);
-            if (d1 < rad_sq || d2 < rad_sq)
-                return true;
-            else
-                return false;
-        }
-
         #endregion
 
         
@@ -242,24 +171,5 @@ namespace NWSEExperiment.maze
             return euclideanDistance(p2, p1);
         }
 
-        /// <summary>
-        /// Ensures that a given value does not exceed a specified max and min, but not scaling the value if it already fits within the specified bounds.
-        /// </summary>
-        public static double clamp(double val, double min, double max)
-        {
-            if (val > max)
-                val = max;
-            else if (val < min)
-                val = min;
-            
-            return val;
-        }
-        
-
-        public static double angletoradian(double value)
-        {
-            return value <= 180 ? (Math.PI / 180) * value : -(Math.PI / 180) * value;
-        }
-        #endregion
     }
 }

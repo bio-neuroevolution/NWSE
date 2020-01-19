@@ -116,15 +116,8 @@ namespace NWSELib.net
         }
         private String meanToString(Inference inf)
         {
-            List<NodeGene> genes = inf.getGene().getDimensions().ConvertAll(d => d.Item1)
-                .ConvertAll(id => inf.getGene().owner[id]);
-            StringBuilder str = new StringBuilder();
-            for (int i = 0; i < genes.Count; i++)
-            {
-                if (str.ToString() != "") str.Append(",");
-                str.Append(MeasureTools.GetMeasure(genes[i].Cataory).getText(this.means[i][0]));
-            }
-            return str.ToString();
+            (Vector flattenedValue, List<int> sizes) = this.means.flatten();
+            return inf.getValueText(flattenedValue);
         }
 
         public override string ToString()

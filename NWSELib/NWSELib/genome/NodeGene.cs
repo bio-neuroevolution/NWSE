@@ -37,7 +37,12 @@ namespace NWSELib.genome
         /// 深度
         /// </summary>
         protected int depth;
-        
+
+        /// <summary>
+        /// 随机数生成器
+        /// </summary>
+        public static Random rng = new Random();
+
         /// <summary>
         /// id值
         /// </summary>
@@ -81,8 +86,32 @@ namespace NWSELib.genome
         /// 当前节点数据的总维度
         /// </summary>
         public virtual int Dimension { get => Dimensions.Sum()<=0?1: Dimensions.Sum(); }
-
-
+        /// <summary>
+        /// 取得输入基因
+        /// </summary>
+        /// <returns></returns>
+        public abstract List<NodeGene> getInputGenes();
+        /// <summary>
+        /// 取得基因树上的叶子基因
+        /// </summary>
+        /// <returns></returns>
+        public virtual List<ReceptorGene> getLeafGenes()
+        {
+            List<ReceptorGene> r = new List<ReceptorGene>();
+            return this.getLeafGenes(this, r);
+        }
+        private List<ReceptorGene> getLeafGenes(NodeGene g,List<ReceptorGene> r)
+        {
+            if (g == null) return r;
+            if (g is ReceptorGene) { r.Add((ReceptorGene)g);return r; }
+            List<NodeGene> inputs = this.getInputGenes();
+            if (inputs == null || inputs.Count <= 0) return r;
+            for(int i=0;i<inputs.Count;i++)
+            {
+                r = getLeafGenes(inputs[i], r);
+            }
+            return r;
+        }
         #endregion
 
         #region 性质

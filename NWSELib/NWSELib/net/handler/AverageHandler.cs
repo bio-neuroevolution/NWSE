@@ -8,7 +8,7 @@ namespace NWSELib.net.handler
 {
     public class AverageHandler : Handler
     {
-        public AverageHandler(NodeGene gene) : base(gene)
+        public AverageHandler(NodeGene gene, Network net) : base(gene,net)
         {
         }
         public override Object activate(Network net, int time, Object value = null)

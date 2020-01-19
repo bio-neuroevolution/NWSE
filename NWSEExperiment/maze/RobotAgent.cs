@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 
 namespace NWSEExperiment.maze
 {
+    #region 感知设备
     public interface IAgentSensor
     {
         void update();
@@ -245,6 +246,9 @@ namespace NWSEExperiment.maze
         #endregion
     }
 
+    #endregion
+
+    #region 机器人
     public class RobotAgent : Agent
     {
         #region 内部状态
@@ -445,20 +449,39 @@ namespace NWSEExperiment.maze
 
             foreach (Radar r in GoalSensors)
             {
+                if ((angle < 45 || angle >= 315) && r.StartAngle == 315)
+                {
+                    r.Activation = Math.Cos(angle);
+                    if (angle >= 315) r.Activation = -1 * r.Activation;
+                    r.Activation = r.Activation / 2 + 0.5;
+                }
+                else if (angle >= r.StartAngle && angle < r.EndAngle)
+                {
+                    double c = (r.EndAngle - r.StartAngle) / 2;
+                    r.Activation = Math.Cos(Math.Abs(angle - c));
+                    if (angle >= c) r.Activation = -1 * r.Activation;
+                    r.Activation = r.Activation / 2 + 0.5;
+                }
+            }
+               
+            /*
+            foreach (Radar r in GoalSensors)
                 // First, check if the Angle is in the wonky pie slice
                 if ((angle < 45 || angle >= 315) && r.StartAngle == 315)
                 {
-                    r.Activation = 1;
+                    //r.Activation = 1;
+                    r.Activation = Math.Cos(angle);
                     break;
                 }
 
                 // Then check the other pie slices
                 else if (angle >= r.StartAngle && angle < r.EndAngle)
                 {
-                    r.Activation = 1;
+                    //r.Activation = 1;
+                    r.Activation = Math.Cos(Math.Abs(angle - (r.EndAngle-r.StartAngle)/2));
                     break;
                 }
-            }
+            }*/
 
             // Update the compass/northstar GoalSensors
             // Note: This is trivial compared to rangefinder updates, which check against all walls for collision. No need to gate it to save CPU.
@@ -538,6 +561,8 @@ namespace NWSEExperiment.maze
              //if (Velocity < -6.0) Velocity = (-6.0);
             Heading += (actions[0] - 0.5) * Max_Rotate_Action * 2;
             if (Heading < 0) Heading += 2 * Math.PI;
+            if (Heading > 2 * Math.PI) Heading -= 2 * Math.PI;
+
             //double tempHeading = noisyHeading();
             //Heading = tempHeading;
             double dx = Math.Cos(Heading) * Velocity * Timestep;
@@ -628,8 +653,6 @@ namespace NWSEExperiment.maze
                     g.DrawLine(System.Drawing.Pens.Black, (float)l1.X, (float)l1.Y, (float)l2.X, (float)l2.Y);
                 }
             }
-
-            
         }
 
         Font eva_font = new Font(FontFamily.GenericSerif, 9);
@@ -667,5 +690,6 @@ namespace NWSEExperiment.maze
                 g.DrawString(double.IsNaN(records[i].Item2)?"Nan":records[i].Item2.ToString("F2"), eva_font, eva_brush, (float)l2.X, (float)l2.Y);
             }
         }
+        #endregion
     }
 }

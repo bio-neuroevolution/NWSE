@@ -198,7 +198,7 @@ namespace NWSELib.net
             //初始化节点
             for (int i = 0; i < genome.receptorGenes.Count; i++)
             {
-                Receptor receptor = new Receptor(genome.receptorGenes[i]);
+                Receptor receptor = new Receptor(genome.receptorGenes[i],this);
                 this.nodes.Add(receptor);
             }
             for (int i = 0; i < genome.handlerGenes.Count; i++)
@@ -208,12 +208,12 @@ namespace NWSELib.net
             }
             for (int i = 0; i < genome.infrernceGenes.Count; i++)
             {
-                Inference inference = new Inference(genome.infrernceGenes[i]);
+                Inference inference = new Inference(genome.infrernceGenes[i],this);
                 this.nodes.Add(inference);
             }
             for (int i = 0; i < this.ActionReceptors.Count; i++)
             {
-                Effector effector = new Effector(((ReceptorGene)this.ActionReceptors[i].Gene).toActionGene());
+                Effector effector = new Effector(((ReceptorGene)this.ActionReceptors[i].Gene).toActionGene(),this);
                 this.nodes.Add(effector);
             }
 
@@ -416,10 +416,7 @@ namespace NWSELib.net
         }
         public String showActionText()
         {
-            List<double> values = this.Effectors.ConvertAll(e => e.Value[0]);
-            //double delta_speed = (values[0] - 0.5) * Agent.Max_Speed_Action;
-            double delta_degree = MeasureTools.Rotate.actionRotateToDegree(values[0]);
-            return (delta_degree>0?"顺时针旋转": "逆时针旋转")+delta_degree.ToString("F3")+"度("+ values[0].ToString("F3")+")";
+            return this.Effectors.ConvertAll(e => e.getValueText()).Aggregate((x, y) => x + "," + y); 
         }
         /// <summary>
         /// 根据行动计划设定输出
@@ -492,67 +489,31 @@ namespace NWSELib.net
             return (v, n);
         }
 
-        public Vector getRankedValue(Receptor r, Vector value)
+        
+        public double getRankedValue(Receptor r, double value,int abstractLevel)
         {
-            double unrankedValue = value;
-            //取得该维度的分级数和范围
-            NodeGene gene = r.Gene;
-            (int, ValueRange) level = Session.GetConfiguration().getLevel(gene.Id, gene.Name, gene.Cataory);
-            if (gene.Cataory == "position")
-            {
-                //未知编码分级特殊处理
-                double newValue = MeasureTools.Position.getUpLevelValue(unrankedValue);
-                return newValue;
-            }
-            else if (level.Item1 == 0)
-                return value;
-            else
-            {
-                double unit = level.Item2.Distance / level.Item1;
-                int levelValue = (int)((unrankedValue - level.Item2.Min) / unit);
-                if (levelValue >= level.Item1)
-                    levelValue = level.Item1 - 1;
-                //newValue = levelValue;
-                double newValue = level.Item2.Min + (levelValue * unit + (levelValue + 1) * unit) / 2.0;
-                return newValue;
-            }
+            if (abstractLevel == 0) return value;
+
+            int sectionCount = r.getGene().getAbstractSectionCount(abstractLevel);
+            if (sectionCount <= 0) return value;
+
+            return MeasureTools.GetMeasure(r.Cataory).getRankedValue(value, abstractLevel, sectionCount);
         }
 
 
         
-        public List<Vector> getRankedValues(Node node,List<Vector> orginValues)
+        public List<Vector> getRankedValues(Node node,List<Vector> orginValues,int abstractLevel)
         {
             (Vector flattenValue,List<int> dSize) = orginValues.flatten();
-            (List<double> values, List<Node> nodes) = flattenValues(node, flattenValue);
-
-            List<double> rankedValues = new List<double>();
-            for (int j = 0; j < values.Count; j++)
+            double[] rankedValues = new double[flattenValue.Size];
+            
+            List<Receptor> receptors = node.Gene.getLeafGenes().ConvertAll(g=>(Receptor)this[g.Id]);
+            for(int i = 0;i< receptors.Count;i++)
             {
-                double unrankedValue = values[j];
-                //取得该维度的分级数和范围
-                NodeGene gene = nodes[j].Gene;
-                (int, ValueRange) level = Session.GetConfiguration().getLevel(gene.Id, gene.Name, gene.Cataory);
-                if(gene.Cataory == "position")
-                {
-                    //未知编码分级特殊处理
-                    double newValue = MeasureTools.Position.getUpLevelValue(unrankedValue);
-                    rankedValues.Add(newValue);
-                }
-                else if (level.Item1 == 0)
-                    rankedValues.Add(unrankedValue);
-                else
-                {
-                    double unit = level.Item2.Distance / level.Item1;
-                    int levelValue = (int)((unrankedValue- level.Item2.Min) / unit);
-                    if (levelValue >= level.Item1)
-                        levelValue = level.Item1 - 1;
-                    //newValue = levelValue;
-                    double newValue = level.Item2.Min + (levelValue * unit + (levelValue + 1) * unit) / 2.0;
-                    rankedValues.Add(newValue);
-                }
+                double d = this.getRankedValue(receptors[i], flattenValue[i], abstractLevel);
+                rankedValues[i] = d;
             }
-
-            return new Vector(rankedValues).split(dSize);
+            return new Vector(rankedValues).split(dSize); 
         }
         
         

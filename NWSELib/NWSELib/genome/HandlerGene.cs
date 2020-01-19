@@ -6,26 +6,24 @@ using NWSELib.common;
 
 namespace NWSELib.genome
 {
+    /// <summary>
+    /// 处理节点基因
+    /// </summary>
     public class HandlerGene : NodeGene
     {
-        public readonly String function;
-        public List<int> inputs = new List<int>();
-        public List<double> param = new List<double>();
-        Random rng = new Random();
-
+        #region 基本信息
         /// <summary>
-        /// 显示文本
+        /// 处理功能
         /// </summary>
-        public override String Text 
-        { 
-            get
-            {
-                List<NodeGene> inputs = this.inputs.ConvertAll(i => owner[i]);
-                inputs.Sort();
-                //return function + "(" + inputs.ConvertAll(x => x.Text).Aggregate((m, n) =>"{" + m + "}"+ ",{" + n + "}") + ")";
-                return function + "(" + inputs.ConvertAll(x => x.Text).Aggregate((m, n) => m + "," + n ) + ")";
-            }
-        }
+        public readonly String function;
+        /// <summary>
+        /// 输入节点基因id，其中可能会有重复
+        /// </summary>
+        public List<int> inputs = new List<int>();
+        /// <summary>
+        /// 处理参数，依据function不同而不同
+        /// </summary>
+        public List<double> param = new List<double>();
 
         public override List<int> Dimensions
         {
@@ -35,23 +33,57 @@ namespace NWSELib.genome
                 return inputs.ConvertAll(e => e.Dimension);
             }
         }
-        public override T clone<T>()
+
+        /// <summary>
+        /// 取得输入基因
+        /// </summary>
+        /// <returns></returns>
+        public override List<NodeGene> getInputGenes()
         {
-            return new HandlerGene(this.owner,this.function,this.inputs,this.param.ToArray()).copy<T>(this);
+            return this.inputs.ConvertAll(i => owner[i]);
         }
 
-        public HandlerGene(NWSEGenome genome,String function,List<int> inputs,params double[] ps):base(genome)
+        #endregion
+
+        #region 显示和初始化
+        public HandlerGene(NWSEGenome genome, String function, List<int> inputs, params double[] ps) : base(genome)
         {
-            
+
             this.function = function;
             this.inputs.AddRange(inputs);
             if (ps != null || ps.Length <= 0) param.AddRange(ps);
         }
 
+        /// <summary>
+        /// 显示文本
+        /// </summary>
+        public override String Text
+        {
+            get
+            {
+                List<NodeGene> inputs = this.inputs.ConvertAll(i => owner[i]);
+                inputs.Sort();
+                //return function + "(" + inputs.ConvertAll(x => x.Text).Aggregate((m, n) =>"{" + m + "}"+ ",{" + n + "}") + ")";
+                return function + "(" + inputs.ConvertAll(x => x.Text).Aggregate((m, n) => m + "," + n) + ")";
+            }
+        }
+
+
+        public override T clone<T>()
+        {
+            return new HandlerGene(this.owner, this.function, this.inputs, this.param.ToArray()).copy<T>(this);
+        }
+
+
+
         public void sortInput()
         {
             this.inputs.Sort();
         }
+
+        #endregion
+
+        #region 读写
 
         /// <summary>
         /// 转换字符串
@@ -62,9 +94,9 @@ namespace NWSELib.genome
             return "HandlerGene:" + Text + ";info:" + base.ToString() + ";param:ps=" +
                 (param.Count <= 0 ? "" : param.ConvertAll(p => p.ToString()).Aggregate<String>((x, y) => x.ToString() + "," + y.ToString()));
         }
-        
 
-        public static HandlerGene Parse(String s,ref List<int> inputids)
+
+        public static HandlerGene Parse(String s, ref List<int> inputids)
         {
             int t1 = s.IndexOf("HandlerGene") + "HandlerGene".Length;
             int t2 = s.IndexOf("info");
@@ -78,15 +110,15 @@ namespace NWSELib.genome
             String function = s1.Substring(0, t4);
             if (inputids == null) inputids = new List<int>();
             int t6 = s1.IndexOf("{");
-            while(t6>=0)
+            while (t6 >= 0)
             {
-                int t7 = s1.IndexOf("}",t6+1);
+                int t7 = s1.IndexOf("}", t6 + 1);
                 String s4 = s1.Substring(t6 + 1, t7 - t6 - 1);
                 inputids.Add(Session.idGenerator.getGeneId(s4.Trim()));
                 t6 = s1.IndexOf("{");
             }
-             //解析info
-             HandlerGene gene = new HandlerGene(null, function, inputids, null);
+            //解析info
+            HandlerGene gene = new HandlerGene(null, function, inputids, null);
             gene.parse(s2);
             //解析参数
             int t5 = s3.IndexOf("=");
@@ -94,57 +126,78 @@ namespace NWSELib.genome
 
             return gene;
         }
+        public virtual void mutate() { }
+        #endregion
+    }
 
-        public void mutate()
+    /// <summary>
+    /// 均值基因
+    /// </summary>
+    public class AvgHandlerGene : HandlerGene
+    {
+
+        public AvgHandlerGene(NWSEGenome genome, String function, List<int> inputs, params double[] ps) : base(genome, function, inputs, ps)
         {
-
-            if(function == "avg")
+        }
+        
+        public override void mutate()
+        {
+            int valueTime = (int)param[0];
+            if (valueTime == 0)
             {
-                int valueTime = (int)param[0];
-                if (valueTime == 0)
-                {
-                    if (rng.NextDouble() <= 0.5) valueTime = 1;
-                }
-                else
-                {
-                    if (rng.NextDouble() <= 0.8) valueTime -= 1;
-                }
-                param[0] = valueTime;
-            }else if(function == "diff")
-            {
-                int valueTime = (int)param[0];
-                if (valueTime == 0)
-                {
-                    if (rng.NextDouble() <= 0.5) valueTime = 1;
-                }
-                else
-                {
-                    if (rng.NextDouble() <= 0.8) valueTime -= 1;
-                }
-                param[0] = valueTime;
-            }else if(function == "direction")
-            {
-
-            }else if(function == "variance")
-            {
-                List<double> ts = param;
-                int index = rng.Next(0, ts.Count);
-
-                int valueTime = (int)param[index];
-                if (valueTime == 0)
-                {
-                    if (rng.NextDouble() <= 0.5) valueTime = 1;
-                }
-                else
-                {
-                    if (rng.NextDouble() <= 0.8) valueTime -= 1;
-                }
-                param[index] = valueTime;
+                if (rng.NextDouble() <= 0.5) valueTime = 1;
             }
-            
+            else
+            {
+                if (rng.NextDouble() <= 0.8) valueTime -= 1;
+            }
+            param[0] = valueTime;
 
         }
 
 
+    }
+    /// <summary>
+    /// 最大值索引基因
+    /// </summary>
+    public class ArgmaxHandlerGene : HandlerGene
+    {
+        public ArgmaxHandlerGene(NWSEGenome genome, String function, List<int> inputs, params double[] ps) : base(genome, function, inputs, ps)
+        {
+        }
+    }
+
+    
+    /// <summary>
+    /// 差值基因
+    /// </summary>
+    public class DiffHandlerGene : HandlerGene
+    {
+        public DiffHandlerGene(NWSEGenome genome, String function, List<int> inputs, params double[] ps) : base(genome, function, inputs, ps)
+        {
+        }
+
+        public override void mutate()
+        {
+            int valueTime = (int)param[0];
+            if (valueTime == 0)
+            {
+                if (rng.NextDouble() <= 0.5) valueTime = 1;
+            }
+            else
+            {
+                if (rng.NextDouble() <= 0.8) valueTime -= 1;
+            }
+            param[0] = valueTime;
+        }
+    }
+    /// <summary>
+    /// 方向基因
+    /// </summary>
+    public class DirectionHandlerGene : HandlerGene
+    {
+        public DirectionHandlerGene(NWSEGenome genome, String function, List<int> inputs, params double[] ps) : base(genome, function, inputs, ps)
+        {
+        }
     }
 }
