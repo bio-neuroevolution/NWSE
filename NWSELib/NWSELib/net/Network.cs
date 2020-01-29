@@ -612,7 +612,6 @@ namespace NWSELib.net
             List<InferenceRecord> nextRecords = new List<InferenceRecord>();
             for(int i=0;i<records.Count;i++)
             {
-                
                 List<Inference> infs = this.getInverseMatchInference(records[i].inf,this.imagination.inferences);
                 if (infs == null || infs.Count <= 0) continue;
                 foreach(Inference nextInf in infs)
