@@ -42,6 +42,19 @@ namespace NWSELib.net
         /// </summary>
         public Dictionary<int, List<InferenceRecord>> childs = new Dictionary<int, List<InferenceRecord>>();
 
+
+        /// <summary>
+        /// 可靠度
+        /// </summary>
+        public override double Reability 
+        { 
+            get
+            {
+                if(this.records.Count<=0)return 0;
+                double dis = this.records.ConvertAll(r => r.accuracyDistance).Average();
+                return Math.Exp(-1*dis);
+            }
+        }
         #endregion
 
         #region 初始化
@@ -424,7 +437,6 @@ namespace NWSELib.net
                 adjust_weights();
                 return activeValue;
             }
-            
 
             //计算每个记录的密度值，以及样本的密度值
             //If the new sample is not classified into any records, calculate the density values for each record and for all unclassified samples

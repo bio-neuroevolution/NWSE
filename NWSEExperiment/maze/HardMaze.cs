@@ -202,14 +202,17 @@ namespace NWSEExperiment.maze
 
         #region 交互
 
-        public (List<double>, List<double>) reset(Network net)
+        public (List<double>, List<double>) reset(Network net,bool clearAgent=true)
         {
+            if (clearAgent) this.agents.Clear();
+
             RobotAgent agent = this.agents.Values.ToList().FirstOrDefault(a => a.getId() == net.Id);
             if (agent == null)
             {
                 agent = new RobotAgent(net, this);
                 this.agents.TryAdd(agent.getId(), agent);
             }
+            initOptimaTraces();
             agent.reset(this.start_point);
             List<double> obs =agent.getObserve();
             obs.Add(0); //没有发生碰撞冲突
@@ -225,7 +228,7 @@ namespace NWSEExperiment.maze
 
         
 
-        (List<double>, List<double>, List<double>, double) IEnv.action(Network net, List<double> actions)
+        (List<double>, List<double>, List<double>, double, bool) IEnv.action(Network net, List<double> actions)
         {
             RobotAgent agent = this.agents.Values.ToList().FirstOrDefault(a => a.getId() == net.Id);
             bool noncollision = agent.doAction(actions.ToArray());
@@ -239,10 +242,11 @@ namespace NWSEExperiment.maze
             List<double> gesture = new List<double>();
             gesture.Add(agent.Heading/(2*Math.PI));
 
-            
 
             double reward = this.compute_reward(agent);
-            return (obs, gesture, actions,reward);
+
+            bool end = agent.Location.distance(this.goal_point) < 35;
+            return (obs, gesture, actions,reward,end);
         }
 
         public static List<double> createInstinctAction(Network net, int time)
@@ -327,6 +331,46 @@ namespace NWSEExperiment.maze
             t2.Add(new Point2D(568, 1129));
             t2.Add(new Point2D(this.goal_point.X, this.goal_point.Y));
             optimaTraces.Add(t2);
+        }
+        public double compute_fitness(Network net,Session session)
+        {
+            RobotAgent robot = (RobotAgent)this.GetAgent(net.Id);
+            List<Point2D> traces = new List<Point2D>(robot.Traces);
+            if (traces.Count <= 0) return 0;
+            //最后一个点到目标点的距离
+            double d = traces.Last().distance(this.goal_point);
+            //找到最后一个点，最近的最优轨迹点
+            int optimaIndex = -1, posIndex = -1;
+            double minDistance = double.MaxValue;
+            for(int i=0;i< optimaTraces.Count;i++)
+            {
+                List<Point2D> temp = optimaTraces[i];
+                List<double> distances = temp.ConvertAll(t => t.distance(traces.Last()));
+                if(distances.Min() < minDistance)
+                {
+                    optimaIndex = i;
+                    posIndex = distances.argmin();
+                    minDistance = distances.Min();
+                }
+            }
+            List<double> dis = new List<double>();
+            dis.Add(minDistance);
+            List<Point2D> optimas = optimaTraces[optimaIndex].GetRange(0, posIndex);
+            traces.RemoveAt(traces.Count - 1);
+
+            while(optimas.Count>0 && traces.Count>0)
+            {
+                minDistance = double.MaxValue;
+                List<double> distances = optimas.ConvertAll(t => t.distance(traces.Last()));
+                int minindex = distances.argmin();
+                dis.Add(distances[minindex]);
+                traces.RemoveAt(traces.Count - 1);
+                optimas = optimas.GetRange(0, minindex);
+            }
+            double avgdis = dis.Average();
+            return Math.Exp(-1*avgdis) + (d<35?1:0);
+
+
         }
 
         
@@ -418,6 +462,23 @@ namespace NWSEExperiment.maze
         public void clearAgent()
         {
             this.agents.Clear();
+        }
+
+        /// <summary>
+        /// 查询网络对应的Agent
+        /// </summary>
+        /// <param name="net"></param>
+        /// <returns></returns>
+        public Agent GetAgent(int id = 0)
+        {
+            if(id == 0)
+            {
+                return this.agents.Count <= 0 ? null : (Agent)this.agents.Values.ToList()[0];
+            }
+            else
+            {
+                return this.agents.ContainsKey(id) ? this.agents[id] : null;
+            }
         }
         #endregion
 

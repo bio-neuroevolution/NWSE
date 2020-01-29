@@ -48,10 +48,7 @@ namespace NWSELib.net
             foreach(Inference inff in net.Inferences)
             {
                 //创建一个对应
-                Inference absIntegration = new Inference(inff.Gene,net)
-                {
-                    Reability = inff.Reability
-                };
+                Inference absIntegration = new Inference(inff.Gene,net);
                 this.inferences.Add(absIntegration);
                 List<List<double>> accuracies = new List<List<double>>();
                 List<List<double>> evaulations = new List<List<double>>();

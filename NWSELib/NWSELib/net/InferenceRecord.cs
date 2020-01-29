@@ -360,7 +360,7 @@ namespace NWSELib.net
             int size = realCondValues.size();
             //条件部分是否匹配
             double dis = Vector.max_manhantan_distance(realCondValues, meanCondValues);
-            if (dis >= Session.GetConfiguration().learning.judge.tolerable_similarity)
+            if (dis >= Session.GetConfiguration().learning.tolerable_similarity)
                 return this.accuracyDistance;
 
             this.accuracyDistance = Vector.manhantan_distance(realVarValues, meanVarValues);
@@ -369,21 +369,8 @@ namespace NWSELib.net
         #endregion
 
         #region 环境与推理的匹配性检查
-        /// <summary>
-        /// 给定的条件值是否与本记录均值条件部分匹配（足够近）
-        /// </summary>
-        /// <param name="net"></param>
-        /// <param name="inf"></param>
-        /// <param name="condValues"></param>
-        /// <param name="distance"></param>
-        /// <returns></returns>
-        public bool isConditionValueMatch2(Network net, Inference inf, List<Vector> condValues, out double distance)
-        {
-            distance = getConditionValueDistance(net, inf, condValues);
-            int size = condValues.size();
-            return (distance < Session.GetConfiguration().learning.judge.tolerable_similarity);
-        }
-        //for test
+        
+
         public bool isConditionValueMatch(Network net, Inference inf, List<Vector> condValues, out double distance)
         {
             List<double> distances = new List<double>();

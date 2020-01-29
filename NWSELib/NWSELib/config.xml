@@ -64,10 +64,9 @@
     
   </agent>
 
-  <learning eplison="0.7">
+  <learning eplison="0.7" tolerable_similarity="0.05">
     <inference accept_prob="0.7" accept_max_count="3" inference_distance="0.1"></inference>
     <imagination abstractLevel="0"></imagination>
-    <judge tolerable_similarity="0.05"></judge>
   </learning>
 
   <evaluation reward_method="collision" timeStep="1.0" run_count="500" max_reward="100" gene_reability_range="[-10.0-10.0+0.1]">
@@ -87,5 +86,5 @@
     <handler name="argmax" paramcount="0" paramrange="" typename="NWSELib.net.handler.ArgmaxHandler" selection_prob_range="[0-1+0.01]"></handler>
   </handlers>
 
-  <view width="1300" height="800"></view>
+  <view width="1300" height="850"></view>
 </configuration>

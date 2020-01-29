@@ -16,9 +16,27 @@ using NWSELib.env;
 
 namespace NWSELib
 {
+    /// <summary>
+    /// 推送事件消息
+    /// </summary>
+    /// <param name="eventName"></param>
+    /// <param name="generation"></param>
+    /// <param name="states"></param>
     public delegate void EventHandler(String eventName, int generation,params Object[] states);
-
+    /// <summary>
+    /// 生成本能动作（总是朝向目标方向走）
+    /// </summary>
+    /// <param name="net"></param>
+    /// <param name="time"></param>
+    /// <returns></returns>
     public delegate List<double> InstinctActionHandler(Network net, int time);
+    /// <summary>
+    /// 计算适应度方法
+    /// </summary>
+    /// <param name="net"></param>
+    /// <param name="session"></param>
+    /// <returns></returns>
+    public delegate double FitnessHandler(Network net, Session session);
     /// <summary>
     /// 执行任务
     /// </summary>
@@ -41,6 +59,10 @@ namespace NWSELib
         /// 本能行为处理器
         /// </summary>
         public static InstinctActionHandler instinctActionHandler;
+        /// <summary>
+        /// 适应度函数
+        /// </summary>
+        public static FitnessHandler fitnessHandler;
 
         /// <summary>
         /// 配置
@@ -112,10 +134,12 @@ namespace NWSELib
         /// </summary>
         public IEnv Env { get=> env; }
         
-        public Session(IEnv env,EventHandler handler)
+        public Session(IEnv env, FitnessHandler fitness,EventHandler handler,InstinctActionHandler instinctHandler)
         {
             this.env = env;
             this.handler = handler;
+            Session.instinctActionHandler = instinctHandler;
+            Session.fitnessHandler = fitness;
         }
 
         /// <summary>
@@ -160,50 +184,45 @@ namespace NWSELib
                 //环境交互过程
                 foreach(Network net in inds)
                 {
-                    logger.Info("gamebegin ind=" + net.Genome.id);
-                    this.triggerEvent(Session.EVT_NAME_MESSAGE, "Network("+net.Id+") begin" );
+                    this.triggerEvent(Session.EVT_MESSAGE, "Network("+net.Id+") begin" );
                     (List<double> obs,List<double> gesture) = env.reset(net);
                     double reward = 0.0;
+                    bool end = false;
                     for (int time = 0; time <= Session.GetConfiguration().evaluation.run_count; time++) 
                     {
                         List<double> actions = net.activate(obs, time,this, reward);
-                        (obs, gesture, actions,reward) = env.action(net,actions);
-                        //net.setReward(reward,time);
-                        this.triggerEvent(Session.EVT_NAME_MESSAGE, "time="+time.ToString()+",action=" + actions.ConvertAll(x => x.ToString()).Aggregate((a, b) => String.Format("{0:##.###}", a) + "," + String.Format("{0:##.###}", b))
-                            + ",reward = " + reward.ToString() + ", obs="+Utility.toString(obs));
-                        this.triggerEvent(Session.EVT_NAME_MESSAGE, " mental process:" + net.showActionPlan());
+                        (obs, gesture, actions,reward,end) = env.action(net,actions);
+                        this.triggerEvent(Session.EVT_MESSAGE, "time="+time.ToString()+",action=" + actions.ConvertAll(x => x.ToString()).Aggregate((a, b) => String.Format("{0:##.###}", a) + "," + String.Format("{0:##.###}", b))
+                            + ",reward = " + reward.ToString() + ", obs="+Utility.toString(obs)+ ",gesture="+Utility.toString(gesture));
+                        this.triggerEvent(Session.EVT_MESSAGE, " mental process:" + net.showActionPlan());
 
-                        logger.Info("gamerun ind=" + net.Genome.id +",time="+time+ ",action"+actions+ ",obs=" + obs+",reward="+reward);
-                        if (reward >= Session.GetConfiguration().evaluation.max_reward)
-                        {
-                            logger.Info("evolution_end reason=maxreward ind="+net.Genome.id+",generation="+Generation);
-                            triggerEvent("evolution_end", "maxreward",net);
-                            return;
-                        }
+
+                        if (end) break;
+                        judgePaused();
                     }
-                    this.triggerEvent(Session.EVT_NAME_END_ACTION, net,this.generation);
-                    this.triggerEvent(Session.EVT_NAME_MESSAGE, "Network(" + net.Id + ") end"+System.Environment.NewLine);
+
+                    net.Fitness = Session.fitnessHandler == null ? 0 : Session.fitnessHandler(net, this);
+                    this.triggerEvent(Session.EVT_MESSAGE, "Network(" + net.Id + ") end"+System.Environment.NewLine);
 
                     judgePaused();
                 }
-                this.triggerEvent(Session.EVT_NAME_CLEAR_AGENT);
+                
 
                 //最优个体
-                int indIndex = this.inds.ConvertAll(ind => ind.Reability).argmax();
-                this.triggerEvent(Session.EVT_NAME_OPTIMA_IND, this.inds[indIndex]);
+                int indIndex = this.inds.ConvertAll(ind => ind.Fitness).argmax();
+                this.triggerEvent(Session.EVT_OPTIMA_IND, this.inds[indIndex]);
 
-                this.generation += 1;
                 //是否达到最大迭代次数
+                this.generation += 1;
                 if (this.generation >= Session.GetConfiguration().evolution.iter_count)
                 {
-                    logger.Info("evolution_end reason=max_iter_count");
-                    triggerEvent("evolution_end", "max_iter_count");
+                    triggerEvent(EVT_EVOLUTION_END, this);
                     return;
                 }
 
                 //进化过程
-                //Evolution evolution = new Evolution();
-                //evolution.execute(inds, this);
+                Evolution evolution = new Evolution();
+                evolution.execute(inds, this);
 
                 judgePaused();
 
@@ -232,17 +251,17 @@ namespace NWSELib
             }
             return true;
         }
+
+        
         
 
-        public const String EVT_NAME_DO_ACTION = "do_action";
-        public const String EVT_NAME_END_ACTION = "end_action";
-        public const String EVT_NAME_CLEAR_AGENT = "clear_agent";
-        public const String EVT_NAME_OPTIMA_IND = "optima_ind";
-        public const String EVT_NAME_MESSAGE = "message";
-        public const String EVT_NAME_INVAILD_GENE = "invaild_gene";
-        public const String EVT_NAME_VAILD_GENE = "vaild_gene";
-        public const String EVT_NAME_IND_COUNT = "ind_count";
-        public const String EVT_NAME_REABILITY = "reability";
+        public const String EVT_OPTIMA_IND = "optima_ind";
+        public const String EVT_MESSAGE = "message";
+        public const String EVT_INVAILD_GENE = "invaild_gene";
+        public const String EVT_VAILD_GENE = "vaild_gene";
+        public const String EVT_IND_COUNT = "ind_count";
+        public const String EVT_REABILITY = "reability";
+        public const String EVT_EVOLUTION_END = "evolution_end";
     }
     #endregion
 }

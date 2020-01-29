@@ -269,7 +269,8 @@ namespace NWSEExperiment.maze
                 else return this.traces[this.traces.Count-2];
             }  
         }
-    
+        public List<Point2D> Traces { get => this.traces; }
+
         public Circle2D AreaOfImpact { get => areaOfImpact; set => areaOfImpact = value; }
         
         public bool Stopped;

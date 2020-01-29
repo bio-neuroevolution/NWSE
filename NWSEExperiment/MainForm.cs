@@ -21,15 +21,8 @@ namespace NWSEExperiment
 {
     public partial class MainForm : Form
     {
-        public HardMaze maze;
-        private CoordinateFrame frame;
-        public Session evolutionSession;
+        #region 基本信息
         private ILog logger = LogManager.GetLogger(typeof(MainForm));
-
-        private RobotAgent optimaAgent;
-        private Network optima_net;
-        private int optima_generation;
-
         public MainForm()
         {
             Form.CheckForIllegalCrossThreadCalls = false;
@@ -39,63 +32,42 @@ namespace NWSEExperiment
             this.Width = Session.GetConfiguration().view.width;
             this.Height = Session.GetConfiguration().view.height;
 
-
-            maze = HardMaze.loadEnvironment("QDMaze.xml");
-            this.panel2.Width = Session.GetConfiguration().view.width - maze.AOIRectangle.Width - 10;
-            //this.Refresh();
-
-            
+            resetEvolution();
+            resetDemo();
         }
 
-        private void toolStripButton1_Click(object sender, EventArgs e)
+        private void btnshowTrail_Click(object sender, EventArgs e)
         {
-            
+            if (demoMaze == null) return;
+            this.demoMaze.ShowTrail = btnoShowTrail.Checked;
         }
+        #endregion
 
-        public void panel_Paint(object sender, PaintEventArgs e)
+        #region 进化过程
+
+        public HardMaze evolutionMaze;
+        private CoordinateFrame evolutionFrame;
+        public Session evolutionSession;
+
+        private RobotAgent optimaAgent;
+        private Network optima_net;
+        private int optima_generation;
+        public void resetEvolution()
         {
-            
-            if (maze == null) return;
-            if(frame == null)
-                frame = new CoordinateFrame(0.0f, maze.AOIRectangle.Y, 1.1f, 0.0f);
-            
-            maze.draw(e.Graphics, frame);
+            evolutionMaze = HardMaze.loadEnvironment("QDMaze.xml");
+            evolutionFrame = new CoordinateFrame(0.0f, evolutionMaze.AOIRectangle.Y, 1.1f, 0.0f);
+            optimaAgent = null;
+            optima_net = null;
+            optima_generation = -1;
 
-            if(btnPolicyShow.Checked && inferencing)
-            {
-                if (this.optimaAgent == null) return;
-                this.optimaAgent.drawEvaulation(e.Graphics, frame);
-            }
+            evolutionSession = new Session(this.evolutionMaze, new FitnessHandler(evolutionMaze.compute_fitness), EventHandler, new InstinctActionHandler(HardMaze.createInstinctAction));  
         }
-
-        private void showOptimaInd(Graphics g)
-        {
-            if (this.optima_net == null) return;
-            Network net = optima_net;
-            gbInd.Text = "generation=" + this.optima_generation + ",network=" + net.Id;
-
-            int hspace = 5, vspace = 10;
-        }
-
-        private void panel_MouseMove(object sender, MouseEventArgs e)
-        {
-            if (maze == null || frame == null) return;
-            float mazeX, mazeY;
-            frame.convertFromDisplay(e.X, e.Y, out mazeX, out mazeY);
-
-            (double poscode,(int gridx,int gridy)) = MeasureTools.Position.poscodeCompute(maze.AOIRectangle,mazeX,mazeY);
-            if(poscode<=0)
-                this.statusXY.Text = String.Format("X={0:000.00},Y={1:000.00}", mazeX, mazeY);
-            else
-                this.statusXY.Text = String.Format("X={0:000.00},Y={1:000.00},pos={2:0.0000},grid=[{3},{4}]", mazeX, mazeY, poscode,gridx,gridy);
-        }
-
         private void toolStripButton2_Click(object sender, EventArgs e)
         {
             if (evolutionSession != null) return;
             try
             {
-                evolutionSession = new Session(this.maze, EventHandler);
+                resetEvolution();
                 evolutionSession.run();
             }
             catch(Exception ex)
@@ -110,29 +82,14 @@ namespace NWSEExperiment
 
         public void EventHandler(String eventName, int generation,params Object[] states)
         {
-            if(eventName == Session.EVT_NAME_DO_ACTION)
-            {
-                Network net = (Network)states[0];
-                maze.updateAgent(net);
-                this.Refresh();
-            }else if(eventName == Session.EVT_NAME_END_ACTION)
-            {
-                Network net = (Network)states[0];
-                //maze.removeAgent(net);
-                this.Refresh();
-            }
-            else if(eventName == Session.EVT_NAME_CLEAR_AGENT)
-            {
-                //maze.clearAgent();
-                this.Refresh();
-            }else if(eventName == Session.EVT_NAME_OPTIMA_IND)
+            if(eventName == Session.EVT_OPTIMA_IND)
             {
                 this.optima_generation = generation;
                 this.optima_net = (Network)states[0];
-            }else if(eventName == Session.EVT_NAME_MESSAGE)
+            }else if(eventName == Session.EVT_MESSAGE)
             {
                 txtLog.Text += states[0].ToString() + System.Environment.NewLine;
-            }else if(eventName == Session.EVT_NAME_INVAILD_GENE)
+            }else if(eventName == Session.EVT_INVAILD_GENE)
             {
                 Network net = (Network)states[0];
                 NodeGene gene = (NodeGene)states[1];
@@ -140,7 +97,7 @@ namespace NWSEExperiment
                 txtMilestone.Text += "gene was eliminated in generation" + generation.ToString() + ":" + System.Environment.NewLine;
                 txtMilestone.Text += gene.ToString() + System.Environment.NewLine;
             }
-            else if(eventName == Session.EVT_NAME_VAILD_GENE)
+            else if(eventName == Session.EVT_VAILD_GENE)
             {
                 Network net = (Network)states[0];
                 NodeGene gene = (NodeGene)states[1];
@@ -148,11 +105,11 @@ namespace NWSEExperiment
                 txtMilestone.Text += "gene was considered valid in generation" + generation.ToString() + ":" + System.Environment.NewLine;
                 txtMilestone.Text += gene.ToString() + System.Environment.NewLine;
             }
-            else if(eventName == Session.EVT_NAME_REABILITY)
+            else if(eventName == Session.EVT_REABILITY)
             {
                 txtLog.Text += "reablity avg=" + states[0].ToString() + ",variance=" + states[1].ToString() + System.Environment.NewLine;
             }
-            else if(eventName == Session.EVT_NAME_IND_COUNT)
+            else if(eventName == Session.EVT_IND_COUNT)
             {
                 this.lblindcount.Text = "size of population:"+states[1].ToString() + "(Preceding " + states[0].ToString()+")";
                 txtLog.Text += "Elimination stat:" + states[1].ToString() + "(Preceding " + states[0].ToString() + ")" + ",reability limit=" + states[2].ToString();
@@ -165,11 +122,49 @@ namespace NWSEExperiment
             this.evolutionSession.paused = !this.evolutionSession.paused;
         }
 
-        private void btnshowTrail_Click(object sender, EventArgs e)
+        #endregion
+
+        #region 演示过程
+
+        public HardMaze demoMaze;
+        private CoordinateFrame demoFrame;
+        private RobotAgent demoAgent;
+        private Network demoNet;
+        public void resetDemo()
         {
-            if (this.maze == null) return;
-            this.maze.ShowTrail = btnoShowTrail.Checked ;
+            demoMaze = HardMaze.loadEnvironment("QDMaze.xml");
+            demoFrame = new CoordinateFrame(0.0f, demoMaze.AOIRectangle.Y, 1.1f, 0.0f);
         }
+
+        public void panel_Paint(object sender, PaintEventArgs e)
+        {
+
+            if (demoMaze == null) return;
+
+            demoMaze.draw(e.Graphics, demoFrame);
+
+            if (btnPolicyShow.Checked && inferencing)
+            {
+                if (this.demoAgent == null) return;
+                this.demoAgent.drawEvaulation(e.Graphics, demoFrame);
+            }
+        }
+
+
+        private void panel_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (demoMaze == null) return;
+            float mazeX, mazeY;
+            demoFrame.convertFromDisplay(e.X, e.Y, out mazeX, out mazeY);
+
+            (double poscode, (int gridx, int gridy)) = MeasureTools.Position.poscodeCompute(demoMaze.AOIRectangle, mazeX, mazeY);
+            if (poscode <= 0)
+                this.statusXY.Text = String.Format("X={0:000.00},Y={1:000.00}", mazeX, mazeY);
+            else
+                this.statusXY.Text = String.Format("X={0:000.00},Y={1:000.00},pos={2:0.0000},grid=[{3},{4}]", mazeX, mazeY, poscode, gridx, gridy);
+        }
+        #endregion
+
 
         #region 交互式执行
         private NWSEGenomeFactory genomeFactory = new NWSEGenomeFactory();
@@ -178,6 +173,7 @@ namespace NWSEExperiment
         private List<double> gesture;
         private List<double> actions;
         private double reward;
+        private bool end;
 
         private bool inferencing;
         /// <summary>
@@ -187,14 +183,13 @@ namespace NWSEExperiment
         /// <param name="e"></param>
         private void toolStripButton4_Click(object sender, EventArgs e)
         {
-            //this.maze = new HardMaze();
-            this.evolutionSession = new Session(maze,null);
-            Session.instinctActionHandler = new InstinctActionHandler(HardMaze.createInstinctAction);    
-            this.optima_net = new Network(genomeFactory.createDemoGenome(evolutionSession));
-            evolutionSession.root = new EvolutionTreeNode(optima_net);
+            if(demoNet == null)
+            {
+                demoNet = new Network(genomeFactory.createDemoGenome(evolutionSession)); 
+            }
             interactive_time = 0;
-            (obs, gesture) = maze.reset(optima_net);
-            optimaAgent = maze.Agents[0];
+            (obs, gesture) = demoMaze.reset(optima_net);
+            demoAgent = demoMaze.Agents[0];
 
             (int ptx, int pty) = MeasureTools.Position.poscodeSplit(obs[11]);
             this.txtMsg.Text = "第" + interactive_time.ToString() + "次交互" + System.Environment.NewLine;
@@ -202,6 +197,7 @@ namespace NWSEExperiment
             this.txtMsg.Text += "位置=" + obs[11].ToString("F4") + "(" + ptx.ToString() + "," + pty.ToString() + ")" + System.Environment.NewLine;
             this.txtMsg.Text += "目标=" + Utility.toString(obs.GetRange(6, 4)) + System.Environment.NewLine; ;
             this.txtMsg.Text += "朝向=" + MeasureTools.Direction.headingToDegree(gesture[0]).ToString("F2") +"("+ gesture[0].ToString("F2")+")"+ System.Environment.NewLine;
+            this.txtMsg.Text += "到达=" + end.ToString() + System.Environment.NewLine;
             this.txtMsg.Text += System.Environment.NewLine;
             inferencing = false;
             this.Refresh();
@@ -237,7 +233,7 @@ namespace NWSEExperiment
         /// <param name="e"></param>
         private void toolStripButton7_Click(object sender, EventArgs e)
         {
-            (obs,gesture,actions,reward) = ((IEnv)this.maze).action(this.optima_net,
+            (obs,gesture,actions,reward,end) = ((IEnv)this.demoMaze).action(this.optima_net,
                 this.optima_net.Effectors.ConvertAll(x => x.Value[0]));
             (int ptx, int pty) = MeasureTools.Position.poscodeSplit(obs[11]);
 
@@ -247,7 +243,7 @@ namespace NWSEExperiment
             this.txtMsg.Text += "位置=" + obs[11].ToString("F4")+"("+ ptx.ToString()+","+pty.ToString()+")"+System.Environment.NewLine;
             this.txtMsg.Text += "朝向=" + MeasureTools.Direction.headingToDegree(gesture[0]).ToString("F2") + "(" + gesture[0].ToString("F2") + ")" + System.Environment.NewLine;
             this.txtMsg.Text += "奖励=" + this.reward+ System.Environment.NewLine;
-            this.txtMsg.Text += "障碍=" + this.optimaAgent.PrevCollided.ToString() + "->" + optimaAgent.HasCollided.ToString();
+            this.txtMsg.Text += "碰撞=" + this.optimaAgent.PrevCollided.ToString() + "->" + optimaAgent.HasCollided.ToString();
             this.txtMsg.Text += System.Environment.NewLine;
 
             //this.optima_net.setReward(reward, interactive_time);
@@ -288,6 +284,7 @@ namespace NWSEExperiment
         }
         #endregion
 
+        #region 当前个体的内部结构
         private void btnIndStructLevel1_Click(object sender, EventArgs e)
         {
             this.txtMsg.Text += System.Environment.NewLine;
@@ -325,5 +322,6 @@ namespace NWSEExperiment
             this.Refresh();
 
         }
+        #endregion
     }
 }

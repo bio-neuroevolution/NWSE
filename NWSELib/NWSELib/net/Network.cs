@@ -278,27 +278,19 @@ namespace NWSELib.net
 
         #region 评价信息
         /// <summary>
-        /// 网络可靠度，是指节点平均可靠度占所有个体的节点平均可靠度之和的比例
+        /// 适应度
         /// </summary>
-        protected double reability;
-        /// <summary>
-        /// 所有节点平均可靠度
-        /// </summary>
-        /// <returns></returns>
-        public double GetNodeAverageReability()
-        {
-            double r = 0.0;
-            this.Handlers.ForEach(h => r += h.Reability);
-            this.Inferences.ForEach(i => r += i.Reability);
-            return r / (this.Handlers.Count + this.Inferences.Count);
-        }
+        public double Fitness { get; set; }
+        
         /// <summary>
         /// 网络可靠度
         /// </summary>
-        public double Reability
+        public double AverageReability
         {
-            get => reability;
-            set => reability = value;
+            get 
+            {
+                return this.Inferences.ConvertAll(inf => inf.Reability).Average();
+            }
         }
 
         public List<NodeGene> getVaildInferenceGene()
