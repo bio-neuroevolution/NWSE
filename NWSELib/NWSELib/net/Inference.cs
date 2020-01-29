@@ -230,14 +230,54 @@ namespace NWSELib.net
             return r;
         }
 
-        public List<InferenceRecord> getMatchRecordsInThink(Network net,int time)
+        public (InferenceRecord,double) getNearestMatchRecord(Network net, List<Vector> values, int time)
         {
+            List<(InferenceRecord, double)> result = this.getMatchRecords(net, values, time);
+            if (result == null || result.Count <= 0) return (null, 0.0);
+            double d = double.MaxValue;
+            InferenceRecord r = null;
+            foreach(var temp in result)
+            {
+                if(temp.Item2<d)
+                {
+                    d = temp.Item2;
+                    r = temp.Item1;
+                }
+            }
+            return (r, d);
+        }
+        public List<(InferenceRecord,double)> getMatchRecords(Network net,List<Vector> values,int time)
+        {
+            List<(InferenceRecord, double)> result = new List<(InferenceRecord, double)>();
+
+            foreach (InferenceRecord r in this.records)
+            {
+                double dis = 0.0;
+                if(r.isConditionValueMatch(net, this, values, out dis))
+                {
+                    result.Add((r,dis));
+                }
+            }
+            return result;
+        }
+        public List<(InferenceRecord,double)> getMatchRecordsInThink(Network net,int time)
+        {
+            List<(InferenceRecord, double)> result = new List<(InferenceRecord, double)>();
+
             List<(int, int)> conds = this.getGene().getConditions();
             List<Vector> values = conds.ConvertAll(cond =>
                 net.getNode(cond.Item1).getThinkValues(time)
             );
-            double distance = 0.0;
-            return this.records.FindAll(r => r.isConditionValueMatch(net, this, values, out distance));
+            foreach(InferenceRecord record in this.records)
+            {
+                double distance = 0.0;
+                if (record.isConditionValueMatch(net, this, values, out distance))
+                {
+                    result.Add((record,distance));
+                }
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -338,9 +378,12 @@ namespace NWSELib.net
                     record.covariance[i, i] = 1.0;
                 record.weight = 1.0;
                 record.acceptCount = 1;
+                var nearestRecord = this.getNearestMatchRecord(net, record.getMeanValues().condValues, time);
+                if (nearestRecord.Item1 != null) record.evulation = nearestRecord.Item1.evulation;
                 this.records.Add(record);
                 activeValue = values.flatten().Item1;
                 base.activate(net, time, activeValue);
+               
                 return activeValue;
             }
 
@@ -372,6 +415,8 @@ namespace NWSELib.net
                 for (int i = 0; i < totaldimesion; i++) //缺省协方差矩阵为单位阵
                     record.covariance[i, i] = 1.0;
                 record.acceptCount = 1;
+                var nearestRecord = this.getNearestMatchRecord(net, record.getMeanValues().condValues, time);
+                if (nearestRecord.Item1 != null) record.evulation = nearestRecord.Item1.evulation;
                 this.records.Add(record);
                 activeValue = values.flatten().Item1;
                 base.activate(net, time, activeValue);
@@ -425,6 +470,8 @@ namespace NWSELib.net
                     
                     InferenceRecord newRecord = create_newrecord_bysamples(clusters[i], des[i]);
                     newRecord.density = des[i].Average();
+                    var nearestRecord = this.getNearestMatchRecord(net, newRecord.getMeanValues().condValues, time);
+                    if (nearestRecord.Item1 != null) newRecord.evulation = nearestRecord.Item1.evulation;
                     this.records.Add(newRecord);
                 }
                 newCount = clusters.Count;
@@ -665,7 +712,7 @@ namespace NWSELib.net
         }
         public (InferenceRecord, List<Vector>,double distance) forward_inference(Network net,List<Vector> condvalues)
         {
-            double distance = 0;
+            double distance = double.MaxValue;
             InferenceRecord matchedRecord = null;
             double evaulation = double.MaxValue;
             foreach(InferenceRecord r in this.records)
@@ -673,7 +720,8 @@ namespace NWSELib.net
                 double d = 0;
                 if (!r.isConditionValueMatch(net, this, condvalues, out d))
                     continue;
-                if(r.evulation < evaulation) //找相近里面评估最差的？
+                //if(r.evulation < evaulation) //找相近里面评估最差的？
+                if (d < distance) //找距离最近的
                 {
                     evaulation = r.evulation;
                     matchedRecord = r;

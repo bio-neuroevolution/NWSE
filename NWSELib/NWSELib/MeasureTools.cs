@@ -188,7 +188,7 @@ namespace NWSELib
     }
     public class DirectionMeasure : MeasureTools
     {
-        public double default_tolerate_angle = 90.0 / 360;
+        public double default_tolerate_angle = 30.0 / 360;
 
         public DirectionMeasure(Configuration.Mensuration m):base(m)
         {

@@ -2,8 +2,8 @@
 <configuration>
   <mensurations>
     <mensuration name="distance" caption="distance" tolerate="0.2" levels="5" levelNames="极小,较小,中等,较大,较大" range="[0.0-1.0]" typeName="NWSELib.DistanceMeasure" dimension="1" ></mensuration>
-    <mensuration name="direction" caption="direction" tolerate="0.25" levels="8" levelNames="东,东南,南,西南,西,西北,北,东北" range="[0.0-1.0]" typeName="NWSELib.HeadingMeasure" dimension="1" ></mensuration>
-    <mensuration name="poscode" caption="poscode" tolerate="32" levels="" levelNames="" range="[0.0-1.0]" typeName="NWSELib.PositionCodeMeasure" dimension="1" ></mensuration>
+    <mensuration name="direction" caption="direction" tolerate="0.083" levels="8" levelNames="东,东南,南,西南,西,西北,北,东北" range="[0.0-1.0]" typeName="NWSELib.HeadingMeasure" dimension="1" ></mensuration>
+    <mensuration name="poscode" caption="poscode" tolerate="128" levels="" levelNames="" range="[0.0-1.0]" typeName="NWSELib.PositionCodeMeasure" dimension="1" ></mensuration>
     <mensuration name="onoff" caption="onoff" tolerate="0" levels="2" levelNames="无,有" range="[0.0-1.0]" typeName="NWSELib.OnoffMeasure" dimension="1" ></mensuration>
   </mensurations>
     
@@ -56,7 +56,7 @@
       
       <actions>
         <!-- <sensor name="_a1" cataory="speed" group="action" range="[0 - 1]" level="[5-5]"/>-->
-        <sensor name="_a2" desc="rotate" cataory="direction" group="action" abstractLevel="0" level="13" levelNames="-180度,-150度,-120度,-90度,-60度,-30度,0度,30度,60度,90度,120度,150度,180度"/>
+        <sensor name="_a2" desc="rotate" cataory="direction" group="action" abstractLevel="0" levels="13" levelNames="-180度,-150度,-120度,-90度,-60度,-30度,0度,30度,60度,90度,120度,150度,180度"/>
       </actions>
     </receptors>
 

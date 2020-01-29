@@ -171,6 +171,7 @@ namespace NWSEExperiment
             this.maze.ShowTrail = btnoShowTrail.Checked ;
         }
 
+        #region 交互式执行
         private NWSEGenomeFactory genomeFactory = new NWSEGenomeFactory();
         private int interactive_time = 0;
         private List<double> obs;
@@ -285,6 +286,7 @@ namespace NWSEExperiment
 
             }
         }
+        #endregion
 
         private void btnIndStructLevel1_Click(object sender, EventArgs e)
         {

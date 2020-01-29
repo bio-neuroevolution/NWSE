@@ -451,41 +451,21 @@ namespace NWSEExperiment.maze
             {
                 if ((angle < 45 || angle >= 315) && r.StartAngle == 315)
                 {
-                    r.Activation = Math.Cos(angle);
-                    if (angle >= 315) r.Activation = -1 * r.Activation;
-                    r.Activation = r.Activation / 2 + 0.5;
+                    r.Activation = angle / 360;
+                    break;
                 }
                 else if (angle >= r.StartAngle && angle < r.EndAngle)
                 {
-                    double c = (r.EndAngle - r.StartAngle) / 2;
-                    r.Activation = Math.Cos(Math.Abs(angle - c));
-                    if (angle >= c) r.Activation = -1 * r.Activation;
-                    r.Activation = r.Activation / 2 + 0.5;
+                    r.Activation = angle / 360;
+                    break;
                 }
             }
-               
-            /*
-            foreach (Radar r in GoalSensors)
-                // First, check if the Angle is in the wonky pie slice
-                if ((angle < 45 || angle >= 315) && r.StartAngle == 315)
-                {
-                    //r.Activation = 1;
-                    r.Activation = Math.Cos(angle);
-                    break;
-                }
 
-                // Then check the other pie slices
-                else if (angle >= r.StartAngle && angle < r.EndAngle)
-                {
-                    //r.Activation = 1;
-                    r.Activation = Math.Cos(Math.Abs(angle - (r.EndAngle-r.StartAngle)/2));
-                    break;
-                }
-            }*/
+            
 
             // Update the compass/northstar GoalSensors
             // Note: This is trivial compared to rangefinder updates, which check against all walls for collision. No need to gate it to save CPU.
-            double northstarangle = Heading/ 57.297;
+            double northstarangle = Heading / 57.297;
             northstarangle *= 57.297f; // convert radians to degrees
 
             while (northstarangle > 360)
@@ -517,6 +497,109 @@ namespace NWSEExperiment.maze
             }
 
         }
+        /*public void updateSensors()
+        {
+
+            // Clear out GoalSensors from last time
+            InputValues.Clear();
+            foreach (Radar r in GoalSensors)
+            {
+                r.Activation = 0;
+            }
+            foreach (Radar r in CompassSensors)
+            {
+                r.Activation = 0;
+            }
+
+            // Update regular (target) GoalSensors
+            double angle = 0;
+            Point2D temp;
+            temp = new Point2D(maze.goal_point.X, maze.goal_point.Y);
+            temp.X -= (float)Location.X;
+            temp.Y -= (float)Location.Y;
+            //temp.X -= (float)AreaOfImpact.Position.X;
+            //temp.Y -= (float)AreaOfImpact.Position.Y;
+
+            angle = (float)temp.angle();
+            angle -= Heading;
+            angle *= 57.297f; // convert radians to degrees
+
+            while (angle > 360)
+                angle -= 360;
+            while (angle < 0)
+                angle += 360;
+
+            foreach (Radar r in GoalSensors)
+            {
+                if ((angle < 45 || angle >= 315) && r.StartAngle == 315)
+                {
+                    r.Activation = Math.Cos(angle);
+                    //if (angle >= 315) r.Activation = -1 * r.Activation;
+                    //r.Activation = r.Activation / (Math.PI * 2) + 0.5;
+                    r.Activation = r.Activation / 2 + 0.5;
+                }
+                else if (angle >= r.StartAngle && angle < r.EndAngle)
+                {
+                    double c = (r.EndAngle - r.StartAngle) / 2;
+                    r.Activation = Math.Cos(Math.Abs(angle - c));
+                    if (angle >= c) r.Activation = -1 * r.Activation;
+                    r.Activation = r.Activation / 2 + 0.5;
+                }
+            }
+
+
+            foreach (Radar r in GoalSensors)
+                // First, check if the Angle is in the wonky pie slice
+                if ((angle < 45 || angle >= 315) && r.StartAngle == 315)
+                {
+                    //r.Activation = 1;
+                    r.Activation = Math.Cos(angle);
+                    break;
+                }
+
+                // Then check the other pie slices
+                else if (angle >= r.StartAngle && angle < r.EndAngle)
+                {
+                    //r.Activation = 1;
+                    r.Activation = Math.Cos(Math.Abs(angle - (r.EndAngle - r.StartAngle) / 2));
+                    break;
+                }
+        }
+
+        // Update the compass/northstar GoalSensors
+        // Note: This is trivial compared to rangefinder updates, which check against all walls for collision. No need to gate it to save CPU.
+        double northstarangle = Heading / 57.297;
+        northstarangle *= 57.297f; // convert radians to degrees
+
+            while (northstarangle > 360)
+                northstarangle -= 360;
+            while (northstarangle< 0)
+                northstarangle += 360;
+
+            foreach (Radar r in CompassSensors)
+            {
+                // First, check if the Angle is in the wonky pie slice
+                if ((northstarangle< 45 || northstarangle >= 315) && r.StartAngle == 315)
+                {
+                    r.Activation = 1;
+                    break;
+                }
+
+                // Then check the other pie slices
+                else if (northstarangle >= r.StartAngle && northstarangle<r.EndAngle)
+                {
+                    r.Activation = 1;
+                    break;
+                }
+            }
+
+            // Update the rangefinders
+            foreach (RangeFinder r in WallSensors)
+            {
+                r.update();
+            }
+
+        }*/
 
         public override List<double> getObserve()
         {

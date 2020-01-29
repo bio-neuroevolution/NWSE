@@ -248,21 +248,17 @@ namespace NWSEExperiment.maze
         public static List<double> createInstinctAction(Network net, int time)
         {
             String[] g = { "g1", "g2", "g3", "g4" };
-            double[] cAngle = { 0, Math.PI / 2, Math.PI, Math.PI * 3 / 2 };
+            double[] cAngle = { 0, Math.PI / 2, Math.PI, -Math.PI/ 2 };
             for(int i =0;i<g.Length;i++)
             {
                 double v = net.getNode(g[i]).GetValue(time)[0];
                 if (v <= 0) continue;
-                v = (v - 0.5) * 2;
-                double angle = Math.Acos(Math.Abs(v));
-                if (v < 0) angle = cAngle[i] - angle;
-                else angle = cAngle[i] + angle;
-                if (angle < 0) angle += Math.PI * 2;
-                if (angle > Math.PI * 2) angle -= Math.PI * 2;
-                angle = (angle - Math.PI) / Math.PI + 0.5;
+                double angle = v;
+                if (v < 0.5) angle += 0.5;
+                else if (v > 0.5) angle -= 0.5;
+                else angle = 1.0;
+                
                 return new double[] { angle }.ToList();
-
-
             }
             return new double[] { 0.5 }.ToList(); ;
             /*
@@ -350,11 +346,11 @@ namespace NWSEExperiment.maze
         {
             RobotAgent robot = (RobotAgent)agent;
             if (robot.PrevCollided && !robot.HasCollided)
-                return 10.0;
+                return 1.0;
             else if (!robot.PrevCollided && robot.HasCollided)
-                return -100.0;
+                return -50.0;
             else if (robot.PrevCollided && robot.HasCollided)
-                return -100.0;
+                return -50.0;
             else return 0.1;
         }
         public double compute_reward_optiomatraces(RobotAgent agent)

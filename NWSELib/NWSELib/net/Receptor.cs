@@ -52,9 +52,14 @@ namespace NWSELib.net
         {
             if (value == null) value = Value;
             if (value == null) return "";
+            if (this.getGene().AbstractLevel == 0)
+                return value[0].ToString("F3");
+
             List<String> names = this.getGene().AbstractLevelNames;
             if (names == null) return value.ToString();
-            return names[MeasureTools.GetMeasure(this.Cataory).getRankedIndex(value, this.getGene().AbstractLevel, this.getGene().AbstractSectionCount)];
+            int sectionCount = this.getGene().AbstractSectionCount;
+            int rankIndex = MeasureTools.GetMeasure(this.Cataory).getRankedIndex(value, this.getGene().AbstractLevel, sectionCount);
+            return names[rankIndex]+"("+value[0].ToString("F4")+")";
         }
 
         public override List<Vector> ValueList

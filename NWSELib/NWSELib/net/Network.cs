@@ -650,7 +650,7 @@ namespace NWSELib.net
         {
             if (reward == 0) return;
             if (actionPlanTraces.Count <= 0) return;
-            if (reward == 100.0) mode = 3;//如果是摆脱撞墙，这个正向奖励不传播
+            if (reward == 1.0) mode = 3;//如果是摆脱撞墙，这个正向奖励不传播
             for (int i = actionPlanTraces.Count - 1; i >= 0; i--)
             {
                 ActionPlan plan = actionPlanTraces[i];
@@ -661,21 +661,34 @@ namespace NWSELib.net
                 }
                 this.Handlers.ForEach(h => h.think(this, time, null));
 
-                for(int j=0;j<this.imagination.inferences.Count;j++)
+                List<InferenceRecord> temp = new List<InferenceRecord>();
+                for (int j=0;j<this.imagination.inferences.Count;j++)
                 {
                     Inference inf = this.imagination.inferences[j];
                     if (!inf.getGene().hasEnvDenpend()) continue; //根外界环境无关的不做评估
-                    List<InferenceRecord> matchedRecords = inf.getMatchRecordsInThink(this,time);
+                    List<(InferenceRecord,double)> matchedRecords = inf.getMatchRecordsInThink(this,time);
+                    if (matchedRecords == null || matchedRecords.Count <= 0) continue;
+                    for(int k=0;k<matchedRecords.Count;k++)
+                    {
+                        if (temp.Contains(matchedRecords[k].Item1))
+                        {
+                            matchedRecords.RemoveAt(k--);
+                        }
+                    }
+                    if (matchedRecords == null || matchedRecords.Count <= 0) continue;
+                    temp.AddRange(matchedRecords.ConvertAll(m=>m.Item1));
                     double r = reward;
                     if(mode == 1)r = Math.Exp(i - this.actionPlanTraces.Count + 1) * reward;
                     matchedRecords.ForEach(mr =>
                     {
-                        mr.evulation += r;
-                        mr.childs.ForEach(mrc => mrc.evulation += r);
+                        mr.Item1.evulation += r*(1-mr.Item2);
+                        mr.Item1.childs.ForEach(mrc => mrc.evulation += r * (1 - mr.Item2));
                     });
                 }
-                if (mode == REWARD_ONCE) return;
+                
+                if (mode == REWARD_ONCE) break;
             }
+            if (reward == -50.0) actionPlanTraces.Clear();
         }
         #endregion
 
