@@ -353,6 +353,7 @@ namespace NWSEExperiment.maze
                     minDistance = distances.Min();
                 }
             }
+            
             List<double> dis = new List<double>();
             dis.Add(minDistance);
             List<Point2D> optimas = optimaTraces[optimaIndex].GetRange(0, posIndex);
@@ -368,7 +369,7 @@ namespace NWSEExperiment.maze
                 optimas = optimas.GetRange(0, minindex);
             }
             double avgdis = dis.Average();
-            return Math.Exp(-1*avgdis) + (d<35?1:0);
+            return posIndex * Math.Exp(-1*avgdis) + (d<35?1:0);
 
 
         }
