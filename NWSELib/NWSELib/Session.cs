@@ -156,6 +156,21 @@ namespace NWSELib
             Session.fitnessHandler = fitness;
         }
 
+        
+        public const String EVT_EVAULATION_BEGIN = "net evaulation begin";
+        public const String EVT_LOG = "log";
+        public const String EVT_STEP = "step";
+        public const String EVT_EVAULATION_END = "net evaulation end";
+        public const String EVT_EVAULATION_SUMMARY = "evaulation summary";
+
+        public const String EVT_MSG = "msg";
+        public const String EVT_INVAILD_GENE = "invaild_gene";
+        public const String EVT_VAILD_GENE = "vaild_gene";
+        public const String EVT_IND_COUNT = "ind_count";
+        public const String EVT_REABILITY = "reability";
+        public const String EVT_GENERATION_END = "generation_end";
+        public const String EVT_EVOLUTION_END = "evolution_end";
+
         /// <summary>
         /// 事件触发函数
         /// </summary>
@@ -186,6 +201,7 @@ namespace NWSELib
             this.generation = 1;
 
             //初始化初代个体
+            this.triggerEvent(Session.EVT_LOG, "population init...");
             orginGenome = new NWSEGenomeFactory().createOriginGenome(this);
             orginNet = new Network(orginGenome);
             inds.Clear();
@@ -195,13 +211,15 @@ namespace NWSELib
             //反复迭代
             while(true)
             {
-                logger.Info("#################" + this.generation.ToString() + "#################");
+
+                this.triggerEvent(Session.EVT_LOG, "evaulating population...");
                 //环境交互过程
-                foreach(Network net in inds)
+                foreach (Network net in inds)
                 {
-                    this.triggerEvent(Session.EVT_MESSAGE, "Network("+net.Id+") begin" );
+                    if (!double.IsNaN(net.Fitness)) continue;
                     (List<double> obs,List<double> gesture) = env.reset(net);
                     net.Reset();
+                    this.triggerEvent(Session.EVT_EVAULATION_BEGIN, net);
                     double reward = 0.0;
                     bool end = false;
                     for (int time = 0; time <= Session.GetConfiguration().evaluation.run_count; time++) 
@@ -210,24 +228,22 @@ namespace NWSELib
                         inputs.AddRange(gesture);
                         List<double> actions = net.activate(inputs, time,this, reward);
                         (obs, gesture, actions,reward,end) = env.action(net,actions);
-                        this.triggerEvent(Session.EVT_MESSAGE, "time="+time.ToString()+",action=" + actions.ConvertAll(x => x.ToString()).Aggregate((a, b) => String.Format("{0:##.###}", a) + "," + String.Format("{0:##.###}", b))
-                            + ",reward = " + reward.ToString() + ", obs="+Utility.toString(obs)+ ",gesture="+Utility.toString(gesture));
-                        this.triggerEvent(Session.EVT_MESSAGE, " mental process:" + net.showActionPlan());
-
+                        this.triggerEvent(Session.EVT_STEP,net,time, inputs,actions, obs, gesture, reward, end);
 
                         if (end) break;
                         judgePaused();
                     }
 
                     net.Fitness = Session.fitnessHandler == null ? 0 : Session.fitnessHandler(net, this);
-                    this.triggerEvent(Session.EVT_MESSAGE, "Network(" + net.Id + ") end"+System.Environment.NewLine);
+
+                    this.triggerEvent(Session.EVT_EVAULATION_END, net);
 
                     judgePaused();
                 }
                 
                 //最优个体
                 int indIndex = this.inds.ConvertAll(ind => ind.Fitness).argmax();
-                this.triggerEvent(Session.EVT_OPTIMA_IND, this.inds[indIndex]);
+                this.triggerEvent(Session.EVT_EVAULATION_SUMMARY,inds[indIndex]);
 
                 //是否达到最大迭代次数
                 this.generation += 1;
@@ -242,7 +258,7 @@ namespace NWSELib
                 Evolution evolution = new Evolution();
                 evolution.execute(inds, this);
 
-                triggerEvent(EVT_GENERATION_END, this);
+                //triggerEvent(EVT_GENERATION_END, this);
                 judgePaused();
 
                 running = false;
@@ -274,16 +290,6 @@ namespace NWSELib
         }
 
         
-        
-
-        public const String EVT_OPTIMA_IND = "optima_ind";
-        public const String EVT_MESSAGE = "message";
-        public const String EVT_INVAILD_GENE = "invaild_gene";
-        public const String EVT_VAILD_GENE = "vaild_gene";
-        public const String EVT_IND_COUNT = "ind_count";
-        public const String EVT_REABILITY = "reability";
-        public const String EVT_GENERATION_END = "generation_end";
-        public const String EVT_EVOLUTION_END = "evolution_end";
     }
     #endregion
 }

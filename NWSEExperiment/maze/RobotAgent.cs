@@ -260,6 +260,8 @@ namespace NWSEExperiment.maze
         public double Velocity { get => velocity; set => velocity = value; }
         public double Heading { get => heading; set => heading = value; }
         public Point2D Location { get { return traces==null|| traces.Count<=0?null: traces[traces.Count-1]; } set { traces.Add(value);  } }
+
+        public override bool Visible { get; set; }
         public Point2D OldLocation 
         { 
             get 

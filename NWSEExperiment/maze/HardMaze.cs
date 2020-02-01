@@ -56,6 +56,7 @@ namespace NWSEExperiment.maze
         {
             //reset();
             AgentVisible = true;
+            
 
         }
 
@@ -167,6 +168,7 @@ namespace NWSEExperiment.maze
             List<RobotAgent> agents = this.agents.Values.ToList();
             foreach(RobotAgent agent in agents)
             {
+                if (!agent.Visible) continue;
                 agent.draw(g, frame,agent==CurrentAgent?ShowTrail:false);
             }
         }
@@ -206,13 +208,14 @@ namespace NWSEExperiment.maze
         {
             if (clearAgent) this.agents.Clear();
 
-            RobotAgent agent = this.agents.Values.ToList().FirstOrDefault(a => a.getId() == net.Id);
-            if (agent == null)
+            RobotAgent agent = null; 
+            if (!this.agents.ContainsKey(net.Id))
             {
                 agent = new RobotAgent(net, this);
                 this.agents.TryAdd(agent.getId(), agent);
             }
-            initOptimaTraces();
+            agent = this.agents[net.Id];
+
             agent.reset(this.start_point);
             List<double> obs =agent.getObserve();
             obs.Add(0); //没有发生碰撞冲突
@@ -228,9 +231,9 @@ namespace NWSEExperiment.maze
 
         
 
-        (List<double>, List<double>, List<double>, double, bool) IEnv.action(Network net, List<double> actions)
+        public (List<double>, List<double>, List<double>, double, bool) action(Network net, List<double> actions)
         {
-            RobotAgent agent = this.agents.Values.ToList().FirstOrDefault(a => a.getId() == net.Id);
+            RobotAgent agent = this.agents[net.Id];
             bool noncollision = agent.doAction(actions.ToArray());
 
             List<double> obs = agent.getObserve();
@@ -318,18 +321,16 @@ namespace NWSEExperiment.maze
             t1.Add(new Point2D(this.start_point.X, this.start_point.Y));
             t1.Add(new Point2D(469,738));
             t1.Add(new Point2D(254, 738));
-            t1.Add(new Point2D(254, 1109));
-            t1.Add(new Point2D(379, 1142));
-            t1.Add(new Point2D(this.goal_point.X,this.goal_point.Y));
+            t1.Add(new Point2D(244, 1022));
+            t1.Add(new Point2D(this.goal_point.X,this.goal_point.Y+150));
             optimaTraces.Add(t1);
 
             List<Point2D> t2 = new List<Point2D>();
             t2.Add(new Point2D(this.start_point.X, this.start_point.Y));
             t2.Add(new Point2D(469, 738));
             t2.Add(new Point2D(683, 738));
-            t2.Add(new Point2D(683, 1129));
-            t2.Add(new Point2D(568, 1129));
-            t2.Add(new Point2D(this.goal_point.X, this.goal_point.Y));
+            t2.Add(new Point2D(693, 1022));
+            t2.Add(new Point2D(this.goal_point.X, this.goal_point.Y+150));
             optimaTraces.Add(t2);
         }
         public double compute_fitness(Network net,Session session)
@@ -337,8 +338,7 @@ namespace NWSEExperiment.maze
             RobotAgent robot = (RobotAgent)this.GetAgent(net.Id);
             List<Point2D> traces = new List<Point2D>(robot.Traces);
             if (traces.Count <= 0) return 0;
-            //最后一个点到目标点的距离
-            double d = traces.Last().distance(this.goal_point);
+            
             //找到最后一个点，最近的最优轨迹点
             int optimaIndex = -1, posIndex = -1;
             double minDistance = double.MaxValue;
@@ -353,7 +353,9 @@ namespace NWSEExperiment.maze
                     minDistance = distances.Min();
                 }
             }
-            
+            int lastindex = optimaIndex;
+
+
             List<double> dis = new List<double>();
             dis.Add(minDistance);
             List<Point2D> optimas = optimaTraces[optimaIndex].GetRange(0, posIndex);
@@ -362,16 +364,29 @@ namespace NWSEExperiment.maze
             while(optimas.Count>0 && traces.Count>0)
             {
                 minDistance = double.MaxValue;
-                List<double> distances = optimas.ConvertAll(t => t.distance(traces.Last()));
-                int minindex = distances.argmin();
-                dis.Add(distances[minindex]);
-                traces.RemoveAt(traces.Count - 1);
-                optimas = optimas.GetRange(0, minindex);
+                int optimaindex = -1, traceindex = -1;
+                for(int i=0;i< optimas.Count;i++)
+                {
+                    for(int j=0;j<traces.Count;j++)
+                    {
+                        double td = optimas[i].distance(traces[j]);
+                        if(minDistance>td)
+                        {
+                            optimaindex = i;
+                            traceindex = j;
+                            minDistance = td;
+                        }
+                    }
+                }
+                if(minDistance != double.MaxValue)
+                    dis.Add(minDistance);
+                if (optimaindex == 0 || traceindex == 0)
+                    break;
+                optimas = optimas.GetRange(0, optimaindex);
+                traces = traces.GetRange(0, traceindex);
             }
             double avgdis = dis.Average();
-            return posIndex * Math.Exp(-1*avgdis) + (d<35?1:0);
-
-
+            return lastindex + Math.Exp(-1*avgdis);
         }
 
         

@@ -14,6 +14,7 @@ namespace NWSELib.env
         public abstract int getId();
         public abstract List<double> getObserve();
         public abstract bool doAction(double[] actions);
+        public abstract bool Visible { get; set; }
 
         
     }

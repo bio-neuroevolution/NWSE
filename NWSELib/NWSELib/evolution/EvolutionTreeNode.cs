@@ -29,7 +29,7 @@ namespace NWSELib.evolution
 
         public override string ToString()
         {
-            return "net id=" + this.network.Id.ToString() + ",extinct=" + extinct + ",childs=" + this.childs.Count.ToString();
+            return this.network.ToString() + ",extinct=" + extinct + ",childs=" + this.childs.Count.ToString();
         }
         /// <summary>
         /// 构造函数

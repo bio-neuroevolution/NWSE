@@ -445,7 +445,7 @@ namespace NWSELib.genome
                     if (!genome.exist(g.Id)) continue;
                     newGene = g;
                     genome.handlerGenes.Add(newGene);
-                    session.triggerEvent(Session.EVT_MESSAGE, "A new handler gene is produced in " + genome.id.ToString() + ":" + newGene.Text);
+                    session.triggerEvent(Session.EVT_LOG, "A new handler gene is produced in " + genome.id.ToString() + ":" + newGene.Text);
                 }
                     
             }
@@ -480,7 +480,7 @@ namespace NWSELib.genome
                         modifiedInferenceGene = inf;
                         genome.infrernceGenes.Remove(genome.infrernceGenes[index]);
                         genome.infrernceGenes.Add(modifiedInferenceGene);
-                        session.triggerEvent(Session.EVT_MESSAGE, "A inference gene is modified in " + genome.id.ToString() + ":" + genome.infrernceGenes[index].Text+":"+inf.Text);
+                        session.triggerEvent(Session.EVT_LOG, "A inference gene is modified in " + genome.id.ToString() + ":" + genome.infrernceGenes[index].Text+":"+inf.Text);
                         break;
                     }
                     else if (operation <= 0.6 && inf.conditions.Count > 2) //删除一个维度
@@ -495,7 +495,7 @@ namespace NWSELib.genome
                         modifiedInferenceGene = inf;
                         genome.infrernceGenes.Remove(genome.infrernceGenes[index]);
                         genome.infrernceGenes.Add(modifiedInferenceGene);
-                        session.triggerEvent(Session.EVT_MESSAGE, "A inference gene is modified in " + genome.id.ToString() + ":" + genome.infrernceGenes[index].Text + ";" + inf.Text);
+                        session.triggerEvent(Session.EVT_LOG, "A inference gene is modified in " + genome.id.ToString() + ":" + genome.infrernceGenes[index].Text + ";" + inf.Text);
                         break;
                     }
                     else //修改一个维度
@@ -512,7 +512,7 @@ namespace NWSELib.genome
                         modifiedInferenceGene = inf;
                         genome.infrernceGenes.Remove(genome.infrernceGenes[index]);
                         genome.infrernceGenes.Add(modifiedInferenceGene);
-                        session.triggerEvent(Session.EVT_MESSAGE, "A inference gene is modifiedx in " + genome.id.ToString() + ":" + genome.infrernceGenes[index].Text+";"+inf.Text);
+                        session.triggerEvent(Session.EVT_LOG, "A inference gene is modifiedx in " + genome.id.ToString() + ":" + genome.infrernceGenes[index].Text+";"+inf.Text);
                         break;
                     }                   
                 }
@@ -552,7 +552,7 @@ namespace NWSELib.genome
                 if (genome.isInvaildGene(inferenceGene))
                     continue;
                 genome.infrernceGenes.Add(inferenceGene);
-                session.triggerEvent(Session.EVT_MESSAGE, "A inference gene is added in " + genome.id.ToString() + ":" + inferenceGene.Text);
+                session.triggerEvent(Session.EVT_LOG, "A inference gene is added in " + genome.id.ToString() + ":" + inferenceGene.Text);
                 break;
             }
             

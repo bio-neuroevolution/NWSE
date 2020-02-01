@@ -49,11 +49,14 @@ namespace NWSELib.net
         /// 抽象思维
         /// </summary>
         public Imagination imagination;
+
+        public override string ToString()
+        {
+            return "net id="+Id.ToString()+",fitness="+
+                this.Fitness.ToString("F4")+
+                ",reability="+this.AverageReability.ToString("F4");
+        }
         #endregion
-
-
-
-
 
         #region 节点查询
         /// <summary>
@@ -277,14 +280,15 @@ namespace NWSELib.net
             return actionPlanTraces.FirstOrDefault(ap => ap.judgeTime == time);
         }
 
-        
+
         #endregion
 
         #region 评价信息
+        protected double fitness = double.NaN;
         /// <summary>
         /// 适应度
         /// </summary>
-        public double Fitness { get; set; }
+        public double Fitness { get => fitness; set => fitness = value; }
         
         /// <summary>
         /// 网络可靠度
@@ -300,14 +304,25 @@ namespace NWSELib.net
             }
         }
 
-        public List<NodeGene> getVaildInferenceGene()
+        public List<NodeGene> findNewVaildInferences()
         {
             double highlimit = Session.GetConfiguration().evaluation.gene_reability_range.Max;
             List<NodeGene> genes = this.Inferences.FindAll(n => !double.IsNaN(n.Reability) && n.Reability > highlimit).ConvertAll(n => n.Gene);
             if (genes == null || genes.Count <= 0) return genes;
 
-            foreach (NodeGene gene in genes)
+            for (int i = 0; i < genes.Count; i++)
             {
+                NodeGene gene = genes[i];
+                if (this.genome.isVaildGene(gene))
+                {
+                    genes.RemoveAt(i--); continue;
+                }
+            }
+            if (genes == null || genes.Count <= 0) return genes;
+
+            for (int i=0;i<genes.Count;i++)
+            {
+                NodeGene gene = genes[i];
                 List<NodeGene> temp = gene.getUpstreamGenes();
                 if (temp == null || temp.Count<=0) continue;
                 foreach(NodeGene t in temp)
@@ -321,11 +336,19 @@ namespace NWSELib.net
             return genes;
         }
 
-        public List<NodeGene> getInvaildInferenceGene()
+        public List<NodeGene> findNewInvaildInference()
         {
-
             double lowlimit = Session.GetConfiguration().evaluation.gene_reability_range.Min;
-            return this.Inferences.FindAll(n => !double.IsNaN(n.Reability) && n.Reability != 0 && n.Reability < lowlimit).ConvertAll(n=>n.Gene);
+            List < NodeGene > r=  this.Inferences.FindAll(n => !double.IsNaN(n.Reability) && n.Reability != 0 && n.Reability < lowlimit).ConvertAll(n=>n.Gene);
+            if (r == null || r.Count <= 0) return r;
+            for(int i=0;i<r.Count;i++)
+            {
+                if(this.genome.isInvaildGene(r[i]))
+                {
+                    r.RemoveAt(i--);
+                }
+            }
+            return r;
         }
         #endregion
 
