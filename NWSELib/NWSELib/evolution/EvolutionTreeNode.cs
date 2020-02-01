@@ -26,6 +26,11 @@ namespace NWSELib.evolution
         /// 网络
         /// </summary>
         public Network network;
+
+        public override string ToString()
+        {
+            return "net id=" + this.network.Id.ToString() + ",extinct=" + extinct + ",childs=" + this.childs.Count.ToString();
+        }
         /// <summary>
         /// 构造函数
         /// </summary>
@@ -78,6 +83,20 @@ namespace NWSELib.evolution
                 }
             }
             return r;
+        }
+        public int getDepth()
+        {
+            return getDepth(this, 0);
+        }
+        public static int getDepth(EvolutionTreeNode node,int depth)
+        {
+            if (node == null) return depth;
+            if (node.childs == null || node.childs.Count <= 0) return depth+1;
+            foreach(EvolutionTreeNode n in node.childs)
+            {
+                depth = getDepth(n,depth);
+            }
+            return depth;
         }
 
     }

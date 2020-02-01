@@ -207,6 +207,9 @@ namespace NWSELib
             public String levels;
             [XmlAttribute]
             public String levelNames = "";
+            [XmlArray]
+            [XmlArrayItem(Type = typeof(SensorProperty))]
+            public List<SensorProperty> properties = new List<SensorProperty>();
 
             #region 数据范围分级信息
             [XmlIgnore]
@@ -254,6 +257,28 @@ namespace NWSELib
                 }
             }
             #endregion
+        }
+
+        public class SensorProperty
+        {
+            [XmlAttribute]
+            public String cataory;
+            [XmlAttribute]
+            public String type;
+            [XmlAttribute(AttributeName ="value")]
+            public String valueText;
+
+            public Vector Value
+            {
+                get
+                {
+                    if (valueText == null || valueText.Trim() == "") return null;
+                    String[] s1 = valueText.Split(',');
+                    if (s1 == null || s1.Length <= 0) return null;
+                    List<double> vs = s1.ToList().ConvertAll(s => double.Parse(s));
+                    return new Vector(vs.ToArray());
+                }
+            }
         }
 
         public class Learning
@@ -346,6 +371,10 @@ namespace NWSELib
         {
             [XmlAttribute]
             public String name;
+            [XmlAttribute]
+            public int mininputcount;
+            [XmlAttribute]
+            public int maxinputcount;
             [XmlAttribute]
             public int paramcount;
             [XmlAttribute]

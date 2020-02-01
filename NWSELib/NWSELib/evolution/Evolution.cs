@@ -36,8 +36,9 @@ namespace NWSELib.evolution
 
             //2.计算每个个体所有节点平均可靠度的总和、均值和方差
             List<double> reability = inds.ConvertAll(ind => ind.AverageReability);
-            double sum_reability = reability.Sum();
-            reability = reability.ConvertAll(r => r / sum_reability);
+            double sum_reability = reability.FindAll(r=>!double.IsNaN(r)).Sum();
+            if(sum_reability != 0)
+                reability = reability.ConvertAll(r => r / sum_reability);
             (double avg_reability, double variance_reability) = new Vector(reability).avg_variance();
             session.triggerEvent(Session.EVT_REABILITY, avg_reability, variance_reability);
             

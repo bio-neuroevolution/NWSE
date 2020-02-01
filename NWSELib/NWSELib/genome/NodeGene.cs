@@ -77,6 +77,7 @@ namespace NWSELib.genome
         /// 显示文本
         /// </summary>
         public virtual String Text { get => Name; } 
+        
 
         /// <summary>
         /// 其各个子节点的维度，没有子节点返回空列表
@@ -91,6 +92,30 @@ namespace NWSELib.genome
         /// </summary>
         /// <returns></returns>
         public abstract List<NodeGene> getInputGenes();
+        /// <summary>
+        /// 取得输入基因树上的所有基因
+        /// </summary>
+        /// <returns></returns>
+        public List<NodeGene> getUpstreamGenes()
+        {
+            return getUpstreamGenes(this, null);
+        }
+        private List<NodeGene> getUpstreamGenes(NodeGene gene, List<NodeGene> upstreams)
+        {
+            if (upstreams == null) upstreams = new List<NodeGene>();
+            if (gene == null) return upstreams;
+            if(!upstreams.Contains(gene))
+                upstreams.Add(gene);
+
+            List<NodeGene> inputs = gene.getInputGenes();
+            if (inputs == null || inputs.Count <= 0) return upstreams;
+
+            foreach(NodeGene g in inputs)
+            {
+                upstreams = getUpstreamGenes(g,upstreams);
+            }
+            return upstreams;
+        }
         /// <summary>
         /// 取得基因树上的叶子基因
         /// </summary>

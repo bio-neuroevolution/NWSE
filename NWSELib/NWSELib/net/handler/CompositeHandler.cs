@@ -6,9 +6,9 @@ using System.Linq;
 
 namespace NWSELib.net.handler
 {
-    public class AverageHandler : Handler
+    public class CompositeHandler : Handler
     {
-        public AverageHandler(NodeGene gene, Network net) : base(gene,net)
+        public CompositeHandler(NodeGene gene, Network net) : base(gene, net)
         {
         }
         public override Object activate(Network net, int time, Object value = null)
@@ -18,13 +18,11 @@ namespace NWSELib.net.handler
                 return null;
             int t = time;
 
-
             List<Vector> vs = inputs.ConvertAll(node => node.GetValue(time));
-            Vector result = vs.average();
-            base.activate(net, time, result);
-            return result;
+            Vector v = vs.flatten().Item1;
+
+            base.activate(net, time, v);
+            return v;
         }
-        
     }
 }
-

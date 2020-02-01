@@ -2,49 +2,59 @@
 <configuration>
   <mensurations>
     <mensuration name="distance" caption="distance" tolerate="0.2" levels="5" levelNames="极小,较小,中等,较大,较大" range="[0.0-1.0]" typeName="NWSELib.DistanceMeasure" dimension="1" ></mensuration>
-    <mensuration name="direction" caption="direction" tolerate="0.083" levels="8" levelNames="东,东南,南,西南,西,西北,北,东北" range="[0.0-1.0]" typeName="NWSELib.HeadingMeasure" dimension="1" ></mensuration>
+    <mensuration name="direction" caption="direction" tolerate="0.083" levels="8" levelNames="东,东南,南,西南,西,西北,北,东北" range="[0.0-1.0]" typeName="NWSELib.DirectionMeasure" dimension="1" ></mensuration>
     <mensuration name="poscode" caption="poscode" tolerate="128" levels="" levelNames="" range="[0.0-1.0]" typeName="NWSELib.PositionCodeMeasure" dimension="1" ></mensuration>
     <mensuration name="onoff" caption="onoff" tolerate="0" levels="2" levelNames="无,有" range="[0.0-1.0]" typeName="NWSELib.OnoffMeasure" dimension="1" ></mensuration>
+    <mensuration name="index" caption="index" tolerate="0" levels="0" levelNames="" range="[0.0-10000.0]" typeName="NWSELib.IndexMeasure" dimension="1" ></mensuration>
   </mensurations>
     
- 
   <agent shorttermcapacity="20" inferencesamples="3">
     <receptors>
       <env>
         <sensor name="d1" desc="left rangefinder" cataory="distance" group="env.distance" abstractLevel="0">
-          <property name="direction" type="float" value="-90"></property>
+          <properties>
+            <property cataory="direction" type="spatial" value="0.25"></property>
+          </properties>     
         </sensor>
         <sensor name="d2" desc="leftfront rangefinder" cataory="distance" group="env.distance" abstractLevel="0">
-          <property name="direction" type="float" value="-45"></property>
+          <properties><property cataory="direction" type="spatial" value="0.375"></property>
+          </properties>
         </sensor>
         <sensor name="d3" desc="front rangefinder" cataory="distance" group="env.distance" abstractLevel="0">
-          <property name="direction" type="float" value="0"></property>
+          <properties><property cataory="direction" type="spatial" value="0.5"></property>
+          </properties>
         </sensor>
         <sensor name="d4" desc="rightfront rangefinder" cataory="distance" group="env.distance" abstractLevel="0">
-          <property name="direction" type="float" value="45"></property>
+          <properties><property cataory="direction" type="spatial" value="0.675"></property>
+          </properties>
         </sensor>
         <sensor name="d5" desc="right rangefinder" cataory="distance" group="env.distance" abstractLevel="0">
-          <property name="direction" type="float" value="90"></property>
+          <properties><property cataory="direction" type="spatial" value="0.75"></property>
+          </properties>
         </sensor>
         <sensor name="d6" desc="rear rangefinder" cataory="distance" group="env.distance" abstractLevel="0">
-          <property name="direction" type="float" value="180"></property>
+          <properties><property cataory="direction" type="spatial" value="1.0"></property>
+          </properties>
         </sensor>
 
         <sensor name="g1" desc="front radar" cataory="onoff" group="env.objdirection"  abstractLevel="0">
-          <property name="direction" type="float" value="0"></property>
+          <properties><property cataory="direction" type="spatial" value="0.5"></property>
+          </properties>
         </sensor>
         <sensor name="g2" desc="right radar" cataory="onoff" group="env.objdirection"  abstractLevel="0">
-          <property name="direction" type="float" value="0.25"></property>
+          <properties><property cataory="direction" type="spatial" value="0.75"></property>
+          </properties>
         </sensor>
         <sensor name="g3" desc="rear radar" cataory="onoff" group="env.objdirection"  abstractLevel="0">
-          <property name="direction" type="float" value="0.5"></property>
+          <properties><property cataory="direction" type="spatial" value="1.0"></property>
+          </properties>
         </sensor>
         <sensor name="g4" desc="left radar" cataory="onoff" group="env.objdirection"  abstractLevel="0">
-          <property name="direction" type="float" value="0.75"></property>
+          <properties><property cataory="direction" type="spatial" value="0.25"></property>
+          </properties>
         </sensor>
 
         <sensor name="b" desc="collision" cataory="onoff" group="env.collision"  abstractLevel="0">
-          <property name="direction" type="float" value="-90"></property>
         </sensor>
         <sensor name="pos" desc="position" cataory="poscode" group="env.position" abstractLevel="0">
         </sensor>
@@ -59,33 +69,33 @@
         <sensor name="_a2" desc="rotate" cataory="direction" group="action" abstractLevel="0" levels="13" levelNames="-180度,-150度,-120度,-90度,-60度,-30度,0度,30度,60度,90度,120度,150度,180度"/>
       </actions>
     </receptors>
-
-    <noise sensorNoise="0" effectorNoise="0" headingNoise="0"></noise>
-    
+    <noise sensorNoise="0" effectorNoise="0" headingNoise="0"></noise> 
   </agent>
 
-  <learning eplison="0.7">
+  <learning eplison="0.7" tolerable_similarity="0.1">
     <inference accept_prob="0.7" accept_max_count="3" inference_distance="0.1"></inference>
     <imagination abstractLevel="0"></imagination>
-    <judge tolerable_similarity="0.05"></judge>
   </learning>
 
   <evaluation reward_method="collision" timeStep="1.0" run_count="500" max_reward="100" gene_reability_range="[-10.0-10.0+0.1]">
-    
   </evaluation>
   
   <evolution propagate_base_count="3" iter_count="500">
     <selection count="100" reability_lowlimit="0.25"></selection>
-    <mutate handlerprob="0.33,0.33,0.34"></mutate>
-    
+    <mutate handlerprob="0.25,0.25,0,0,0,0,0,0.25,0.25"></mutate>  
   </evolution>
 
   <handlers>
-    <handler name="avg" paramcount="1" paramrange="[1,10]" typename="NWSELib.net.handler.AverageHandler" selection_prob_range="[0-1+0.01]"></handler>
-    <handler name="diff" paramcount="2" paramrange="[1,10];[1,10]" typename="NWSELib.net.handler.DiffHandler" selection_prob_range="[0-1+0.01]"></handler>
-    <handler name="direction" paramcount="0" paramrange="" typename="NWSELib.net.handler.DirectionHandler" selection_prob_range="[0-1+0.01]"></handler>
-    <handler name="argmax" paramcount="0" paramrange="" typename="NWSELib.net.handler.ArgmaxHandler" selection_prob_range="[0-1+0.01]"></handler>
+    <handler name="argmax" mininputcount="2" maxinputcount="0" paramcount="0" paramrange="0" typename="NWSELib.net.handler.ArgmaxHandler" selection_prob_range="[0-1+0.01]"></handler>
+    <handler name="argmin" mininputcount="2" maxinputcount="0" paramcount="0" paramrange="0" typename="NWSELib.net.handler.ArgminHandler" selection_prob_range="[0-1+0.01]"></handler>
+    <handler name="avg" mininputcount="2" maxinputcount="0" paramcount="0" paramrange="0" typename="NWSELib.net.handler.AverageHandler" selection_prob_range="[0-1+0.01]"></handler>
+    <handler name="composite" mininputcount="2" maxinputcount="0" paramcount="0" paramrange="0" typename="NWSELib.net.handler.CompositeHandler" selection_prob_range="[0-1+0.01]"></handler>
+    <handler name="diff" mininputcount="2" maxinputcount="2" paramcount="0" paramrange="0" typename="NWSELib.net.handler.DiffHandler" selection_prob_range="[0-1+0.01]"></handler>
+    <handler name="direction" mininputcount="2" maxinputcount="2" paramcount="0" paramrange="" typename="NWSELib.net.handler.DirectionHandler" selection_prob_range="[0-1+0.01]"></handler>
+    <handler name="projection" mininputcount="1" maxinputcount="1" paramcount="0" paramrange="" typename="NWSELib.net.handler.ProjectionHandler" selection_prob_range="[0-1+0.01]"></handler>
+    <handler name="sample" mininputcount="1" maxinputcount="1" paramcount="1" paramrange="[2-10]" typename="NWSELib.net.handler.SampleHandler" selection_prob_range="[0-1+0.01]"></handler>
+    <handler name="variation" mininputcount="1" maxinputcount="1" paramcount="0" paramrange="" typename="NWSELib.net.handler.VariationHandler" selection_prob_range="[0-1+0.01]"></handler>
   </handlers>
-
-  <view width="1300" height="800"></view>
+  
+  <view width="1300" height="850"></view>
 </configuration>

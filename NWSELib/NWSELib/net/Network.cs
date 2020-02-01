@@ -182,6 +182,10 @@ namespace NWSELib.net
         public void Reset()
         {
             this.nodes.ForEach(a => a.Reset());
+            this.nodes.ForEach(n => n.think_reset());
+            this.Inferences.ForEach(inf =>
+                inf.Records.ForEach(r => r.CachedCondNodes = null)
+            ) ;
         }
         public void thinkReset()
         {
@@ -203,7 +207,7 @@ namespace NWSELib.net
             }
             for (int i = 0; i < genome.handlerGenes.Count; i++)
             {
-                Handler handler = Handler.create(genome.handlerGenes[i]);
+                Handler handler = Handler.create(genome.handlerGenes[i],this);
                 this.nodes.Add(handler);
             }
             for (int i = 0; i < genome.infrernceGenes.Count; i++)
@@ -289,21 +293,39 @@ namespace NWSELib.net
         {
             get 
             {
-                return this.Inferences.ConvertAll(inf => inf.Reability).Average();
+                List<double> r = this.Inferences.FindAll(inf => !double.IsNaN(inf.Reability))
+                    .ConvertAll(inf => inf.Reability);
+                if (r == null || r.Count <= 0) return double.NaN;
+                return r.Average();
             }
         }
 
         public List<NodeGene> getVaildInferenceGene()
         {
             double highlimit = Session.GetConfiguration().evaluation.gene_reability_range.Max;
-            return this.Inferences.FindAll(n => n.Reability > highlimit).ConvertAll(n => n.Gene);
+            List<NodeGene> genes = this.Inferences.FindAll(n => !double.IsNaN(n.Reability) && n.Reability > highlimit).ConvertAll(n => n.Gene);
+            if (genes == null || genes.Count <= 0) return genes;
+
+            foreach (NodeGene gene in genes)
+            {
+                List<NodeGene> temp = gene.getUpstreamGenes();
+                if (temp == null || temp.Count<=0) continue;
+                foreach(NodeGene t in temp)
+                {
+                    if (t is ReceptorGene) continue;
+                    else if (genes.Contains(t)) continue;
+                    genes.Add(t);
+                }
+            }
+
+            return genes;
         }
 
         public List<NodeGene> getInvaildInferenceGene()
         {
 
             double lowlimit = Session.GetConfiguration().evaluation.gene_reability_range.Min;
-            return this.Inferences.FindAll(n => n.Reability < lowlimit).ConvertAll(n=>n.Gene);
+            return this.Inferences.FindAll(n => !double.IsNaN(n.Reability) && n.Reability != 0 && n.Reability < lowlimit).ConvertAll(n=>n.Gene);
         }
         #endregion
 
@@ -317,8 +339,6 @@ namespace NWSELib.net
         public List<double> activate(List<double> obs, int time,Session session,double reward)
         {
             
-            //0.初始化
-            Reset();
             //1.接收输入
             for (int i = 0; i < obs.Count; i++)
             {

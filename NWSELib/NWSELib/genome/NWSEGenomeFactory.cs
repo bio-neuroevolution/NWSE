@@ -28,6 +28,32 @@ namespace NWSELib.genome
             return genome.receptorGenes;
 
         }
+        public NWSEGenome createOriginGenome(Session session)
+        {
+            NWSEGenome genome = new NWSEGenome();
+            //生成感受器
+            this.createReceptors(genome, session);
+            //生成缺省推理节点
+            InferenceGene inferenceGene = new InferenceGene(genome);
+            inferenceGene.Generation = session.Generation;
+            inferenceGene.conditions = new List<(int, int)>();
+            inferenceGene.variables = new List<(int, int)>();
+            inferenceGene.conditions.Add((genome["d1"].Id, 1));
+            inferenceGene.conditions.Add((genome["d2"].Id, 1));
+            inferenceGene.conditions.Add((genome["d3"].Id, 1));
+            inferenceGene.conditions.Add((genome["d4"].Id, 1));
+            inferenceGene.conditions.Add((genome["d5"].Id, 1));
+            inferenceGene.conditions.Add((genome["d6"].Id, 1));
+            inferenceGene.conditions.Add((genome["_a2"].Id, 1));
+            inferenceGene.variables.Add((genome["d3"].Id, 0));
+            inferenceGene.sort_dimension();
+            inferenceGene.Id = Session.idGenerator.getGeneId(inferenceGene);
+            genome.infrernceGenes.Add(inferenceGene);
+
+            genome.id = Session.idGenerator.getGenomeId();
+            genome.computeNodeDepth();
+            return genome;
+        }
         public NWSEGenome createSimpleGenome(Session session)
         {
             NWSEGenome genome = new NWSEGenome();
@@ -38,7 +64,6 @@ namespace NWSELib.genome
             //生成缺省推理节点
             InferenceGene inferenceGene = new InferenceGene(genome);
             inferenceGene.Generation = session.Generation;
-
 
             inferenceGene.conditions = new List<(int, int)>();
             inferenceGene.variables = new List<(int, int)>();
@@ -55,9 +80,6 @@ namespace NWSELib.genome
             inferenceGene.Id = Session.idGenerator.getGeneId(inferenceGene);
             genome.infrernceGenes.Add(inferenceGene);
 
-
-
-            
             genome.id = Session.idGenerator.getGenomeId();
             genome.computeNodeDepth();
             return genome;

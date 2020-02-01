@@ -6,9 +6,9 @@ using System.Linq;
 
 namespace NWSELib.net.handler
 {
-    public class AverageHandler : Handler
+    public class PropertyHandler : Handler
     {
-        public AverageHandler(NodeGene gene, Network net) : base(gene,net)
+        public PropertyHandler(NodeGene gene, Network net) : base(gene, net)
         {
         }
         public override Object activate(Network net, int time, Object value = null)
@@ -16,15 +16,9 @@ namespace NWSELib.net.handler
             List<Node> inputs = net.getInputNodes(this.Id);
             if (!inputs.All(n => n.IsActivate(time)))
                 return null;
-            int t = time;
-
-
-            List<Vector> vs = inputs.ConvertAll(node => node.GetValue(time));
-            Vector result = vs.average();
-            base.activate(net, time, result);
-            return result;
+            Vector v = Session.GetConfiguration().agent.receptors.GetSensor(inputs[0].Gene.Name).properties[0].Value;
+            base.activate(net, time, v);
+            return v;
         }
-        
     }
 }
-

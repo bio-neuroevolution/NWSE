@@ -8,9 +8,9 @@ using NWSELib.genome;
 
 namespace NWSELib.net.handler
 {
-    public class ArgmaxHandler : Handler
+    public class ArgMinHandler : Handler
     {
-        public ArgmaxHandler(NodeGene gene,Network net) : base(gene,net)
+        public ArgMinHandler(NodeGene gene, Network net) : base(gene, net)
         {
             this.Cataory = "index";
         }
@@ -19,22 +19,19 @@ namespace NWSELib.net.handler
             List<Node> inputs = net.getInputNodes(this.Id);
             if (!inputs.All(n => n.IsActivate(time)))
                 return null;
-            double max = double.MinValue;
+            double min = double.MaxValue;
             int nodeid = -1;
-            for(int i=0;i<inputs.Count;i++)
+            for (int i = 0; i < inputs.Count; i++)
             {
                 double v = inputs[i].GetValue(time).length();
-                if(v > max)
+                if (v < min)
                 {
-                    max = v;
+                    min = v;
                     nodeid = inputs[i].Id;
                 }
             }
-
             base.activate(net, time, (double)nodeid);
             return this.Value;
         }
-
-        
     }
 }

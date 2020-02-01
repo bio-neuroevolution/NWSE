@@ -88,44 +88,39 @@ namespace NWSELib
         {
             get
             {
-                DistanceMeasure ma = (DistanceMeasure)Measures.FirstOrDefault(m => m.name == "heading");
-                if (ma != null)
-                    return ma;
-                Measures.Add(new DistanceMeasure(null));
-                return (DistanceMeasure)Measures.Last();
+                return (DistanceMeasure)Measures.FirstOrDefault(m => m.name == "distance");
             }
         }
         public static DirectionMeasure Direction
         {
             get
             {
-                DirectionMeasure ma = (DirectionMeasure)Measures.FirstOrDefault(m => m.name == "heading");
-                if (ma != null)
-                    return ma;
-                Measures.Add(new DirectionMeasure(null));
-                return (DirectionMeasure)Measures.Last();
+                return (DirectionMeasure)Measures.FirstOrDefault(m => m.name == "direction");
+                
             }
         }
         public static PositionCodeMeasure Position
         {
             get
             {
-                PositionCodeMeasure ma = (PositionCodeMeasure)Measures.FirstOrDefault(m => m.name == "position");
-                if (ma != null)
-                    return ma;
-                Measures.Add(new PositionCodeMeasure(null));
-                return (PositionCodeMeasure)Measures.Last();
+                return (PositionCodeMeasure)Measures.FirstOrDefault(m => m.name == "poscode");
+                
             }
         }
         public static OnoffMeasure Onoff
         {
             get
             {
-                OnoffMeasure ma = (OnoffMeasure)Measures.FirstOrDefault(m => m.name == "collision");
-                if (ma != null)
-                    return ma;
-                Measures.Add(new OnoffMeasure(null));
-                return (OnoffMeasure)Measures.Last();
+                return (OnoffMeasure)Measures.FirstOrDefault(m => m.name == "onoff");
+                
+            }
+        }
+        public static IndexMeasure Index
+        {
+            get
+            {
+                return (IndexMeasure)Measures.FirstOrDefault(m => m.name == "index");
+                
             }
         }
 
@@ -137,7 +132,7 @@ namespace NWSELib
 
         public static void init()
         {
-            Measures.Clear();
+            if (Measures.Count > 0) return;
             List<Configuration.Mensuration> ms = Session.GetConfiguration().mensurations;
             foreach(Configuration.Mensuration m in ms)
             {
@@ -150,12 +145,6 @@ namespace NWSELib
                 if (mt != null)
                     Measures.Add(mt);
             }
-
-            String s = Direction.ToString();
-            s += Position.ToString();
-            s += Onoff.ToString();
-            s += Distance.ToString();
-
         } 
         #endregion
     }
@@ -356,6 +345,17 @@ namespace NWSELib
 
     }
 
+    public class IndexMeasure : MeasureTools
+    {
+        public IndexMeasure(Configuration.Mensuration m) : base(m)
+        {
+            name = "index";
+        }
+        public override double distance(double a1, double a2)
+        {
+            return a1 == a2 ? 0 : 1;
+        }
+    }
     
 
     public class OnoffMeasure : MeasureTools

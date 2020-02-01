@@ -50,8 +50,10 @@ namespace NWSELib.net
         { 
             get
             {
-                if(this.records.Count<=0)return 0;
-                double dis = this.records.ConvertAll(r => r.accuracyDistance).Average();
+                if(this.records.Count<=0)return double.NaN;
+                List<double> ds = this.records.FindAll(r => !double.IsNaN(r.accuracyDistance)).ConvertAll(r => r.accuracyDistance);
+                if (ds == null || ds.Count <= 0) return double.NaN;
+                double dis = ds.Average();
                 return Math.Exp(-1*dis);
             }
         }

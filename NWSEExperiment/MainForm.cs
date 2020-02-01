@@ -19,9 +19,12 @@ using NWSELib.common;
 
 namespace NWSEExperiment
 {
+    
+
     public partial class MainForm : Form
     {
         #region 基本信息
+        public delegate void BeginInvokeDelegate();
         private ILog logger = LogManager.GetLogger(typeof(MainForm));
         public MainForm()
         {
@@ -31,6 +34,9 @@ namespace NWSEExperiment
             log4net.Config.XmlConfigurator.Configure();
             this.Width = Session.GetConfiguration().view.width;
             this.Height = Session.GetConfiguration().view.height;
+
+            Session.GetConfiguration();
+            MeasureTools.init();
 
             resetEvolution();
             resetDemo();
@@ -62,9 +68,9 @@ namespace NWSEExperiment
 
             evolutionSession = new Session(this.evolutionMaze, new FitnessHandler(evolutionMaze.compute_fitness), EventHandler, new InstinctActionHandler(HardMaze.createInstinctAction));  
         }
-        private void toolStripButton2_Click(object sender, EventArgs e)
+        private void btnERun_Clicked(object sender, EventArgs e)
         {
-            if (evolutionSession != null) return;
+            if (evolutionSession.Running) return;
             try
             {
                 resetEvolution();
@@ -86,7 +92,12 @@ namespace NWSEExperiment
             {
                 this.optima_generation = generation;
                 this.optima_net = (Network)states[0];
-            }else if(eventName == Session.EVT_MESSAGE)
+                ToolStripItem tItem = this.btnOpenOptima.DropDownItems.Add("Generation:" + generation.ToString() + ",ind=" + optima_net.Id.ToString());
+                tItem.Tag = optima_net;
+                this.BeginInvoke(new BeginInvokeDelegate(refreshEvaulation));
+
+            }
+            else if(eventName == Session.EVT_MESSAGE)
             {
                 txtLog.Text += states[0].ToString() + System.Environment.NewLine;
             }else if(eventName == Session.EVT_INVAILD_GENE)
@@ -114,12 +125,86 @@ namespace NWSEExperiment
                 this.lblindcount.Text = "size of population:"+states[1].ToString() + "(Preceding " + states[0].ToString()+")";
                 txtLog.Text += "Elimination stat:" + states[1].ToString() + "(Preceding " + states[0].ToString() + ")" + ",reability limit=" + states[2].ToString();
             }
+            else if(eventName == Session.EVT_GENERATION_END)
+            {
+                this.BeginInvoke(new BeginInvokeDelegate(refreshEvolutionTree));
+               
+                
+            }
+        }
+
+        private void beginGenerationInvoke(Action p)
+        {
+            refreshEvolutionTree();
         }
 
         private void toolStripButton3_Click(object sender, EventArgs e)
         {
             if (this.evolutionSession == null) return;
             this.evolutionSession.paused = !this.evolutionSession.paused;
+        }
+
+        public void refreshEvaulation()
+        {
+            if (evolutionSession == null) return;
+            txtDepth.Text = evolutionSession.root.getDepth().ToString();
+            txtGeneration.Text = evolutionSession.Generation.ToString();
+            txtIndCount.Text = evolutionSession.inds.Count.ToString();
+            List<double> fts = evolutionSession.inds.ConvertAll(ind => ind.Fitness);
+            txtMaxFitness.Text = fts.Max().ToString("F4");
+            txtOptimaNetId.Text = evolutionSession.inds[fts.argmax()].Id.ToString();
+
+            refreshNetwork(evolutionSession.inds[fts.argmax()],treeViewOptimaNet);
+
+
+        }
+        public void refreshEvolutionTree()
+        {
+            if (evolutionSession == null) return;
+            treeViewEvolution.Nodes.Clear();
+            TreeNode node = treeViewEvolution.Nodes.Add(evolutionSession.root.ToString());
+            node.Tag = evolutionSession.root.ToString();
+
+            refreshEvolutionTreeNode(node,evolutionSession.root);
+        }
+        private void refreshEvolutionTreeNode(TreeNode tn,EvolutionTreeNode node)
+        {
+            if (node == null) return;
+            if (node.childs == null || node.childs.Count <= 0) return;
+
+            foreach(EvolutionTreeNode cn in node.childs)
+            {
+                TreeNode ctn = tn.Nodes.Add(cn.ToString());
+                ctn.Tag = cn;
+                refreshEvolutionTreeNode(ctn,cn);
+            }
+            
+        }
+
+        public void refreshNetwork(Network net,TreeView tv)
+        {
+            tv.Nodes.Clear();
+            if (net == null) return;
+            TreeNode handlersNode = tv.Nodes.Add("handlers");
+            foreach(Handler h in net.Handlers)
+            {
+                TreeNode t = handlersNode.Nodes.Add(h.Gene.Text);
+                t.Tag = h;
+            }
+
+            TreeNode infsNodes = tv.Nodes.Add("inferences");
+            foreach(Inference inf in net.Inferences)
+            {
+                TreeNode t = infsNodes.Nodes.Add(inf.Gene.Text);
+                t.Tag = inf;
+                TreeNode t1 = t.Nodes.Add("reability="+inf.Reability.ToString("F4"));
+                TreeNode t2 = t.Nodes.Add("records");
+                for(int i=0;i<inf.Records.Count;i++)
+                {
+                    TreeNode t3 = t2.Nodes.Add(inf.Records[i].toString(inf,i));
+                    t3.Tag = inf.Records[i];
+                }
+            }
         }
 
         #endregion
@@ -153,6 +238,7 @@ namespace NWSEExperiment
 
         private void panel_MouseMove(object sender, MouseEventArgs e)
         {
+            if (MeasureTools.Position == null) return;
             if (demoMaze == null) return;
             float mazeX, mazeY;
             demoFrame.convertFromDisplay(e.X, e.Y, out mazeX, out mazeY);
@@ -252,14 +338,7 @@ namespace NWSEExperiment
            
         }
 
-        private void toolStripButton6_Click_1(object sender, EventArgs e)
-        {
-            
-        }
-
-
         
-
         private void runStep5ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             ToolStripMenuItem item = (ToolStripMenuItem)sender;

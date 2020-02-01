@@ -358,25 +358,43 @@ namespace NWSELib.net
             (List<Vector> meanCondValues, List<Vector> meanVarValues) = this.getMeanValues();
             //条件值的总维度
             int size = realCondValues.size();
+            if (size <= 0) return this.accuracyDistance;
             //条件部分是否匹配
             double dis = Vector.max_manhantan_distance(realCondValues, meanCondValues);
             if (dis >= Session.GetConfiguration().learning.tolerable_similarity)
                 return this.accuracyDistance;
 
+            realVarValues.AddRange(realCondValues);
+            meanVarValues.AddRange(meanCondValues);
             this.accuracyDistance = Vector.manhantan_distance(realVarValues, meanVarValues);
             return this.accuracyDistance;
         }
         #endregion
 
         #region 环境与推理的匹配性检查
-        
 
+        private List<Node> _cached_condNodes;
+        public List<Node> CachedCondNodes
+        {
+            get
+            {
+                if (_cached_condNodes != null)
+                    return _cached_condNodes;
+                List<int> condIds = inf.getGene().getConditions().ConvertAll(c => c.Item1);
+                _cached_condNodes = condIds.ConvertAll(id => inf.net.getNode(id));
+                return _cached_condNodes;
+            }
+            set
+            {
+                _cached_condNodes = value;
+            }
+        }
         public bool isConditionValueMatch(Network net, Inference inf, List<Vector> condValues, out double distance)
         {
             List<double> distances = new List<double>();
             bool match = true;
             List<int> condIds = inf.getGene().getConditions().ConvertAll(c => c.Item1);
-            List<Node> condNodes = condIds.ConvertAll(id => net.getNode(id));
+            List<Node> condNodes = CachedCondNodes;
             for (int i = 0; i < condNodes.Count; i++)
             {
                 Node node = condNodes[i];

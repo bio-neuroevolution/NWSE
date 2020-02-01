@@ -35,17 +35,13 @@
             this.btnEPause = new System.Windows.Forms.ToolStripButton();
             this.btnEReset = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
-            this.toolStripLabel2 = new System.Windows.Forms.ToolStripLabel();
-            this.btnORun = new System.Windows.Forms.ToolStripButton();
-            this.btnOStop = new System.Windows.Forms.ToolStripButton();
-            this.btnOStrucuture = new System.Windows.Forms.ToolStripButton();
-            this.btnoShowTrail = new System.Windows.Forms.ToolStripButton();
-            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.toolStripLabel3 = new System.Windows.Forms.ToolStripLabel();
-            this.btniOpen = new System.Windows.Forms.ToolStripButton();
-            this.btnIndStruct = new System.Windows.Forms.ToolStripDropDownButton();
-            this.btnIndStructLevel1 = new System.Windows.Forms.ToolStripMenuItem();
-            this.btnIndStructLevel2 = new System.Windows.Forms.ToolStripMenuItem();
+            this.btnOpen = new System.Windows.Forms.ToolStripSplitButton();
+            this.btnOpenFromFile = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
+            this.btnOpenDemoAgent = new System.Windows.Forms.ToolStripMenuItem();
+            this.btnOpenLastOptima = new System.Windows.Forms.ToolStripMenuItem();
+            this.btnOpenOptima = new System.Windows.Forms.ToolStripMenuItem();
             this.btnIEnvReset = new System.Windows.Forms.ToolStripButton();
             this.btnIInference = new System.Windows.Forms.ToolStripButton();
             this.btnIActions = new System.Windows.Forms.ToolStripButton();
@@ -59,6 +55,11 @@
             this.stepToolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
             this.untilEndToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
+            this.btnPolicyShow = new System.Windows.Forms.ToolStripButton();
+            this.btnoShowTrail = new System.Windows.Forms.ToolStripButton();
+            this.btnIndStruct = new System.Windows.Forms.ToolStripDropDownButton();
+            this.btnIndStructLevel1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.btnIndStructLevel2 = new System.Windows.Forms.ToolStripMenuItem();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.statusXY = new System.Windows.Forms.ToolStripStatusLabel();
             this.lblindcount = new System.Windows.Forms.ToolStripStatusLabel();
@@ -70,14 +71,37 @@
             this.tabPage3 = new System.Windows.Forms.TabPage();
             this.gbInd = new System.Windows.Forms.GroupBox();
             this.tabPage4 = new System.Windows.Forms.TabPage();
-            this.txtMsg = new System.Windows.Forms.TextBox();
+            this.panel3 = new System.Windows.Forms.Panel();
             this.pnlMaze = new System.Windows.Forms.Panel();
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.txtMilestone = new System.Windows.Forms.TextBox();
             this.tabPage5 = new System.Windows.Forms.TabPage();
             this.panel1 = new System.Windows.Forms.Panel();
             this.txtLog = new System.Windows.Forms.TextBox();
-            this.btnPolicyShow = new System.Windows.Forms.ToolStripButton();
+            this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+            this.panel4 = new System.Windows.Forms.Panel();
+            this.panel5 = new System.Windows.Forms.Panel();
+            this.treeViewEvolution = new System.Windows.Forms.TreeView();
+            this.treeViewEvolutionNetwork = new System.Windows.Forms.TreeView();
+            this.treeViewOpenedNetwork = new System.Windows.Forms.TreeView();
+            this.tabPage6 = new System.Windows.Forms.TabPage();
+            this.panel6 = new System.Windows.Forms.Panel();
+            this.panel7 = new System.Windows.Forms.Panel();
+            this.txtOptimaNetId = new System.Windows.Forms.TextBox();
+            this.label5 = new System.Windows.Forms.Label();
+            this.txtDepth = new System.Windows.Forms.TextBox();
+            this.label4 = new System.Windows.Forms.Label();
+            this.txtMaxFitness = new System.Windows.Forms.TextBox();
+            this.label3 = new System.Windows.Forms.Label();
+            this.txtIndCount = new System.Windows.Forms.TextBox();
+            this.label2 = new System.Windows.Forms.Label();
+            this.txtGeneration = new System.Windows.Forms.TextBox();
+            this.label1 = new System.Windows.Forms.Label();
+            this.panel8 = new System.Windows.Forms.Panel();
+            this.treeViewOptimaNet = new System.Windows.Forms.TreeView();
+            this.tabPage7 = new System.Windows.Forms.TabPage();
+            this.panel9 = new System.Windows.Forms.Panel();
+            this.txtMsg = new System.Windows.Forms.TextBox();
             this.toolStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.tabControl1.SuspendLayout();
@@ -86,10 +110,24 @@
             this.panel2.SuspendLayout();
             this.tabControl2.SuspendLayout();
             this.tabPage3.SuspendLayout();
+            this.gbInd.SuspendLayout();
             this.tabPage4.SuspendLayout();
+            this.panel3.SuspendLayout();
             this.tabPage2.SuspendLayout();
             this.tabPage5.SuspendLayout();
             this.panel1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
+            this.splitContainer1.Panel1.SuspendLayout();
+            this.splitContainer1.Panel2.SuspendLayout();
+            this.splitContainer1.SuspendLayout();
+            this.panel4.SuspendLayout();
+            this.panel5.SuspendLayout();
+            this.tabPage6.SuspendLayout();
+            this.panel6.SuspendLayout();
+            this.panel7.SuspendLayout();
+            this.panel8.SuspendLayout();
+            this.tabPage7.SuspendLayout();
+            this.panel9.SuspendLayout();
             this.SuspendLayout();
             // 
             // toolStrip1
@@ -100,21 +138,16 @@
             this.btnEPause,
             this.btnEReset,
             this.toolStripSeparator1,
-            this.toolStripLabel2,
-            this.btnORun,
-            this.btnOStop,
-            this.btnOStrucuture,
-            this.toolStripSeparator2,
             this.toolStripLabel3,
-            this.btniOpen,
+            this.btnOpen,
             this.btnIEnvReset,
             this.btnIInference,
             this.btnIActions,
             this.toolStripSplitButton1,
             this.toolStripSeparator3,
-            this.btnIndStruct,
+            this.btnPolicyShow,
             this.btnoShowTrail,
-            this.btnPolicyShow});
+            this.btnIndStruct});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
             this.toolStrip1.Size = new System.Drawing.Size(1145, 40);
@@ -135,7 +168,7 @@
             this.btnERun.Size = new System.Drawing.Size(34, 37);
             this.btnERun.Text = "Run";
             this.btnERun.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
-            this.btnERun.Click += new System.EventHandler(this.toolStripButton2_Click);
+            this.btnERun.Click += new System.EventHandler(this.btnERun_Clicked);
             // 
             // btnEPause
             // 
@@ -162,96 +195,55 @@
             this.toolStripSeparator1.Name = "toolStripSeparator1";
             this.toolStripSeparator1.Size = new System.Drawing.Size(6, 40);
             // 
-            // toolStripLabel2
-            // 
-            this.toolStripLabel2.Name = "toolStripLabel2";
-            this.toolStripLabel2.Size = new System.Drawing.Size(57, 37);
-            this.toolStripLabel2.Text = "Optimal:";
-            // 
-            // btnORun
-            // 
-            this.btnORun.Image = ((System.Drawing.Image)(resources.GetObject("btnORun.Image")));
-            this.btnORun.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.btnORun.Name = "btnORun";
-            this.btnORun.Size = new System.Drawing.Size(34, 37);
-            this.btnORun.Text = "Run";
-            this.btnORun.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
-            // 
-            // btnOStop
-            // 
-            this.btnOStop.Image = ((System.Drawing.Image)(resources.GetObject("btnOStop.Image")));
-            this.btnOStop.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.btnOStop.Name = "btnOStop";
-            this.btnOStop.Size = new System.Drawing.Size(39, 37);
-            this.btnOStop.Text = "Stop";
-            this.btnOStop.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
-            // 
-            // btnOStrucuture
-            // 
-            this.btnOStrucuture.Image = ((System.Drawing.Image)(resources.GetObject("btnOStrucuture.Image")));
-            this.btnOStrucuture.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.btnOStrucuture.Name = "btnOStrucuture";
-            this.btnOStrucuture.Size = new System.Drawing.Size(63, 37);
-            this.btnOStrucuture.Text = "structure";
-            this.btnOStrucuture.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
-            this.btnOStrucuture.Click += new System.EventHandler(this.toolStripButton6_Click_1);
-            // 
-            // btnoShowTrail
-            // 
-            this.btnoShowTrail.CheckOnClick = true;
-            this.btnoShowTrail.Image = ((System.Drawing.Image)(resources.GetObject("btnoShowTrail.Image")));
-            this.btnoShowTrail.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.btnoShowTrail.Name = "btnoShowTrail";
-            this.btnoShowTrail.Size = new System.Drawing.Size(44, 37);
-            this.btnoShowTrail.Text = "Track";
-            this.btnoShowTrail.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
-            this.btnoShowTrail.Click += new System.EventHandler(this.btnshowTrail_Click);
-            // 
-            // toolStripSeparator2
-            // 
-            this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(6, 40);
-            // 
             // toolStripLabel3
             // 
             this.toolStripLabel3.Name = "toolStripLabel3";
             this.toolStripLabel3.Size = new System.Drawing.Size(71, 37);
             this.toolStripLabel3.Text = "Intercative:";
             // 
-            // btniOpen
+            // btnOpen
             // 
-            this.btniOpen.Image = ((System.Drawing.Image)(resources.GetObject("btniOpen.Image")));
-            this.btniOpen.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.btniOpen.Name = "btniOpen";
-            this.btniOpen.Size = new System.Drawing.Size(44, 37);
-            this.btniOpen.Text = "Open";
-            this.btniOpen.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
+            this.btnOpen.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.btnOpenFromFile,
+            this.toolStripMenuItem1,
+            this.btnOpenDemoAgent,
+            this.btnOpenLastOptima,
+            this.btnOpenOptima});
+            this.btnOpen.Image = ((System.Drawing.Image)(resources.GetObject("btnOpen.Image")));
+            this.btnOpen.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnOpen.Name = "btnOpen";
+            this.btnOpen.Size = new System.Drawing.Size(56, 37);
+            this.btnOpen.Text = "Open";
+            this.btnOpen.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
             // 
-            // btnIndStruct
+            // btnOpenFromFile
             // 
-            this.btnIndStruct.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.btnIndStructLevel1,
-            this.btnIndStructLevel2});
-            this.btnIndStruct.Image = ((System.Drawing.Image)(resources.GetObject("btnIndStruct.Image")));
-            this.btnIndStruct.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.btnIndStruct.Name = "btnIndStruct";
-            this.btnIndStruct.Size = new System.Drawing.Size(53, 37);
-            this.btnIndStruct.Text = "struct";
-            this.btnIndStruct.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
+            this.btnOpenFromFile.Name = "btnOpenFromFile";
+            this.btnOpenFromFile.Size = new System.Drawing.Size(205, 22);
+            this.btnOpenFromFile.Text = "Open From File";
             // 
-            // btnIndStructLevel1
+            // toolStripMenuItem1
             // 
-            this.btnIndStructLevel1.Name = "btnIndStructLevel1";
-            this.btnIndStructLevel1.Size = new System.Drawing.Size(180, 22);
-            this.btnIndStructLevel1.Text = "Level1";
-            this.btnIndStructLevel1.Click += new System.EventHandler(this.btnIndStructLevel1_Click);
+            this.toolStripMenuItem1.Name = "toolStripMenuItem1";
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(202, 6);
             // 
-            // btnIndStructLevel2
+            // btnOpenDemoAgent
             // 
-            this.btnIndStructLevel2.Name = "btnIndStructLevel2";
-            this.btnIndStructLevel2.Size = new System.Drawing.Size(180, 22);
-            this.btnIndStructLevel2.Text = "Level2";
-            this.btnIndStructLevel2.Click += new System.EventHandler(this.btnIndStructLevel2_Click);
+            this.btnOpenDemoAgent.Name = "btnOpenDemoAgent";
+            this.btnOpenDemoAgent.Size = new System.Drawing.Size(205, 22);
+            this.btnOpenDemoAgent.Text = "Open Demo Agent";
+            // 
+            // btnOpenLastOptima
+            // 
+            this.btnOpenLastOptima.Name = "btnOpenLastOptima";
+            this.btnOpenLastOptima.Size = new System.Drawing.Size(205, 22);
+            this.btnOpenLastOptima.Text = "Open Last Optima Ind";
+            // 
+            // btnOpenOptima
+            // 
+            this.btnOpenOptima.Name = "btnOpenOptima";
+            this.btnOpenOptima.Size = new System.Drawing.Size(205, 22);
+            this.btnOpenOptima.Text = "Open Optima Ind";
             // 
             // btnIEnvReset
             // 
@@ -370,6 +362,54 @@
             this.toolStripSeparator3.Name = "toolStripSeparator3";
             this.toolStripSeparator3.Size = new System.Drawing.Size(6, 40);
             // 
+            // btnPolicyShow
+            // 
+            this.btnPolicyShow.CheckOnClick = true;
+            this.btnPolicyShow.Image = ((System.Drawing.Image)(resources.GetObject("btnPolicyShow.Image")));
+            this.btnPolicyShow.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnPolicyShow.Name = "btnPolicyShow";
+            this.btnPolicyShow.Size = new System.Drawing.Size(45, 37);
+            this.btnPolicyShow.Text = "Policy";
+            this.btnPolicyShow.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
+            this.btnPolicyShow.Click += new System.EventHandler(this.btnPolicyShow_Click);
+            // 
+            // btnoShowTrail
+            // 
+            this.btnoShowTrail.CheckOnClick = true;
+            this.btnoShowTrail.Image = ((System.Drawing.Image)(resources.GetObject("btnoShowTrail.Image")));
+            this.btnoShowTrail.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnoShowTrail.Name = "btnoShowTrail";
+            this.btnoShowTrail.Size = new System.Drawing.Size(44, 37);
+            this.btnoShowTrail.Text = "Track";
+            this.btnoShowTrail.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
+            this.btnoShowTrail.Click += new System.EventHandler(this.btnshowTrail_Click);
+            // 
+            // btnIndStruct
+            // 
+            this.btnIndStruct.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.btnIndStructLevel1,
+            this.btnIndStructLevel2});
+            this.btnIndStruct.Image = ((System.Drawing.Image)(resources.GetObject("btnIndStruct.Image")));
+            this.btnIndStruct.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnIndStruct.Name = "btnIndStruct";
+            this.btnIndStruct.Size = new System.Drawing.Size(72, 37);
+            this.btnIndStruct.Text = "structure";
+            this.btnIndStruct.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
+            // 
+            // btnIndStructLevel1
+            // 
+            this.btnIndStructLevel1.Name = "btnIndStructLevel1";
+            this.btnIndStructLevel1.Size = new System.Drawing.Size(112, 22);
+            this.btnIndStructLevel1.Text = "Level1";
+            this.btnIndStructLevel1.Click += new System.EventHandler(this.btnIndStructLevel1_Click);
+            // 
+            // btnIndStructLevel2
+            // 
+            this.btnIndStructLevel2.Name = "btnIndStructLevel2";
+            this.btnIndStructLevel2.Size = new System.Drawing.Size(112, 22);
+            this.btnIndStructLevel2.Text = "Level2";
+            this.btnIndStructLevel2.Click += new System.EventHandler(this.btnIndStructLevel2_Click);
+            // 
             // statusStrip1
             // 
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -439,6 +479,8 @@
             // 
             this.tabControl2.Controls.Add(this.tabPage3);
             this.tabControl2.Controls.Add(this.tabPage4);
+            this.tabControl2.Controls.Add(this.tabPage6);
+            this.tabControl2.Controls.Add(this.tabPage7);
             this.tabControl2.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tabControl2.Location = new System.Drawing.Point(0, 0);
             this.tabControl2.Name = "tabControl2";
@@ -454,39 +496,38 @@
             this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
             this.tabPage3.Size = new System.Drawing.Size(297, 330);
             this.tabPage3.TabIndex = 0;
-            this.tabPage3.Text = "Network";
+            this.tabPage3.Text = "Selected Network";
             this.tabPage3.UseVisualStyleBackColor = true;
             // 
             // gbInd
             // 
+            this.gbInd.Controls.Add(this.treeViewOpenedNetwork);
             this.gbInd.Dock = System.Windows.Forms.DockStyle.Fill;
             this.gbInd.Location = new System.Drawing.Point(3, 3);
             this.gbInd.Name = "gbInd";
             this.gbInd.Size = new System.Drawing.Size(291, 324);
             this.gbInd.TabIndex = 1;
             this.gbInd.TabStop = false;
-            this.gbInd.Text = "最优个体";
             // 
             // tabPage4
             // 
-            this.tabPage4.Controls.Add(this.txtMsg);
+            this.tabPage4.Controls.Add(this.panel3);
             this.tabPage4.Location = new System.Drawing.Point(4, 22);
             this.tabPage4.Name = "tabPage4";
             this.tabPage4.Padding = new System.Windows.Forms.Padding(3);
             this.tabPage4.Size = new System.Drawing.Size(297, 330);
             this.tabPage4.TabIndex = 1;
-            this.tabPage4.Text = "Message";
+            this.tabPage4.Text = "Evoultion Tree";
             this.tabPage4.UseVisualStyleBackColor = true;
             // 
-            // txtMsg
+            // panel3
             // 
-            this.txtMsg.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.txtMsg.Location = new System.Drawing.Point(3, 3);
-            this.txtMsg.Multiline = true;
-            this.txtMsg.Name = "txtMsg";
-            this.txtMsg.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txtMsg.Size = new System.Drawing.Size(291, 324);
-            this.txtMsg.TabIndex = 0;
+            this.panel3.Controls.Add(this.splitContainer1);
+            this.panel3.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panel3.Location = new System.Drawing.Point(3, 3);
+            this.panel3.Name = "panel3";
+            this.panel3.Size = new System.Drawing.Size(291, 324);
+            this.panel3.TabIndex = 0;
             // 
             // pnlMaze
             // 
@@ -504,7 +545,7 @@
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(949, 362);
+            this.tabPage2.Size = new System.Drawing.Size(1137, 362);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Mailstone";
             this.tabPage2.UseVisualStyleBackColor = true;
@@ -515,7 +556,7 @@
             this.txtMilestone.Location = new System.Drawing.Point(3, 3);
             this.txtMilestone.Multiline = true;
             this.txtMilestone.Name = "txtMilestone";
-            this.txtMilestone.Size = new System.Drawing.Size(943, 356);
+            this.txtMilestone.Size = new System.Drawing.Size(1131, 356);
             this.txtMilestone.TabIndex = 0;
             // 
             // tabPage5
@@ -524,7 +565,7 @@
             this.tabPage5.Location = new System.Drawing.Point(4, 22);
             this.tabPage5.Name = "tabPage5";
             this.tabPage5.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage5.Size = new System.Drawing.Size(949, 362);
+            this.tabPage5.Size = new System.Drawing.Size(1137, 362);
             this.tabPage5.TabIndex = 2;
             this.tabPage5.Text = "Log";
             this.tabPage5.UseVisualStyleBackColor = true;
@@ -535,7 +576,7 @@
             this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel1.Location = new System.Drawing.Point(3, 3);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(943, 356);
+            this.panel1.Size = new System.Drawing.Size(1131, 356);
             this.panel1.TabIndex = 0;
             // 
             // txtLog
@@ -545,19 +586,243 @@
             this.txtLog.Multiline = true;
             this.txtLog.Name = "txtLog";
             this.txtLog.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txtLog.Size = new System.Drawing.Size(943, 356);
+            this.txtLog.Size = new System.Drawing.Size(1131, 356);
             this.txtLog.TabIndex = 0;
             // 
-            // btnPolicyShow
+            // splitContainer1
             // 
-            this.btnPolicyShow.CheckOnClick = true;
-            this.btnPolicyShow.Image = ((System.Drawing.Image)(resources.GetObject("btnPolicyShow.Image")));
-            this.btnPolicyShow.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.btnPolicyShow.Name = "btnPolicyShow";
-            this.btnPolicyShow.Size = new System.Drawing.Size(45, 37);
-            this.btnPolicyShow.Text = "Policy";
-            this.btnPolicyShow.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
-            this.btnPolicyShow.Click += new System.EventHandler(this.btnPolicyShow_Click);
+            this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitContainer1.Location = new System.Drawing.Point(0, 0);
+            this.splitContainer1.Name = "splitContainer1";
+            this.splitContainer1.Orientation = System.Windows.Forms.Orientation.Horizontal;
+            // 
+            // splitContainer1.Panel1
+            // 
+            this.splitContainer1.Panel1.Controls.Add(this.panel4);
+            // 
+            // splitContainer1.Panel2
+            // 
+            this.splitContainer1.Panel2.Controls.Add(this.panel5);
+            this.splitContainer1.Size = new System.Drawing.Size(291, 324);
+            this.splitContainer1.SplitterDistance = 183;
+            this.splitContainer1.TabIndex = 0;
+            // 
+            // panel4
+            // 
+            this.panel4.Controls.Add(this.treeViewEvolution);
+            this.panel4.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panel4.Location = new System.Drawing.Point(0, 0);
+            this.panel4.Name = "panel4";
+            this.panel4.Size = new System.Drawing.Size(291, 183);
+            this.panel4.TabIndex = 0;
+            // 
+            // panel5
+            // 
+            this.panel5.Controls.Add(this.treeViewEvolutionNetwork);
+            this.panel5.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panel5.Location = new System.Drawing.Point(0, 0);
+            this.panel5.Name = "panel5";
+            this.panel5.Size = new System.Drawing.Size(291, 137);
+            this.panel5.TabIndex = 0;
+            // 
+            // treeViewEvolution
+            // 
+            this.treeViewEvolution.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.treeViewEvolution.Location = new System.Drawing.Point(0, 0);
+            this.treeViewEvolution.Name = "treeViewEvolution";
+            this.treeViewEvolution.Size = new System.Drawing.Size(291, 183);
+            this.treeViewEvolution.TabIndex = 0;
+            // 
+            // treeViewEvolutionNetwork
+            // 
+            this.treeViewEvolutionNetwork.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.treeViewEvolutionNetwork.Location = new System.Drawing.Point(0, 0);
+            this.treeViewEvolutionNetwork.Name = "treeViewEvolutionNetwork";
+            this.treeViewEvolutionNetwork.Size = new System.Drawing.Size(291, 137);
+            this.treeViewEvolutionNetwork.TabIndex = 0;
+            // 
+            // treeViewOpenedNetwork
+            // 
+            this.treeViewOpenedNetwork.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.treeViewOpenedNetwork.Location = new System.Drawing.Point(3, 17);
+            this.treeViewOpenedNetwork.Name = "treeViewOpenedNetwork";
+            this.treeViewOpenedNetwork.Size = new System.Drawing.Size(285, 304);
+            this.treeViewOpenedNetwork.TabIndex = 0;
+            // 
+            // tabPage6
+            // 
+            this.tabPage6.Controls.Add(this.panel6);
+            this.tabPage6.Location = new System.Drawing.Point(4, 22);
+            this.tabPage6.Name = "tabPage6";
+            this.tabPage6.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage6.Size = new System.Drawing.Size(297, 330);
+            this.tabPage6.TabIndex = 2;
+            this.tabPage6.Text = "Evolution";
+            this.tabPage6.UseVisualStyleBackColor = true;
+            // 
+            // panel6
+            // 
+            this.panel6.Controls.Add(this.panel8);
+            this.panel6.Controls.Add(this.panel7);
+            this.panel6.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panel6.Location = new System.Drawing.Point(3, 3);
+            this.panel6.Name = "panel6";
+            this.panel6.Size = new System.Drawing.Size(291, 324);
+            this.panel6.TabIndex = 0;
+            // 
+            // panel7
+            // 
+            this.panel7.Controls.Add(this.txtOptimaNetId);
+            this.panel7.Controls.Add(this.label5);
+            this.panel7.Controls.Add(this.txtDepth);
+            this.panel7.Controls.Add(this.label4);
+            this.panel7.Controls.Add(this.txtMaxFitness);
+            this.panel7.Controls.Add(this.label3);
+            this.panel7.Controls.Add(this.txtIndCount);
+            this.panel7.Controls.Add(this.label2);
+            this.panel7.Controls.Add(this.txtGeneration);
+            this.panel7.Controls.Add(this.label1);
+            this.panel7.Dock = System.Windows.Forms.DockStyle.Top;
+            this.panel7.Location = new System.Drawing.Point(0, 0);
+            this.panel7.Name = "panel7";
+            this.panel7.Size = new System.Drawing.Size(291, 138);
+            this.panel7.TabIndex = 0;
+            // 
+            // txtOptimaNetId
+            // 
+            this.txtOptimaNetId.Location = new System.Drawing.Point(182, 107);
+            this.txtOptimaNetId.Name = "txtOptimaNetId";
+            this.txtOptimaNetId.ReadOnly = true;
+            this.txtOptimaNetId.Size = new System.Drawing.Size(68, 21);
+            this.txtOptimaNetId.TabIndex = 19;
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.label5.Location = new System.Drawing.Point(48, 107);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(112, 14);
+            this.label5.TabIndex = 18;
+            this.label5.Text = "Optima Network:";
+            // 
+            // txtDepth
+            // 
+            this.txtDepth.Location = new System.Drawing.Point(150, 83);
+            this.txtDepth.Name = "txtDepth";
+            this.txtDepth.ReadOnly = true;
+            this.txtDepth.Size = new System.Drawing.Size(100, 21);
+            this.txtDepth.TabIndex = 17;
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.label4.Location = new System.Drawing.Point(48, 83);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(49, 14);
+            this.label4.TabIndex = 16;
+            this.label4.Text = "Depth:";
+            // 
+            // txtMaxFitness
+            // 
+            this.txtMaxFitness.Location = new System.Drawing.Point(150, 58);
+            this.txtMaxFitness.Name = "txtMaxFitness";
+            this.txtMaxFitness.ReadOnly = true;
+            this.txtMaxFitness.Size = new System.Drawing.Size(100, 21);
+            this.txtMaxFitness.TabIndex = 15;
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.label3.Location = new System.Drawing.Point(48, 58);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(91, 14);
+            this.label3.TabIndex = 14;
+            this.label3.Text = "Max Fitness:";
+            // 
+            // txtIndCount
+            // 
+            this.txtIndCount.Location = new System.Drawing.Point(150, 33);
+            this.txtIndCount.Name = "txtIndCount";
+            this.txtIndCount.ReadOnly = true;
+            this.txtIndCount.Size = new System.Drawing.Size(100, 21);
+            this.txtIndCount.TabIndex = 13;
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.label2.Location = new System.Drawing.Point(48, 33);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(77, 14);
+            this.label2.TabIndex = 12;
+            this.label2.Text = "Ind Count:";
+            // 
+            // txtGeneration
+            // 
+            this.txtGeneration.Location = new System.Drawing.Point(150, 8);
+            this.txtGeneration.Name = "txtGeneration";
+            this.txtGeneration.ReadOnly = true;
+            this.txtGeneration.Size = new System.Drawing.Size(100, 21);
+            this.txtGeneration.TabIndex = 11;
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.label1.Location = new System.Drawing.Point(48, 8);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(84, 14);
+            this.label1.TabIndex = 10;
+            this.label1.Text = "Generation:";
+            // 
+            // panel8
+            // 
+            this.panel8.Controls.Add(this.treeViewOptimaNet);
+            this.panel8.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panel8.Location = new System.Drawing.Point(0, 138);
+            this.panel8.Name = "panel8";
+            this.panel8.Size = new System.Drawing.Size(291, 186);
+            this.panel8.TabIndex = 1;
+            // 
+            // treeViewOptimaNet
+            // 
+            this.treeViewOptimaNet.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.treeViewOptimaNet.Location = new System.Drawing.Point(0, 0);
+            this.treeViewOptimaNet.Name = "treeViewOptimaNet";
+            this.treeViewOptimaNet.Size = new System.Drawing.Size(291, 186);
+            this.treeViewOptimaNet.TabIndex = 0;
+            // 
+            // tabPage7
+            // 
+            this.tabPage7.Controls.Add(this.panel9);
+            this.tabPage7.Location = new System.Drawing.Point(4, 22);
+            this.tabPage7.Name = "tabPage7";
+            this.tabPage7.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage7.Size = new System.Drawing.Size(297, 330);
+            this.tabPage7.TabIndex = 3;
+            this.tabPage7.Text = "Message";
+            this.tabPage7.UseVisualStyleBackColor = true;
+            // 
+            // panel9
+            // 
+            this.panel9.Controls.Add(this.txtMsg);
+            this.panel9.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panel9.Location = new System.Drawing.Point(3, 3);
+            this.panel9.Name = "panel9";
+            this.panel9.Size = new System.Drawing.Size(291, 324);
+            this.panel9.TabIndex = 0;
+            // 
+            // txtMsg
+            // 
+            this.txtMsg.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.txtMsg.Location = new System.Drawing.Point(0, 0);
+            this.txtMsg.Multiline = true;
+            this.txtMsg.Name = "txtMsg";
+            this.txtMsg.Size = new System.Drawing.Size(291, 324);
+            this.txtMsg.TabIndex = 0;
             // 
             // MainForm
             // 
@@ -581,13 +846,28 @@
             this.panel2.ResumeLayout(false);
             this.tabControl2.ResumeLayout(false);
             this.tabPage3.ResumeLayout(false);
+            this.gbInd.ResumeLayout(false);
             this.tabPage4.ResumeLayout(false);
-            this.tabPage4.PerformLayout();
+            this.panel3.ResumeLayout(false);
             this.tabPage2.ResumeLayout(false);
             this.tabPage2.PerformLayout();
             this.tabPage5.ResumeLayout(false);
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
+            this.splitContainer1.Panel1.ResumeLayout(false);
+            this.splitContainer1.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
+            this.splitContainer1.ResumeLayout(false);
+            this.panel4.ResumeLayout(false);
+            this.panel5.ResumeLayout(false);
+            this.tabPage6.ResumeLayout(false);
+            this.panel6.ResumeLayout(false);
+            this.panel7.ResumeLayout(false);
+            this.panel7.PerformLayout();
+            this.panel8.ResumeLayout(false);
+            this.tabPage7.ResumeLayout(false);
+            this.panel9.ResumeLayout(false);
+            this.panel9.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -609,7 +889,6 @@
         private System.Windows.Forms.TabPage tabPage3;
         private System.Windows.Forms.GroupBox gbInd;
         private System.Windows.Forms.TabPage tabPage4;
-        private System.Windows.Forms.TextBox txtMsg;
         private System.Windows.Forms.TextBox txtMilestone;
         private System.Windows.Forms.ToolStripStatusLabel lblindcount;
         private System.Windows.Forms.TabPage tabPage5;
@@ -618,19 +897,13 @@
         private System.Windows.Forms.ToolStripButton btnEPause;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripButton btnoShowTrail;
-        private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
         private System.Windows.Forms.ToolStripButton btnIEnvReset;
         private System.Windows.Forms.ToolStripButton btnIInference;
         private System.Windows.Forms.ToolStripButton btnIActions;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
-        private System.Windows.Forms.ToolStripButton btnOStrucuture;
         private System.Windows.Forms.ToolStripLabel toolStripLabel1;
         private System.Windows.Forms.ToolStripButton btnEReset;
-        private System.Windows.Forms.ToolStripLabel toolStripLabel2;
-        private System.Windows.Forms.ToolStripButton btnORun;
-        private System.Windows.Forms.ToolStripButton btnOStop;
         private System.Windows.Forms.ToolStripLabel toolStripLabel3;
-        private System.Windows.Forms.ToolStripButton btniOpen;
         private System.Windows.Forms.ToolStripSplitButton toolStripSplitButton1;
         private System.Windows.Forms.ToolStripMenuItem runStep5ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem stepsToolStripMenuItem;
@@ -644,6 +917,37 @@
         private System.Windows.Forms.ToolStripMenuItem btnIndStructLevel1;
         private System.Windows.Forms.ToolStripMenuItem btnIndStructLevel2;
         private System.Windows.Forms.ToolStripButton btnPolicyShow;
+        private System.Windows.Forms.ToolStripSplitButton btnOpen;
+        private System.Windows.Forms.ToolStripMenuItem btnOpenFromFile;
+        private System.Windows.Forms.ToolStripSeparator toolStripMenuItem1;
+        private System.Windows.Forms.ToolStripMenuItem btnOpenDemoAgent;
+        private System.Windows.Forms.ToolStripMenuItem btnOpenLastOptima;
+        private System.Windows.Forms.ToolStripMenuItem btnOpenOptima;
+        private System.Windows.Forms.Panel panel3;
+        private System.Windows.Forms.SplitContainer splitContainer1;
+        private System.Windows.Forms.Panel panel4;
+        private System.Windows.Forms.TreeView treeViewEvolution;
+        private System.Windows.Forms.Panel panel5;
+        private System.Windows.Forms.TreeView treeViewEvolutionNetwork;
+        private System.Windows.Forms.TreeView treeViewOpenedNetwork;
+        private System.Windows.Forms.TabPage tabPage6;
+        private System.Windows.Forms.Panel panel6;
+        private System.Windows.Forms.Panel panel8;
+        private System.Windows.Forms.TreeView treeViewOptimaNet;
+        private System.Windows.Forms.Panel panel7;
+        private System.Windows.Forms.TextBox txtOptimaNetId;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.TextBox txtDepth;
+        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.TextBox txtMaxFitness;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.TextBox txtIndCount;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.TextBox txtGeneration;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.TabPage tabPage7;
+        private System.Windows.Forms.Panel panel9;
+        private System.Windows.Forms.TextBox txtMsg;
     }
 }
 

@@ -7,17 +7,21 @@ namespace NWSELib.net
 {
     public abstract class Handler : Node
     {
+        /// <summary>
+        /// 时间跨度
+        /// </summary>
+        public virtual double TimeSpan { get => 1; }
+
         public Handler(NodeGene gene, Network net) : base(gene,net)
         {
 
         }
-        
 
-        public static Handler create(HandlerGene gene)
+        public static Handler create(HandlerGene gene,Network net)
         {
             string funcName = gene.function;
             Configuration.Handler hf = Session.GetConfiguration().Find(gene.function);
-            return (Handler)hf.HandlerType.GetConstructor(new Type[] { typeof(NodeGene) }).Invoke(new object[] { gene });
+            return (Handler)hf.HandlerType.GetConstructor(new Type[] { typeof(NodeGene),typeof(Network)}).Invoke(new object[] { gene,net });
         }
 
         /// <summary>

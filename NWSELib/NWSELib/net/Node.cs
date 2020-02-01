@@ -13,7 +13,7 @@ namespace NWSELib.net
     {
         #region 基本信息
         /// <summary>所属网络</summary>
-        protected Network net;
+        public Network net;
 
         /// <summary>节点基因</summary>
         protected NodeGene gene;
@@ -33,6 +33,7 @@ namespace NWSELib.net
         public string Cataory
         {
             get => gene.Cataory;
+            set => gene.Cataory = value;
         }
         /// <summary>
         /// 分组
@@ -132,14 +133,12 @@ namespace NWSELib.net
             int tindex = times.IndexOf(new_time);
             if (tindex < 0) return null;
 
+            int tstart = tindex - count + 1;
+            if (tstart < 0) tstart = 0;
+            if (count > values.Count - tstart)
+                count = values.Count - tstart;
+            return values.GetRange(tstart, count);
             
-            List<Vector> r = new List<Vector>();
-            for (int i=0;i<count;i++)
-            {
-                if (tindex >= values.Count) return r;
-                r.Add(values[tindex++]);
-            }
-            return r;
         }
 
         public virtual Vector GetValue(int time, int backIndex)
@@ -197,8 +196,8 @@ namespace NWSELib.net
         /// </summary>
         public void Reset()
         {
-            //this.times.Clear();
-            //this.values.Clear();
+            this.times.Clear();
+            this.values.Clear();
         }
         /// <summary>
         /// 是否已经完成过计算

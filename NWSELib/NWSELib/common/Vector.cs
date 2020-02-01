@@ -325,7 +325,7 @@ namespace NWSELib.common
         }
         public static int size(this List<Vector> vs)
         {
-            return vs.ConvertAll(v => v.Size).Sum();
+            return vs.ConvertAll(v => v==null?0:v.Size).Sum();
         }
         /// <summary>
         /// 取得某列的值
@@ -363,7 +363,7 @@ namespace NWSELib.common
         /// <returns></returns>
         public static (Vector,List<int>) flatten(this List<Vector> vs)
         {
-            int size = vs.ConvertAll(v1 => v1.Size).Sum();
+            int size = vs.ConvertAll(v1 => v1==null?0:v1.Size).Sum();
             Vector v = new Vector(true, size);
             List<int> sizes = new List<int>();
             int k = 0;

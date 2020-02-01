@@ -6,11 +6,15 @@ using System.Linq;
 
 namespace NWSELib.net.handler
 {
-    public class DiffHandler : Handler
+    /// <summary>
+    /// 变动量处理器
+    /// </summary>
+    public class VariationHandler : Handler
     {
-        public DiffHandler(NodeGene gene,Network net) : base(gene,net)
+        public VariationHandler(NodeGene gene, Network net) : base(gene, net)
         {
         }
+
         public override Object activate(Network net, int time, Object value = null)
         {
             List<Node> inputs = net.getInputNodes(this.Id);
@@ -18,17 +22,14 @@ namespace NWSELib.net.handler
                 return null;
             
             Node input1 = inputs[0];
-            Node input2 = inputs[1];
             
-            Vector fv1 = input1.GetValue(time);
-            Vector fv2 = input2.GetValue(time);
-            if (fv1 == null || fv2 == null) return null;
+            Vector fv1 = input1.Value;
+            Vector fv2 = input1.GetValue(time - 1);
+            if (fv1 == null || fv2 == null) return null; 
             Vector r = fv1 - fv2;
             base.activate(net, time, r);
             return r;
 
         }
-
-        
     }
 }

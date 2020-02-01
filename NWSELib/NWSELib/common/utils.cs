@@ -12,6 +12,7 @@ namespace NWSELib.common
     /// </summary>
     public static class Utility
     {
+        public static Random rng = new Random();
         /// <summary>
         /// 字符串转double集合
         /// str to List<double>
@@ -47,6 +48,24 @@ namespace NWSELib.common
                 if (!v1.Exists(v => v.Equals(v2[i]))) return false;
             }
             return true;
+        }
+
+        public static void shuffle<T>(this List<T> list)
+        {
+            if (list == null) return;
+            List<int> index = new List<int>();
+            for (int i = 0; i < list.Count; i++) index.Add(i);
+
+            for(int i=0;i<list.Count;i++)
+            {
+                int t = rng.Next(0, index.Count);
+                T temp = list[i];
+                list[i] = list[index[t]];
+                list[index[t]] = temp;
+
+                index.RemoveAt(t);
+            }
+            
         }
 
         /// <summary>

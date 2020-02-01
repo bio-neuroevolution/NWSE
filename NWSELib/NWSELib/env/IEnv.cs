@@ -8,7 +8,7 @@ namespace NWSELib.env
 {
     public interface IEnv
     {
-        (List<double>, List<double>) reset(Network net);
+        (List<double>, List<double>) reset(Network net,bool clearAgent = true);
         /// <summary>
         /// 
         /// </summary>
