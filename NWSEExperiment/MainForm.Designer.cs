@@ -29,15 +29,16 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle5 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle6 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle10 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle11 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle12 = new System.Windows.Forms.DataGridViewCellStyle();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.toolStripLabel1 = new System.Windows.Forms.ToolStripLabel();
             this.btnERun = new System.Windows.Forms.ToolStripButton();
             this.btnEPause = new System.Windows.Forms.ToolStripButton();
             this.btnEReset = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            this.btnInteraction = new System.Windows.Forms.ToolStripButton();
             this.btnOpen = new System.Windows.Forms.ToolStripSplitButton();
             this.btnOpenFromFile = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
@@ -111,7 +112,6 @@
             this.dataGridView = new System.Windows.Forms.DataGridView();
             this.ColumnGeneration = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ColumnMessage = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.btnInteraction = new System.Windows.Forms.ToolStripButton();
             this.toolStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.tabControl1.SuspendLayout();
@@ -205,6 +205,17 @@
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
             this.toolStripSeparator1.Size = new System.Drawing.Size(6, 40);
+            // 
+            // btnInteraction
+            // 
+            this.btnInteraction.CheckOnClick = true;
+            this.btnInteraction.Image = ((System.Drawing.Image)(resources.GetObject("btnInteraction.Image")));
+            this.btnInteraction.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnInteraction.Name = "btnInteraction";
+            this.btnInteraction.Size = new System.Drawing.Size(74, 37);
+            this.btnInteraction.Text = "Interaction";
+            this.btnInteraction.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
+            this.btnInteraction.Click += new System.EventHandler(this.toolStripButton1_Click);
             // 
             // btnOpen
             // 
@@ -475,9 +486,9 @@
             // 
             this.panel2.Controls.Add(this.tabControl2);
             this.panel2.Dock = System.Windows.Forms.DockStyle.Right;
-            this.panel2.Location = new System.Drawing.Point(790, 0);
+            this.panel2.Location = new System.Drawing.Point(836, 0);
             this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(336, 356);
+            this.panel2.Size = new System.Drawing.Size(290, 356);
             this.panel2.TabIndex = 1;
             // 
             // tabControl2
@@ -490,7 +501,7 @@
             this.tabControl2.Location = new System.Drawing.Point(0, 0);
             this.tabControl2.Name = "tabControl2";
             this.tabControl2.SelectedIndex = 0;
-            this.tabControl2.Size = new System.Drawing.Size(336, 356);
+            this.tabControl2.Size = new System.Drawing.Size(290, 356);
             this.tabControl2.TabIndex = 0;
             // 
             // tabPage3
@@ -499,7 +510,7 @@
             this.tabPage3.Location = new System.Drawing.Point(4, 22);
             this.tabPage3.Name = "tabPage3";
             this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage3.Size = new System.Drawing.Size(328, 330);
+            this.tabPage3.Size = new System.Drawing.Size(282, 330);
             this.tabPage3.TabIndex = 0;
             this.tabPage3.Text = "Selected Network";
             this.tabPage3.UseVisualStyleBackColor = true;
@@ -510,7 +521,7 @@
             this.gbInd.Dock = System.Windows.Forms.DockStyle.Fill;
             this.gbInd.Location = new System.Drawing.Point(3, 3);
             this.gbInd.Name = "gbInd";
-            this.gbInd.Size = new System.Drawing.Size(322, 324);
+            this.gbInd.Size = new System.Drawing.Size(276, 324);
             this.gbInd.TabIndex = 1;
             this.gbInd.TabStop = false;
             // 
@@ -519,7 +530,7 @@
             this.treeViewOpenedNetwork.Dock = System.Windows.Forms.DockStyle.Fill;
             this.treeViewOpenedNetwork.Location = new System.Drawing.Point(3, 17);
             this.treeViewOpenedNetwork.Name = "treeViewOpenedNetwork";
-            this.treeViewOpenedNetwork.Size = new System.Drawing.Size(316, 304);
+            this.treeViewOpenedNetwork.Size = new System.Drawing.Size(270, 304);
             this.treeViewOpenedNetwork.TabIndex = 0;
             // 
             // tabPage4
@@ -601,7 +612,7 @@
             this.tabPage6.Location = new System.Drawing.Point(4, 22);
             this.tabPage6.Name = "tabPage6";
             this.tabPage6.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage6.Size = new System.Drawing.Size(328, 330);
+            this.tabPage6.Size = new System.Drawing.Size(282, 330);
             this.tabPage6.TabIndex = 2;
             this.tabPage6.Text = "Evolution";
             this.tabPage6.UseVisualStyleBackColor = true;
@@ -613,7 +624,7 @@
             this.panel6.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel6.Location = new System.Drawing.Point(3, 3);
             this.panel6.Name = "panel6";
-            this.panel6.Size = new System.Drawing.Size(322, 324);
+            this.panel6.Size = new System.Drawing.Size(276, 324);
             this.panel6.TabIndex = 0;
             // 
             // panel8
@@ -622,7 +633,7 @@
             this.panel8.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel8.Location = new System.Drawing.Point(0, 182);
             this.panel8.Name = "panel8";
-            this.panel8.Size = new System.Drawing.Size(322, 142);
+            this.panel8.Size = new System.Drawing.Size(276, 142);
             this.panel8.TabIndex = 1;
             // 
             // treeViewOptimaNet
@@ -630,7 +641,7 @@
             this.treeViewOptimaNet.Dock = System.Windows.Forms.DockStyle.Fill;
             this.treeViewOptimaNet.Location = new System.Drawing.Point(0, 0);
             this.treeViewOptimaNet.Name = "treeViewOptimaNet";
-            this.treeViewOptimaNet.Size = new System.Drawing.Size(322, 142);
+            this.treeViewOptimaNet.Size = new System.Drawing.Size(276, 142);
             this.treeViewOptimaNet.TabIndex = 0;
             // 
             // panel7
@@ -653,13 +664,13 @@
             this.panel7.Dock = System.Windows.Forms.DockStyle.Top;
             this.panel7.Location = new System.Drawing.Point(0, 0);
             this.panel7.Name = "panel7";
-            this.panel7.Size = new System.Drawing.Size(322, 182);
+            this.panel7.Size = new System.Drawing.Size(276, 182);
             this.panel7.TabIndex = 0;
             // 
             // cbVisible
             // 
             this.cbVisible.AutoSize = true;
-            this.cbVisible.Location = new System.Drawing.Point(19, 157);
+            this.cbVisible.Location = new System.Drawing.Point(16, 160);
             this.cbVisible.Name = "cbVisible";
             this.cbVisible.Size = new System.Drawing.Size(66, 16);
             this.cbVisible.TabIndex = 24;
@@ -669,7 +680,7 @@
             // 
             // txtTime
             // 
-            this.txtTime.Location = new System.Drawing.Point(251, 155);
+            this.txtTime.Location = new System.Drawing.Point(131, 157);
             this.txtTime.Name = "txtTime";
             this.txtTime.ReadOnly = true;
             this.txtTime.Size = new System.Drawing.Size(68, 21);
@@ -679,7 +690,7 @@
             // 
             this.label7.AutoSize = true;
             this.label7.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.label7.Location = new System.Drawing.Point(203, 160);
+            this.label7.Location = new System.Drawing.Point(83, 159);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(42, 14);
             this.label7.TabIndex = 22;
@@ -687,10 +698,10 @@
             // 
             // txtCurNet
             // 
-            this.txtCurNet.Location = new System.Drawing.Point(135, 132);
+            this.txtCurNet.Location = new System.Drawing.Point(131, 133);
             this.txtCurNet.Name = "txtCurNet";
             this.txtCurNet.ReadOnly = true;
-            this.txtCurNet.Size = new System.Drawing.Size(184, 21);
+            this.txtCurNet.Size = new System.Drawing.Size(142, 21);
             this.txtCurNet.TabIndex = 21;
             // 
             // label6
@@ -705,10 +716,10 @@
             // 
             // txtOptimaNetId
             // 
-            this.txtOptimaNetId.Location = new System.Drawing.Point(135, 106);
+            this.txtOptimaNetId.Location = new System.Drawing.Point(131, 106);
             this.txtOptimaNetId.Name = "txtOptimaNetId";
             this.txtOptimaNetId.ReadOnly = true;
-            this.txtOptimaNetId.Size = new System.Drawing.Size(184, 21);
+            this.txtOptimaNetId.Size = new System.Drawing.Size(142, 21);
             this.txtOptimaNetId.TabIndex = 19;
             // 
             // label5
@@ -876,38 +887,38 @@
             // 
             this.dataGridView.AllowUserToAddRows = false;
             this.dataGridView.AllowUserToDeleteRows = false;
-            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle4.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle4.Font = new System.Drawing.Font("宋体", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            dataGridViewCellStyle4.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dataGridView.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle4;
+            dataGridViewCellStyle10.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle10.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle10.Font = new System.Drawing.Font("宋体", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            dataGridViewCellStyle10.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle10.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle10.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle10.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dataGridView.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle10;
             this.dataGridView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGridView.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.ColumnGeneration,
             this.ColumnMessage});
-            dataGridViewCellStyle5.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle5.BackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle5.Font = new System.Drawing.Font("宋体", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            dataGridViewCellStyle5.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle5.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle5.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle5.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.dataGridView.DefaultCellStyle = dataGridViewCellStyle5;
+            dataGridViewCellStyle11.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle11.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle11.Font = new System.Drawing.Font("宋体", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            dataGridViewCellStyle11.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle11.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle11.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle11.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dataGridView.DefaultCellStyle = dataGridViewCellStyle11;
             this.dataGridView.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dataGridView.Location = new System.Drawing.Point(0, 0);
             this.dataGridView.Name = "dataGridView";
             this.dataGridView.ReadOnly = true;
-            dataGridViewCellStyle6.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle6.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle6.Font = new System.Drawing.Font("宋体", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            dataGridViewCellStyle6.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle6.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle6.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle6.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dataGridView.RowHeadersDefaultCellStyle = dataGridViewCellStyle6;
+            dataGridViewCellStyle12.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle12.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle12.Font = new System.Drawing.Font("宋体", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            dataGridViewCellStyle12.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle12.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle12.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle12.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dataGridView.RowHeadersDefaultCellStyle = dataGridViewCellStyle12;
             this.dataGridView.RowHeadersVisible = false;
             this.dataGridView.RowTemplate.Height = 23;
             this.dataGridView.Size = new System.Drawing.Size(1126, 356);
@@ -925,17 +936,6 @@
             this.ColumnMessage.Name = "ColumnMessage";
             this.ColumnMessage.ReadOnly = true;
             this.ColumnMessage.Width = 1000;
-            // 
-            // btnInteraction
-            // 
-            this.btnInteraction.CheckOnClick = true;
-            this.btnInteraction.Image = ((System.Drawing.Image)(resources.GetObject("btnInteraction.Image")));
-            this.btnInteraction.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.btnInteraction.Name = "btnInteraction";
-            this.btnInteraction.Size = new System.Drawing.Size(74, 37);
-            this.btnInteraction.Text = "Interaction";
-            this.btnInteraction.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
-            this.btnInteraction.Click += new System.EventHandler(this.toolStripButton1_Click);
             // 
             // MainForm
             // 

@@ -162,7 +162,7 @@ namespace NWSEExperiment
                 txtDepth.Text = evolutionSession.root.getDepth().ToString();
                 txtGeneration.Text = evolutionSession.Generation.ToString();
                 txtIndCount.Text = evolutionSession.inds.Count.ToString();
-                List<double> fts = evolutionSession.inds.ConvertAll(ind => ind.Fitness);
+                List<double> fts = evolutionSession.inds.FindAll(ind=>!double.IsNaN(ind.Fitness)).ConvertAll(ind => ind.Fitness);
                 txtMaxFitness.Text = fts.Max().ToString("F4");
                 txtOptimaNetId.Text = evolutionSession.inds[fts.argmax()].ToString();
 
