@@ -31,17 +31,20 @@ namespace NWSEExperiment
         private ILog logger = LogManager.GetLogger(typeof(MainForm));
         public MainForm()
         {
-            Form.CheckForIllegalCrossThreadCalls = false;
-            InitializeComponent();
-
             log4net.Config.XmlConfigurator.Configure();
-            this.Width = Session.GetConfiguration().view.width;
-            this.Height = Session.GetConfiguration().view.height;
-
+            Form.CheckForIllegalCrossThreadCalls = false;
             Session.GetConfiguration();
             MeasureTools.init();
 
             resetEvolution();
+
+            InitializeComponent();
+
+            
+            this.Width = Session.GetConfiguration().view.width;
+            this.Height = Session.GetConfiguration().view.height;
+
+            
             
         }
 
@@ -60,6 +63,14 @@ namespace NWSEExperiment
         private void toolStripButton1_Click(object sender, EventArgs e)
         {
             this.interactiveMode = btnInteraction.Checked;
+        }
+
+        private void MainForm_SizeChanged(object sender, EventArgs e)
+        {
+            if (evolutionMaze == null) return;
+            int w = evolutionMaze.AOIRectangle.Width + 20;
+            this.panel2.Width = this.Width - w;
+            if (this.panel2.Width < 0) this.panel2.Width = 0;
         }
         #endregion
 
@@ -463,6 +474,7 @@ namespace NWSEExperiment
             this.Refresh();
 
         }
+
 
 
         #endregion
