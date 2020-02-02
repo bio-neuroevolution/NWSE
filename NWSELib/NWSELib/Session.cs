@@ -237,7 +237,6 @@ namespace NWSELib
                     net.Fitness = Session.fitnessHandler == null ? 0 : Session.fitnessHandler(net, this);
 
                     this.triggerEvent(Session.EVT_EVAULATION_END, net);
-
                     judgePaused();
                 }
                 
