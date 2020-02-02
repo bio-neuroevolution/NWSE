@@ -7,6 +7,7 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using log4net;
@@ -60,15 +61,11 @@ namespace NWSEExperiment
                 demoAgent.Visible = cbVisible.Checked;
             this.Refresh();
         }
-        private void toolStripButton1_Click(object sender, EventArgs e)
-        {
-            this.interactiveMode = btnInteraction.Checked;
-        }
-
+        
         private void MainForm_SizeChanged(object sender, EventArgs e)
         {
             if (evolutionMaze == null) return;
-            int w = evolutionMaze.AOIRectangle.Width + 20;
+            int w = evolutionMaze.AOIRectangle.Width + 10;
             this.panel2.Width = this.Width - w;
             if (this.panel2.Width < 0) this.panel2.Width = 0;
         }
@@ -99,7 +96,8 @@ namespace NWSEExperiment
             if (evolutionSession.Running) return;
             try
             {
-               
+                this.interactiveMode = false;
+                clearOptimaMenu();
                 evolutionSession.run();
             }
             catch (Exception ex)
@@ -157,8 +155,8 @@ namespace NWSEExperiment
             else if (eventName == Session.EVT_EVAULATION_END)
             {
                 if (demoNet == null) return;
-                txtMaxFitness.Text = demoNet.Fitness.ToString("F4");
-                txtOptimaNetId.Text = demoNet.ToString();
+                //txtMaxFitness.Text = demoNet.Fitness.ToString("F4");
+                //txtOptimaNetId.Text = demoNet.ToString();
             }
             else if (eventName == Session.EVT_EVAULATION_SUMMARY)
             {
@@ -173,15 +171,17 @@ namespace NWSEExperiment
                 txtDepth.Text = evolutionSession.root.getDepth().ToString();
                 txtGeneration.Text = evolutionSession.Generation.ToString();
                 txtIndCount.Text = evolutionSession.inds.Count.ToString();
-                List<double> fts = evolutionSession.inds.FindAll(ind=>!double.IsNaN(ind.Fitness)).ConvertAll(ind => ind.Fitness);
-                txtMaxFitness.Text = fts.Max().ToString("F4");
-                txtOptimaNetId.Text = evolutionSession.inds[fts.argmax()].ToString();
+               
+                txtMaxFitness.Text = ((double)states[2]).ToString("F6");
+                txtOptimaNetId.Text = optima_net.ToString();
 
-                refreshNetwork(evolutionSession.inds[fts.argmax()], treeViewOptimaNet);
+                refreshNetwork(optima_net, treeViewOptimaNet);
 
                 refreshEvolutionTree();
 
                 showLog(generation, txtOptimaNetId.Text);
+
+                insertOptimaMenu(this.optima_net);
             }
             else if (eventName == Session.EVT_INVAILD_GENE)
             {
@@ -287,6 +287,8 @@ namespace NWSEExperiment
             dataGridView.Rows[0].Cells[0].Value = generation.ToString();
             dataGridView.Rows[0].Cells[1].Value = message;
         }
+
+        
         #endregion
 
         #region 演示过程
@@ -335,6 +337,17 @@ namespace NWSEExperiment
         private bool end;
 
         private bool inferencing;
+
+        private void initInteraction()
+        {
+            interactive_time = 0;
+            obs = null;
+            gesture = null;
+            actions = null;
+            reward = 0;
+            end = false;
+            inferencing = false;
+        }
         /// <summary>
         /// 交互式环境重置
         /// </summary>
@@ -346,6 +359,7 @@ namespace NWSEExperiment
             {
                 demoNet = new Network(genomeFactory.createDemoGenome(evolutionSession)); 
             }
+            interactiveMode = true;
             interactive_time = 0;
             (obs, gesture) = evolutionMaze.reset(optima_net);
             demoAgent = evolutionMaze.Agents[0];
@@ -411,7 +425,64 @@ namespace NWSEExperiment
            
         }
 
-        
+        private void btnOpenDemoAgent_Click(object sender, EventArgs e)
+        {
+            interactiveMode = true;
+            initInteraction();
+            demoNet = new Network(genomeFactory.createDemoGenome(evolutionSession));
+            this.refreshNetwork(demoNet, treeViewOpenedNetwork);
+        }
+
+        private void btnOpenFromFile_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog dlg = new OpenFileDialog();
+            dlg.Filter = "*.ind|*.ind";
+            if (dlg.ShowDialog() != DialogResult.OK)
+                return;
+            demoNet = Network.load(dlg.FileName);
+            this.initInteraction();
+        }
+
+        private void btnOpenLastOptima_Click(object sender, EventArgs e)
+        {
+            this.demoNet = optima_net;
+            initInteraction();
+        }
+
+        private void btnOpenOptima_Click(object sender, EventArgs e)
+        {
+            ToolStripMenuItem menuItem = (ToolStripMenuItem)sender;
+            this.demoNet = (Network)menuItem.Tag;
+            initInteraction();
+        }
+
+        public void clearOptimaMenu()
+        {
+            btnOpenOptima.DropDownItems.Clear();
+        }
+        private void insertOptimaMenu(Network net)
+        {
+            if (net == null) return;
+            ToolStripMenuItem menuItem = matchOptimaMenu(net.Id);
+            if (menuItem != null) return;
+            menuItem = (ToolStripMenuItem)btnOpenOptima.DropDownItems.Add(net.ToString());
+            menuItem.Tag = net;
+            menuItem.Click += btnOpenOptima_Click;
+        }
+
+        private ToolStripMenuItem matchOptimaMenu(int netid)
+        {
+            foreach(ToolStripMenuItem item in btnOpenOptima.DropDownItems)
+            {
+                if (item != null && item.Tag != null &&
+                    ((Network)item.Tag).Id == netid)
+                    return item;
+            }
+            return null;
+        }
+
+
+
         private void runStep5ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             ToolStripMenuItem item = (ToolStripMenuItem)sender;
@@ -474,6 +545,7 @@ namespace NWSEExperiment
             this.Refresh();
 
         }
+
 
 
 

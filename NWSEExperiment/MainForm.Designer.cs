@@ -38,7 +38,6 @@
             this.btnEPause = new System.Windows.Forms.ToolStripButton();
             this.btnEReset = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
-            this.btnInteraction = new System.Windows.Forms.ToolStripButton();
             this.btnOpen = new System.Windows.Forms.ToolStripSplitButton();
             this.btnOpenFromFile = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
@@ -112,6 +111,7 @@
             this.dataGridView = new System.Windows.Forms.DataGridView();
             this.ColumnGeneration = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ColumnMessage = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.toolStripLabel2 = new System.Windows.Forms.ToolStripLabel();
             this.toolStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.tabControl1.SuspendLayout();
@@ -144,12 +144,12 @@
             // toolStrip1
             // 
             this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripLabel1,
+            this.toolStripLabel2,
             this.btnERun,
             this.btnEPause,
             this.btnEReset,
             this.toolStripSeparator1,
-            this.btnInteraction,
+            this.toolStripLabel1,
             this.btnOpen,
             this.btnIEnvReset,
             this.btnIInference,
@@ -168,8 +168,8 @@
             // toolStripLabel1
             // 
             this.toolStripLabel1.Name = "toolStripLabel1";
-            this.toolStripLabel1.Size = new System.Drawing.Size(64, 37);
-            this.toolStripLabel1.Text = "Evoultion:";
+            this.toolStripLabel1.Size = new System.Drawing.Size(73, 37);
+            this.toolStripLabel1.Text = "Interaction:";
             // 
             // btnERun
             // 
@@ -206,17 +206,6 @@
             this.toolStripSeparator1.Name = "toolStripSeparator1";
             this.toolStripSeparator1.Size = new System.Drawing.Size(6, 40);
             // 
-            // btnInteraction
-            // 
-            this.btnInteraction.CheckOnClick = true;
-            this.btnInteraction.Image = ((System.Drawing.Image)(resources.GetObject("btnInteraction.Image")));
-            this.btnInteraction.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.btnInteraction.Name = "btnInteraction";
-            this.btnInteraction.Size = new System.Drawing.Size(74, 37);
-            this.btnInteraction.Text = "Interaction";
-            this.btnInteraction.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
-            this.btnInteraction.Click += new System.EventHandler(this.toolStripButton1_Click);
-            // 
             // btnOpen
             // 
             this.btnOpen.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -237,6 +226,7 @@
             this.btnOpenFromFile.Name = "btnOpenFromFile";
             this.btnOpenFromFile.Size = new System.Drawing.Size(205, 22);
             this.btnOpenFromFile.Text = "Open From File";
+            this.btnOpenFromFile.Click += new System.EventHandler(this.btnOpenFromFile_Click);
             // 
             // toolStripMenuItem1
             // 
@@ -248,18 +238,21 @@
             this.btnOpenDemoAgent.Name = "btnOpenDemoAgent";
             this.btnOpenDemoAgent.Size = new System.Drawing.Size(205, 22);
             this.btnOpenDemoAgent.Text = "Open Demo Agent";
+            this.btnOpenDemoAgent.Click += new System.EventHandler(this.btnOpenDemoAgent_Click);
             // 
             // btnOpenLastOptima
             // 
             this.btnOpenLastOptima.Name = "btnOpenLastOptima";
             this.btnOpenLastOptima.Size = new System.Drawing.Size(205, 22);
             this.btnOpenLastOptima.Text = "Open Last Optima Ind";
+            this.btnOpenLastOptima.Click += new System.EventHandler(this.btnOpenLastOptima_Click);
             // 
             // btnOpenOptima
             // 
             this.btnOpenOptima.Name = "btnOpenOptima";
             this.btnOpenOptima.Size = new System.Drawing.Size(205, 22);
             this.btnOpenOptima.Text = "Open Optima Ind";
+            this.btnOpenOptima.Click += new System.EventHandler(this.btnOpenOptima_Click);
             // 
             // btnIEnvReset
             // 
@@ -701,7 +694,7 @@
             this.txtCurNet.Location = new System.Drawing.Point(131, 133);
             this.txtCurNet.Name = "txtCurNet";
             this.txtCurNet.ReadOnly = true;
-            this.txtCurNet.Size = new System.Drawing.Size(142, 21);
+            this.txtCurNet.Size = new System.Drawing.Size(104, 21);
             this.txtCurNet.TabIndex = 21;
             // 
             // label6
@@ -719,7 +712,7 @@
             this.txtOptimaNetId.Location = new System.Drawing.Point(131, 106);
             this.txtOptimaNetId.Name = "txtOptimaNetId";
             this.txtOptimaNetId.ReadOnly = true;
-            this.txtOptimaNetId.Size = new System.Drawing.Size(142, 21);
+            this.txtOptimaNetId.Size = new System.Drawing.Size(104, 21);
             this.txtOptimaNetId.TabIndex = 19;
             // 
             // label5
@@ -937,6 +930,12 @@
             this.ColumnMessage.ReadOnly = true;
             this.ColumnMessage.Width = 1000;
             // 
+            // toolStripLabel2
+            // 
+            this.toolStripLabel2.Name = "toolStripLabel2";
+            this.toolStripLabel2.Size = new System.Drawing.Size(64, 37);
+            this.toolStripLabel2.Text = "Evoultion:";
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -1068,7 +1067,7 @@
         private System.Windows.Forms.TextBox txtCurNet;
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.CheckBox cbVisible;
-        private System.Windows.Forms.ToolStripButton btnInteraction;
+        private System.Windows.Forms.ToolStripLabel toolStripLabel2;
     }
 }
 

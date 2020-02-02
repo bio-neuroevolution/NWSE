@@ -248,7 +248,7 @@ namespace NWSEExperiment.maze
 
             double reward = this.compute_reward(agent);
 
-            bool end = agent.Location.distance(this.goal_point) < 35;
+            bool end = agent.Location.manhattanDistance(this.goal_point) < Session.GetConfiguration().evaluation.end_distance;
             return (obs, gesture, actions,reward,end);
         }
 
@@ -338,55 +338,45 @@ namespace NWSEExperiment.maze
             RobotAgent robot = (RobotAgent)this.GetAgent(net.Id);
             List<Point2D> traces = new List<Point2D>(robot.Traces);
             if (traces.Count <= 0) return 0;
-            
-            //找到最后一个点，最近的最优轨迹点
-            int optimaIndex = -1, posIndex = -1;
-            double minDistance = double.MaxValue;
-            for(int i=0;i< optimaTraces.Count;i++)
+            //计算所有轨迹点与目标点的距离是否小于阈值
+            double goal_reward = 0, max_goal_reward = 10;
+            List<double> goaldis = traces.ConvertAll(t=>t.manhattanDistance(this.goal_point));
+            if (goaldis.Min() <= Session.GetConfiguration().evaluation.end_distance)
+                goal_reward = max_goal_reward;
+            //去掉冗余轨迹点
+            for(int i=1;i<traces.Count;i++)
             {
-                List<Point2D> temp = optimaTraces[i];
-                List<double> distances = temp.ConvertAll(t => t.distance(traces.Last()));
-                if(distances.Min() < minDistance)
+                if(traces[i].X == traces[i-1].X && traces[i].Y == traces[i-1].Y)
                 {
-                    optimaIndex = i;
-                    posIndex = distances.argmin();
-                    minDistance = distances.Min();
+                    traces.RemoveAt(i--);
                 }
             }
-            int lastindex = optimaIndex;
 
-
-            List<double> dis = new List<double>();
-            dis.Add(minDistance);
-            List<Point2D> optimas = optimaTraces[optimaIndex].GetRange(0, posIndex);
-            traces.RemoveAt(traces.Count - 1);
-
-            while(optimas.Count>0 && traces.Count>0)
+            //与每一个最优轨迹比较,取适应度最高的
+            double maxFitness = double.MinValue;
+            for (int i = 0; i < optimaTraces.Count; i++)
             {
-                minDistance = double.MaxValue;
-                int optimaindex = -1, traceindex = -1;
-                for(int i=0;i< optimas.Count;i++)
+                List<Point2D> optima = optimaTraces[i];
+                int lastOptimaIndex = 0;
+                List<double> dis = new List<double>();
+                //对每一个轨迹点，计算与其最近的最优轨迹点
+                for(int j=1;j<traces.Count;j++)
                 {
-                    for(int j=0;j<traces.Count;j++)
-                    {
-                        double td = optimas[i].distance(traces[j]);
-                        if(minDistance>td)
-                        {
-                            optimaindex = i;
-                            traceindex = j;
-                            minDistance = td;
-                        }
-                    }
+                    List<double> td = optima.ConvertAll(op => op.distance(traces[j]));
+                    int tdminIndex = td.argmin();
+                    if (tdminIndex <= lastOptimaIndex) continue;
+                    for (int k = lastOptimaIndex + 1; k <= tdminIndex - 1; k++)
+                        dis.Add(td[k]);
+                    lastOptimaIndex = tdminIndex;
+                    dis.Add(td[tdminIndex]);
+                    if (lastOptimaIndex == optima.Count - 1) break;
                 }
-                if(minDistance != double.MaxValue)
-                    dis.Add(minDistance);
-                if (optimaindex == 0 || traceindex == 0)
-                    break;
-                optimas = optimas.GetRange(0, optimaindex);
-                traces = traces.GetRange(0, traceindex);
+                
+                double fitness = lastOptimaIndex + (dis.Count <= 0 ? 0 : Math.Exp(-1 * dis.Average()/100));
+                if (fitness > maxFitness)
+                    maxFitness = fitness;
             }
-            double avgdis = dis.Average();
-            return lastindex + Math.Exp(-1*avgdis);
+            return maxFitness + goal_reward;
         }
 
         

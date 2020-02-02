@@ -195,7 +195,7 @@ namespace NWSELib.genome
             this.sort_dimension();
             return "InferenceGene:" + Text + ";info:" + base.ToString() + ";param:";
         }
-        public static new InferenceGene Parse(String s)
+        public static InferenceGene parse(String s)
         {
             int t1 = s.IndexOf("InferenceGene") + "InferenceGene".Length;
             int t2 = s.IndexOf("info");
@@ -217,7 +217,7 @@ namespace NWSELib.genome
             }
             //解析info
             InferenceGene gene = new InferenceGene(null);
-            gene.parse(s2);
+            gene.parseInfo(s2);
 
 
             

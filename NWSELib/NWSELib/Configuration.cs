@@ -330,7 +330,8 @@ namespace NWSELib
             [XmlAttribute]
             public int run_count;
             [XmlAttribute]
-            public int max_reward;
+            public double end_distance;
+           
         }
         public class Evolution
         {

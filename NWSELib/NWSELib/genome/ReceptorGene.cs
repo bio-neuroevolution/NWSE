@@ -142,7 +142,9 @@ namespace NWSELib.genome
         {
             String[] ss = s.Split(';');
             ReceptorGene gene = new ReceptorGene(null);
-            gene.name = ss[0].Trim();
+            gene.name = ss[0].Substring(ss[0].IndexOf(":")+1).Trim();
+
+            gene.parseInfo(ss[1].Substring(ss[1].IndexOf("info:")+5));
 
             int index = ss[2].IndexOf("abstractLevel");
             index = ss[2].IndexOf("=", index + 1);

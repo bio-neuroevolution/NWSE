@@ -324,7 +324,7 @@ namespace NWSEExperiment.maze
         public void reset(Point2D initpos)
         {
             this.traces.Clear();
-            Location = initpos;
+            Location = new Point2D(initpos.X,initpos.Y);
         }
 
         static Pen dash_pen = null;

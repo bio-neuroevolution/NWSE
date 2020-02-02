@@ -110,38 +110,38 @@ namespace NWSELib.genome
         /// <returns></returns>
         public override string ToString()
         {
-            return "HandlerGene:" + Text + ";info:" + base.ToString() + ";param:ps=" +
-                (param.Count <= 0 ? "" : param.ConvertAll(p => p.ToString()).Aggregate<String>((x, y) => x.ToString() + "," + y.ToString()));
+            return "HandlerGene:" + Text + ";info:" + base.ToString() + ";function=" + this.function +
+                ";inputs=" + Utility.toString(this.inputs) +
+                ";param=" + Utility.toString(param);
         }
 
 
-        public static HandlerGene Parse(String s, ref List<int> inputids)
+        public static HandlerGene parse(String s)
         {
-            int t1 = s.IndexOf("HandlerGene") + "HandlerGene".Length;
-            int t2 = s.IndexOf("info");
-            int t3 = s.IndexOf("param");
-            String s1 = s.Substring(t1, t2 - t1 - 3);//Text部分
-            String s2 = s.Substring(t2 + 5, t3 - t2 - 7);//info部分
-            String s3 = s.Substring(t3 + 6);//param部分
+            int t1 = s.IndexOf("info");
+            int t2 = s.IndexOf(":",t1+1);
+            int t3 = s.IndexOf(";", t2 + 1);
+            String info = s.Substring(t2 + 1, t3 - t2 - 1);
 
-            //解析text
-            int t4 = s1.IndexOf("(");
-            String function = s1.Substring(0, t4);
-            if (inputids == null) inputids = new List<int>();
-            int t6 = s1.IndexOf("{");
-            while (t6 >= 0)
-            {
-                int t7 = s1.IndexOf("}", t6 + 1);
-                String s4 = s1.Substring(t6 + 1, t7 - t6 - 1);
-                inputids.Add(Session.idGenerator.getGeneId(s4.Trim()));
-                t6 = s1.IndexOf("{");
-            }
+            //解析param部分
+            t1 = s.IndexOf("function");
+            t2 = s.IndexOf("=", t1 + 1);
+            t3 = s.IndexOf(";", t2 + 1);
+            String function = s.Substring(t2 + 1, t3 - t2-1).Trim();
+
+            t1 = s.IndexOf("inputs");
+            t2 = s.IndexOf("=", t1 + 1);
+            t3 = s.IndexOf(";", t2 + 1);
+            String inputstr = s.Substring(t2 + 1, t3 - t2 - 1).Trim();
+            List<int> inputids = Utility.parse<int>(inputstr);
             //解析info
             HandlerGene gene = new HandlerGene(null, function, inputids, null);
-            gene.parse(s2);
+            gene.parseInfo(info);
             //解析参数
-            int t5 = s3.IndexOf("=");
-            gene.param = Utility.parse(s3.Substring(t5 + 1).Trim());
+            t1 = s.IndexOf("param");
+            t2 = s.IndexOf("=", t1 + 1);
+            String paramtext = s.Substring(t2 + 1, s.Length - t2 - 1).Trim();
+            gene.param = Utility.parse<double>(paramtext);
 
             return gene;
         }

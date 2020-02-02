@@ -251,11 +251,19 @@ namespace NWSELib.genome
             return this.GetType().Name + ": id=" + this.id.ToString() + ",name=" + this.name +
                 ",generation=" + this.generation + ",cataory=" + this.cataory + ",group=" + this.group;
         }
+        public static NodeGene parseGene(String s)
+        {
+            if (s == null || s.Trim() == "") return null;
+            if (s.StartsWith("ReceptorGene")) return ReceptorGene.parse(s);
+            else if (s.StartsWith("HandlerGene")) return HandlerGene.parse(s);
+            else if (s.StartsWith("InferenceGene")) return InferenceGene.parse(s);
+            return null;
+        }
         /// <summary>
         /// 字符串转
         /// </summary>
         /// <param name="str"></param>
-        public void parse(String str)
+        public void parseInfo(String str)
         {
             int i1 = str.IndexOf("id");
             int i2 = str.IndexOf("=", i1 + 1);

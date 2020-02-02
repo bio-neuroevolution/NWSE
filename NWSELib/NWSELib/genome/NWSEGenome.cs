@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 using log4net;
 using NWSELib.common;
@@ -60,6 +61,79 @@ namespace NWSELib.genome
         }
         #endregion
 
+        #region 读写
+
+        public override string ToString()
+        {
+            StringBuilder str = new StringBuilder();
+            str.Append(this.id.ToString() + System.Environment.NewLine);
+            foreach(ReceptorGene receptorGene in receptorGenes)
+            {
+                str.Append(receptorGene.ToString()+ System.Environment.NewLine);
+            }
+            foreach(HandlerGene handlerGene in handlerGenes)
+            {
+                str.Append(handlerGene.ToString() + System.Environment.NewLine);
+            }
+
+            foreach(InferenceGene inferenceGene in this.infrernceGenes)
+            {
+                str.Append(inferenceGene.ToString() + System.Environment.NewLine);
+            }
+
+            str.Append("handlerSelectionProb=" + Utility.toString(handlerSelectionProb) + System.Environment.NewLine);
+
+            foreach(NodeGene invaildGene in this.invaildInferenceNodes)
+            {
+                str.Append("invaild="+ invaildGene.ToString()+ System.Environment.NewLine);
+            }
+            foreach(NodeGene vaildGene in this.vaildInferenceNodes)
+            {
+                str.Append("vaild=" + vaildGene.ToString() + System.Environment.NewLine);
+            }
+            return str.ToString();
+
+        }
+
+        public static NWSEGenome parse(String str)
+        {
+            if (str == null || str.Trim() == "") return null;
+            List<String> s1 = str.Split(new String[] { System.Environment.NewLine },StringSplitOptions.RemoveEmptyEntries).ToList();
+            if (s1 == null || s1.Count <= 0) return null;
+
+            NWSEGenome genome = new NWSEGenome();
+            genome.id = int.Parse(s1[0]);
+            s1.RemoveAt(0);
+
+            foreach (String s in s1)
+            {
+                if (s == null || s.Trim() == "") continue;
+                if (s.StartsWith("ReceptorGene"))
+                    genome.receptorGenes.Add(ReceptorGene.parse(s));
+                else if (s.StartsWith("HandlerGene"))
+                    genome.handlerGenes.Add(HandlerGene.parse(s));
+                else if (s.StartsWith("InferenceGene"))
+                    genome.infrernceGenes.Add(InferenceGene.parse(s));
+                else if (s.StartsWith("handlerSelectionProb"))
+                {
+                    genome.handlerSelectionProb.AddRange(Utility.parse<double>(s));
+                }
+                else if (s.StartsWith("invaild"))
+                {
+                    String s2 = s.Substring(s.IndexOf("="));
+                    genome.invaildInferenceNodes.Add(InferenceGene.parse(s2));
+                }
+                else if (s.StartsWith("vaild"))
+                {
+                    String s2 = s.Substring(s.IndexOf("="));
+                    genome.vaildInferenceNodes.Add(NodeGene.parseGene(s2));
+                }
+            }
+
+            genome.computeNodeDepth();
+            return genome;
+        }
+        #endregion
         #region 克隆、编码和等价性
         /// <summary>
         /// 克隆
@@ -564,6 +638,6 @@ namespace NWSELib.genome
 
         #endregion
 
-
+        
     }
 }

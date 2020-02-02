@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.IO;
 using Microsoft.ML.Probabilistic.Distributions;
 using NWSELib.common;
 using NWSELib.env;
@@ -1038,6 +1039,21 @@ namespace NWSELib.net
         #endregion
 
 
+        #region 保存和读取
+        public void save(String path,int generation)
+        {
+            String filename = path + "\\" + this.Id.ToString() + "_" +
+            generation.ToString()+"_"+this.Fitness.ToString("F5") + ".ind";
 
+            File.WriteAllText(filename, this.genome.ToString());
+        }
+        public static Network load(String filename)
+        {
+            String text = File.ReadAllText(filename);
+            if (text == null || text.Trim() == "") return null;
+            NWSEGenome genome = NWSEGenome.parse(text);
+            return new Network(genome);
+        }
+        #endregion
     }
 }

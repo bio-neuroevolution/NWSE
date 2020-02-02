@@ -4,7 +4,7 @@ using System.Xml.Serialization;
 using System.IO;
 using System.Linq;
 using System.Threading;
-    
+  
 
 using log4net;
 
@@ -182,6 +182,17 @@ namespace NWSELib
             handler(eventName,this.generation,values);
         }
 
+        public String currentSessionPath;
+        private void prepareStorePath()
+        {
+            String path = System.AppDomain.CurrentDomain.BaseDirectory;
+            String sessionPath = "session_" + DateTime.Now.ToString("yyyyMMddHHmmss");
+            sessionPath = path + "\\" + sessionPath;
+            Directory.CreateDirectory(sessionPath);
+
+            currentSessionPath = sessionPath;
+        }
+
         #endregion
 
         #region 执行
@@ -199,6 +210,7 @@ namespace NWSELib
             MeasureTools.init();
             logger = LogManager.GetLogger(typeof(Session));
             this.generation = 1;
+            prepareStorePath();
 
             //初始化初代个体
             this.triggerEvent(Session.EVT_LOG, "population init...");
@@ -239,10 +251,27 @@ namespace NWSELib
                     this.triggerEvent(Session.EVT_EVAULATION_END, net);
                     judgePaused();
                 }
-                
+
                 //最优个体
-                int indIndex = this.inds.ConvertAll(ind => ind.Fitness).argmax();
-                this.triggerEvent(Session.EVT_EVAULATION_SUMMARY,inds[indIndex]);
+                int maxFitnessIndex = -1;
+                double maxFitness = double.MinValue;
+                Network maxFitnessNet = null; 
+                for(int i=0;i<inds.Count;i++)
+                {
+                    if (double.IsNaN(inds[i].Fitness))
+                        continue;
+                    if(inds[i].Fitness > maxFitness)
+                    {
+                        maxFitnessIndex = i;
+                        maxFitness = inds[i].Fitness;
+                        maxFitnessNet = inds[i];
+                    }
+
+                }
+                 
+                this.triggerEvent(Session.EVT_EVAULATION_SUMMARY, maxFitnessNet, maxFitnessIndex, maxFitness);
+
+                maxFitnessNet.save(this.currentSessionPath,this.generation);
 
                 //是否达到最大迭代次数
                 this.generation += 1;

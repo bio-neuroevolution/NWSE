@@ -49,12 +49,9 @@ E:\gitlib\annunakichb\NWSE\NWSEExperiment\bin\Debug\NWSEExperiment.exe
 E:\gitlib\annunakichb\NWSE\NWSEExperiment\bin\Debug\NWSEExperiment.pdb
 E:\gitlib\annunakichb\NWSE\NWSEExperiment\bin\Debug\log4net.dll
 E:\gitlib\annunakichb\NWSE\NWSEExperiment\bin\Debug\NWSELib.dll
-E:\gitlib\annunakichb\NWSE\NWSEExperiment\bin\Debug\Microsoft.ML.Probabilistic.dll
 E:\gitlib\annunakichb\NWSE\NWSEExperiment\bin\Debug\NWSELib.pdb
 E:\gitlib\annunakichb\NWSE\NWSEExperiment\bin\Debug\NWSELib.dll.config
 E:\gitlib\annunakichb\NWSE\NWSEExperiment\bin\Debug\log4net.xml
-E:\gitlib\annunakichb\NWSE\NWSEExperiment\bin\Debug\Microsoft.ML.Probabilistic.pdb
-E:\gitlib\annunakichb\NWSE\NWSEExperiment\bin\Debug\Microsoft.ML.Probabilistic.xml
 E:\gitlib\annunakichb\NWSE\NWSEExperiment\obj\Debug\NWSEExperiment.csprojAssemblyReference.cache
 E:\gitlib\annunakichb\NWSE\NWSEExperiment\obj\Debug\NWSEExperiment.MainForm.resources
 E:\gitlib\annunakichb\NWSE\NWSEExperiment\obj\Debug\NWSEExperiment.Properties.Resources.resources

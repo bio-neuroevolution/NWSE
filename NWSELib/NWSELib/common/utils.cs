@@ -23,6 +23,17 @@ namespace NWSELib.common
         {
             return s.Split(',').ToList().ConvertAll(x => Double.Parse(x)).ToList<double>();
         }
+        public static List<T> parse<T>(String s)
+        {
+            if (s == null || s.Trim() == "") return new List<T>();
+            return s.Split(',').ToList().ConvertAll(x => (T)(Object)Double.Parse(x));
+        }
+        public static string toString(List<int> values, String sep = ",")
+        {
+            if (values == null || values.Count <= 0) return "";
+            return values.ConvertAll(v => v.ToString()).Aggregate((x, y) => x + sep + y);
+        }
+
         public static string toString(List<double> values,String sep =",",int precise=3)
         {
             if (values == null || values.Count <= 0) return "";
