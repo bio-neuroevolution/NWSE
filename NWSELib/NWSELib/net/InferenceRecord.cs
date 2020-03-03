@@ -13,6 +13,7 @@ namespace NWSELib.net
 {
     public class InferenceRecord
     {
+        
         #region 基本信息   
         /// <summary>
         /// 对应每个维的均值
@@ -79,7 +80,7 @@ namespace NWSELib.net
         /// <summary>
         /// 评估值（表示按此记录做出行动的结果好坏）
         /// </summary>
-        public double evulation;
+        public double evulation = double.NaN;
         /// <summary>
         /// 使用次数
         /// </summary>
@@ -87,7 +88,7 @@ namespace NWSELib.net
         /// <summary>
         /// 表示该前置条件和后置变量映射关系的准确程度
         /// </summary>
-        public double accuracyDistance;
+        public double accuracy = double.NaN;
         /// <summary>
         /// 抽象之前的记录
         /// </summary>
@@ -109,7 +110,7 @@ namespace NWSELib.net
 
             str.Append("mean" + xh.ToString() + "=" + meanToString(inf) + System.Environment.NewLine +
                        prefix + "evulation=" + evulation.ToString("F3") + System.Environment.NewLine +
-                       prefix + "accuracy=" + accuracyDistance.ToString("F3") + System.Environment.NewLine +
+                       prefix + "accuracy=" + accuracy.ToString("F3") + System.Environment.NewLine +
                        prefix + "usedCount=" + usedCount.ToString() + System.Environment.NewLine +
                        prefix + "acceptCount=" + acceptCount.ToString() + System.Environment.NewLine);
             return str.ToString();
@@ -125,9 +126,28 @@ namespace NWSELib.net
             return this.means.toString();
         }
 
+        public String summary()
+        {
+            return this.means.toString() + ",e=" + evulation.ToString("F4")+",accept="+acceptCount.ToString();
+        }
+
         #endregion
 
         #region 均值处理
+        public Vector getActionValueInCondition()
+        {
+            List<Vector> vs = new List<Vector>();
+            List<int> actionIds = this.inf.getGene().getActionSensorsConditions();
+            List<int> condIds = this.inf.getGene().getConditionIds();
+            for(int i=0;i<condIds.Count;i++)
+            {
+                if(actionIds.Contains(condIds[i]))
+                {
+                    vs.Add(this.means[i]);
+                }
+            }
+            return vs.flatten().Item1;
+        }
         /// <summary>
         /// 分解均值为条件和结论部分
         /// </summary>
@@ -151,7 +171,7 @@ namespace NWSELib.net
         /// <param name="net"></param>
         /// <param name="record"></param>
         /// <returns></returns>
-        public (List<Vector>, List<Vector>, List<Vector>) splitMeans3(Network net)
+        public (List<Vector>, List<Vector>, List<Vector>) splitMeans3()
         {
             //待返回结果
             List<Vector> env = new List<Vector>();
@@ -159,7 +179,7 @@ namespace NWSELib.net
             List<Vector> expects = new List<Vector>();
 
             //动作比较特殊，每个动作都要设置结构，尽管该节点可能不涉及
-            int actioncount = net.Effectors.Count;
+            int actioncount = inf.net.Effectors.Count;
             for (int i = 0; i < actioncount; i++)
                 actions.Add(new Vector(0.5));//0.5表示啥都不做
 
@@ -168,11 +188,11 @@ namespace NWSELib.net
             List<(int, int)> conditions = inf.getGene().conditions;
             for (int i = 0; i < conditions.Count; i++)
             {
-                Node node = net.getNode(conditions[i].Item1);
+                Node node = inf.net.getNode(conditions[i].Item1);
                 if (node.Gene.IsActionSensor())
                 {
-                    Effector effector = (Effector)net.Effectors.FirstOrDefault(e => "_" + e.Name == node.Name);
-                    int effectorIndex = net.Effectors.IndexOf(effector);
+                    Effector effector = (Effector)inf.net.Effectors.FirstOrDefault(e => "_" + e.Name == node.Name);
+                    int effectorIndex = inf.net.Effectors.IndexOf(effector);
                     actions[effectorIndex] = means[i];
                 }
                 else
@@ -339,7 +359,6 @@ namespace NWSELib.net
 
             this.gaussian = null;
             this.initGaussian();
-
             this.acceptRecords.Clear();
 
         }
@@ -350,82 +369,114 @@ namespace NWSELib.net
         /// </summary>
         /// <param name="net"></param>
         /// <returns></returns>
-        public double adjustAccuracy(Network net, Inference inf, int time)
+        public double adjustAccuracy(int time)
         {
             //取得inf的真实条件值和后置变量值
-            (List<Vector> realCondValues, List<Vector> realVarValues) = inf.getValues2(net, time);
-            //取得记录中心点的真实条件值和后置变量值
-            (List<Vector> meanCondValues, List<Vector> meanVarValues) = this.getMeanValues();
-            //条件值的总维度
-            int size = realCondValues.size();
-            if (size <= 0) return this.accuracyDistance;
-            //条件部分是否匹配
-            double dis = Vector.max_manhantan_distance(realCondValues, meanCondValues);
-            if (dis >= Session.GetConfiguration().learning.tolerable_similarity)
-                return this.accuracyDistance;
+            (List<Vector> realCondValues, List<Vector> realVarValues) = inf.getValues2(time);
+            //判断条件部分是否匹配
+            List<double> dc = null;
+            bool match = this.isConditionValueMatch(realCondValues, out dc);
+            if (!match) return this.accuracy;
 
-            realVarValues.AddRange(realCondValues);
-            meanVarValues.AddRange(meanCondValues);
-            this.accuracyDistance = Vector.manhantan_distance(realVarValues, meanVarValues);
-            return this.accuracyDistance;
+            List<double> dvs = this.ditanceFromVariable(realVarValues);
+
+            int n1 = realCondValues.size(), n2 = realVarValues.size();
+            //this.accuracy = 1 - (n1 * dc + dvs.Sum()) / (n1 + n2);
+            this.accuracy = 1 - dvs.Average();
+
+            return this.accuracy;
         }
         #endregion
 
         #region 环境与推理的匹配性检查
 
-        private List<Node> _cached_condNodes;
-        public List<Node> CachedCondNodes
+        
+        
+        public bool isConditionValueMatch(List<Vector> condValues, out List<double> distances)
         {
-            get
+            distances = distanceFromCondition(condValues);
+            for (int i=0;i<inf.conditionReceptors.Count;i++)
             {
-                if (_cached_condNodes != null)
-                    return _cached_condNodes;
-                List<int> condIds = inf.getGene().getConditions().ConvertAll(c => c.Item1);
-                _cached_condNodes = condIds.ConvertAll(id => inf.net.getNode(id));
-                return _cached_condNodes;
+                if (!inf.conditionReceptors[i].IsTolerateDistance(distances[i]))
+                    return false;
             }
-            set
-            {
-                _cached_condNodes = value;
-            }
-        }
-        public bool isConditionValueMatch(Network net, Inference inf, List<Vector> condValues, out double distance)
-        {
-            List<double> distances = new List<double>();
-            bool match = true;
-            List<int> condIds = inf.getGene().getConditions().ConvertAll(c => c.Item1);
-            List<Node> condNodes = CachedCondNodes;
-            for (int i = 0; i < condNodes.Count; i++)
-            {
-                Node node = condNodes[i];
-                double condValue = condValues[i][0];
-                double meanValue = this.means[i][0];
-                double d = MeasureTools.GetMeasure(node.Gene.Cataory).distance(condValue, meanValue);
-                distances.Add(d);
-                if (d > 1) match = false;
-            }
-            distance = distances.Average();
-            return match;
+            return true;
         }
 
-        public bool isVariableMatch(List<Vector> varValues,out double distance)
+        public bool isVariableMatch(List<Vector> varValues,out List<double> distances)
         {
-            List<double> distances = new List<double>();
-            bool match = true;
-            List<int> ids = inf.getGene().variables.ConvertAll(c => c.Item1);
-            List<NodeGene> gens = ids.ConvertAll(id => inf.Gene.owner[id]);
-            int condCount = inf.getGene().ConditionCount;
-            for (int i = 0; i < ids.Count; i++)
+            distances = ditanceFromVariable(varValues);
+            for (int i = 0; i < inf.variablesReceptors.Count; i++)
             {
-                double varValue = varValues[i][0];
-                double meanValue = this.means[condCount+i][0];
-                double d = MeasureTools.GetMeasure(gens[i].Cataory).distance(varValue, meanValue);
-                distances.Add(d);
-                if (d > 1) match = false;
+                if (!inf.variablesReceptors[i].IsTolerateDistance(distances[i]))
+                    return false;
             }
-            distance = distances.Average();
-            return match;
+            return true;
         }
+
+        
+
+        public List<double> distanceFromCondition(List<Vector> value)
+        {
+            Vector v1 = value.flatten().Item1;
+            Vector v2 = this.means.flatten().Item1;
+
+            List<double> distances = new List<double>();
+            for (int i = 0; i < this.inf.conditionReceptors.Count; i++)
+            {
+                double d = this.inf.conditionReceptors[i].distance(v1[i], v2[i]);
+                distances.Add(d);
+            }
+
+            return distances;
+        }
+
+        public List<double> distanceFromConditions(List<int> ids, List<Vector> values)
+        {
+            Vector v1 = values.flatten().Item1;
+            Vector v2 = this.splitMeans3().Item1.flatten().Item1;
+
+            List<Receptor> receptors = inf.net.Genome.getReceptorGenes(ids.ToArray()).ConvertAll(g=>(Receptor)inf.net[g.Id]);
+            List<double> dis = new List<double>();
+            for(int i=0;i< receptors.Count;i++)
+            {
+                dis.Add(receptors[i].distance(v1[i],v2[i]));
+            }
+
+            return dis;
+        }
+
+        public List<double> ditanceFromVariable(List<Vector> value)
+        {
+            Vector v1 = value.flatten().Item1;
+            Vector v2 = this.getMeanValues().varValues.flatten().Item1;
+
+            List<double> distances = new List<double>();
+            for (int i = 0; i < this.inf.variablesReceptors.Count; i++)
+            {
+                double d = this.inf.variablesReceptors[i].distance(v1[i], v2[i]);
+                distances.Add(d);
+            }
+
+            return distances;
+        }
+
+        
+        public List<double> distance(List<Vector> value)
+        {
+            Vector v1 = value.flatten().Item1;
+            Vector v2 = this.means.flatten().Item1;
+
+            List<double> distances = new List<double>();
+            for (int i = 0; i < this.inf.LeafReceptors.Count; i++)
+            {
+                double d = this.inf.LeafReceptors[i].distance(v1[i], v2[i]);
+                distances.Add(d);
+            }
+            return distances;
+        }
+
+
         /// <summary>
         /// 本记录的均值中条件部分与输入值的曼哈顿距离
         /// </summary>

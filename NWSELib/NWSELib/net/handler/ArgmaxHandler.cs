@@ -5,6 +5,7 @@ using System.Text;
 using System.Linq;
 
 using NWSELib.genome;
+using NWSELib.common;
 
 namespace NWSELib.net.handler
 {
@@ -19,19 +20,12 @@ namespace NWSELib.net.handler
             List<Node> inputs = net.getInputNodes(this.Id);
             if (!inputs.All(n => n.IsActivate(time)))
                 return null;
-            double max = double.MinValue;
-            int nodeid = -1;
-            for(int i=0;i<inputs.Count;i++)
-            {
-                double v = inputs[i].GetValue(time).length();
-                if(v > max)
-                {
-                    max = v;
-                    nodeid = inputs[i].Id;
-                }
-            }
 
-            base.activate(net, time, (double)nodeid);
+            List<double> lengths = inputs.ConvertAll(input => input.GetValue(time).length());
+            int index = lengths.argmax();
+            int nodeid = inputs[index].Id;
+
+            base.activate(net, time, (double)index);
             return this.Value;
         }
 

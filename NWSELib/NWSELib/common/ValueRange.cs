@@ -263,9 +263,10 @@ namespace NWSELib.common
             }
         }
 
-        public double gaussian_random()
+        public double gaussian_random(double center=-1)
         {
-            double center = (Max - Min) / 2;
+            if(center < 0 || center > 1)
+                center = (Max - Min) / 2;
             Gaussian gaussian = Gaussian.FromMeanAndVariance(center, 0.001);
             return Math.Max(Math.Min(Max,gaussian.Sample()),Min);
         }
@@ -358,6 +359,15 @@ namespace NWSELib.common
             this.distance = distance;
             this.recursiveFunc = recursiveFunc;
             this.recursiveFuncMaxHistory = recursiveFuncMaxHistory;
+        }
+        #endregion
+
+        #region 计算
+        public bool In(double value)
+        {
+            if (cataory == Cataory.Enum)
+                return this.values.Contains(value);
+            return value >= Min && value <= Max;
         }
         #endregion
     }

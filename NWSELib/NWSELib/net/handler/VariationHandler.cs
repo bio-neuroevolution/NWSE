@@ -25,10 +25,12 @@ namespace NWSELib.net.handler
             
             Vector fv1 = input1.Value;
             Vector fv2 = input1.GetValue(time - 1);
-            if (fv1 == null || fv2 == null) return null; 
-            Vector r = fv1 - fv2;
-            base.activate(net, time, r);
-            return r;
+            if (fv1 == null || fv2 == null) return null;
+
+            MeasureTools tool = this.GetMeasureTools();
+            double v = tool.difference(fv1[0],fv2[0]);
+            base.activate(net, time, v);
+            return v;
 
         }
     }

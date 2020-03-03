@@ -23,7 +23,7 @@ namespace NWSELib.net.handler
             Vector fv1 = input1.GetValue(time);
             Vector fv2 = input2.GetValue(time);
             if (fv1 == null || fv2 == null) return null;
-            Vector r = fv1 - fv2;
+            double r = this.GetMeasureTools().difference(fv1,fv2);
             base.activate(net, time, r);
             return r;
 

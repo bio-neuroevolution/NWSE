@@ -97,7 +97,7 @@ namespace NWSELib.common
         {
             Vector v = this;
             if (v == null || v.Size <= 0) return "";
-            return v.ToList().ConvertAll(x => x.ToString("F3"))
+            return v.ToList().ConvertAll(x => x.ToString("F4"))
                 .Aggregate((a, b) => a + "," + b);
         }
         #endregion
@@ -174,10 +174,48 @@ namespace NWSELib.common
             }
             return v;
         }
+        public static Vector operator *(double v,Vector v1)
+        {
+            int size = v1.Size;
+            Vector v2 = new Vector(true, size);
+            for (int i = 0; i < size; i++)
+                v2[i] = v1[i] * v;
+            return v2;
+        }
+        public static Vector operator /(double v,Vector v1)
+        {
+            int size = v1.Size;
+            Vector v2 = new Vector(true, size);
+            for (int i = 0; i < size; i++)
+                v2[i] = v1[i] / v;
+            return v2;
+        }
+        public static Vector operator +(Vector v1, Vector v2)
+        {
+            int size = VectorExtender.maxSize(v1,v2);
+            Vector v = new Vector(true, size);
+            for (int i = 0; i < size; i++)
+            {
+                if (v1.Size <= i)
+                {
+                    v[i] = v2[i];
+                    break;
+                }
+                else if (v2.Size <= i)
+                {
+                    v[i] = v1[i];
+                }
+                else
+                {
+                    v[i] = v1[i] + v2[i];
+                }
 
+            }
+            return v;
+        }
         public static Vector operator -(Vector v1, Vector v2)
         {
-            int size = VectorExtender.maxSize();
+            int size = VectorExtender.maxSize(v1,v2);
             Vector v = new Vector(true, size);
             for (int i = 0; i < size; i++)
             {
@@ -218,7 +256,6 @@ namespace NWSELib.common
             int dim = avg.Count;
             int n = cv[0].Size;
             Vector r = new Vector(true, dim * (dim + 1) / 2);
-            int index = 0;
             double[,] result = new double[size, size];
             for (int i = 0; i < size; i++)
             {
@@ -283,26 +320,26 @@ namespace NWSELib.common
         }
 
 
-        public static bool equals(Vector v1,Vector v2)
+        public static bool equals(Vector v1,Vector v2,double error = 0.001)
         {
             if (v1 == v2) return true;
             if (v1 == null || v2 == null) return false;
             if (v1.Size != v2.Size) return false;
             for(int i=0;i<v1.Size;i++)
             {
-                if (v1[i] != v2[i]) return false;
+                if (Math.Abs(v1[i] - v2[i])>error) return false;
             }
             return true;
         }
 
-        public static bool equals(List<Vector> v1, List<Vector> v2)
+        public static bool equals(List<Vector> v1, List<Vector> v2, double error = 0.001)
         {
             if (v1 == v2) return true;
             if (v1 == null || v2 == null) return false;
             if (v1.Count != v2.Count) return false;
             for (int i = 0; i < v1.Count; i++)
             {
-                if (!equals(v1[i],v2[i])) return false;
+                if (!equals(v1[i],v2[i],error)) return false;
             }
             return true;
         }

@@ -18,6 +18,10 @@ namespace NWSELib.genome
         /// 名称
         /// </summary>
         protected String name;
+        /// <summary>
+        /// 描述
+        /// </summary>
+        protected String desc;
 
         /// <summary>生成的进化年代</summary>
         protected int generation;
@@ -39,6 +43,11 @@ namespace NWSELib.genome
         protected int depth;
 
         /// <summary>
+        /// 有效性
+        /// </summary>
+        public int validity;
+
+        /// <summary>
         /// 随机数生成器
         /// </summary>
         public static Random rng = new Random();
@@ -51,6 +60,10 @@ namespace NWSELib.genome
         /// 对应感受器名称
         /// </summary>
         public string Name { get => name; set => name = value; }
+        /// <summary>
+        /// 描述
+        /// </summary>
+        public String Description { get => desc; set => desc = value; }
         /// <summary>
         /// 生成的进化年代
         /// </summary>
@@ -116,14 +129,21 @@ namespace NWSELib.genome
             }
             return upstreams;
         }
+
+        private List<ReceptorGene> _cachedLeafGenes = null;
         /// <summary>
         /// 取得基因树上的叶子基因
         /// </summary>
         /// <returns></returns>
         public virtual List<ReceptorGene> getLeafGenes()
         {
+            if (_cachedLeafGenes != null) return _cachedLeafGenes;
             List<ReceptorGene> r = new List<ReceptorGene>();
-            return this.getLeafGenes(this, r);
+            if (this is ReceptorGene)
+            {
+                r.Add((ReceptorGene)this);return r;
+            }
+            return _cachedLeafGenes = this.getLeafGenes(this, r);
         }
         private List<ReceptorGene> getLeafGenes(NodeGene g,List<ReceptorGene> r)
         {
@@ -197,7 +217,6 @@ namespace NWSELib.genome
         
         #endregion
 
-       
 
         #region 统计信息       
         /// <summary>
@@ -232,6 +251,7 @@ namespace NWSELib.genome
         {
             this.id = gene.id;
             this.name = gene.name;
+            this.desc = gene.desc;
             this.cataory = gene.cataory;
             this.generation = gene.generation;
             this.group = gene.group;
@@ -248,15 +268,15 @@ namespace NWSELib.genome
         /// <returns></returns>
         public override string ToString()
         {
-            return this.GetType().Name + ": id=" + this.id.ToString() + ",name=" + this.name +
-                ",generation=" + this.generation + ",cataory=" + this.cataory + ",group=" + this.group;
+            return "id=" + this.id.ToString() + ",name=" + this.name + ",desc="+desc + 
+                ",generation=" + this.generation + ",cataory=" + this.cataory + ",group=" + this.group+ ",validity="+ validity.ToString();
         }
-        public static NodeGene parseGene(String s)
+        public static NodeGene parseGene(NWSEGenome genome,String s)
         {
             if (s == null || s.Trim() == "") return null;
-            if (s.StartsWith("ReceptorGene")) return ReceptorGene.parse(s);
-            else if (s.StartsWith("HandlerGene")) return HandlerGene.parse(s);
-            else if (s.StartsWith("InferenceGene")) return InferenceGene.parse(s);
+            if (s.StartsWith("ReceptorGene")) return ReceptorGene.parse(genome,s);
+            else if (s.StartsWith("HandlerGene")) return HandlerGene.parse(genome,s);
+            else if (s.StartsWith("InferenceGene")) return InferenceGene.parse(genome,s);
             return null;
         }
         /// <summary>
@@ -277,6 +297,12 @@ namespace NWSELib.genome
             s = str.Substring(i2 + 1, i3 - i2 - 1);
             name = s;
 
+            i1 = str.IndexOf("desc");
+            i2 = str.IndexOf("=", i1 + 1);
+            i3 = str.IndexOf(",", i2 + 1);
+            s = str.Substring(i2 + 1, i3 - i2 - 1);
+            desc = s;
+
             i1 = str.IndexOf("generation");
             i2 = str.IndexOf("=", i1 + 1);
             i3 = str.IndexOf(",", i2 + 1);
@@ -291,15 +317,18 @@ namespace NWSELib.genome
 
             i1 = str.IndexOf("group");
             i2 = str.IndexOf("=", i1 + 1);
-            i3 = str.IndexOf(",", i2 + 1);
+            i3 = str.Length;
             s = str.Substring(i2 + 1, i3 - i2 - 1);
             group = s;
 
-            i1 = str.IndexOf("sectionCount");
+            i1 = str.IndexOf("validity");
             i2 = str.IndexOf("=", i1 + 1);
-            i3 = str.IndexOf(",", i2 + 1);
+            i3 = str.Length;
             s = str.Substring(i2 + 1, i3 - i2 - 1);
-            
+            validity = int.Parse(s);
+
+
+
         }
         /// <summary>
         /// 构造函数

@@ -133,6 +133,16 @@ namespace NWSELib.common
             return index;
         }
 
+        public static int IndexOf<T>(this List<T> list,Predicate<T> p)
+        {
+            if (list == null || list.Count <= 0) return -1;
+            for(int i=0;i<list.Count;i++)
+            {
+                if (p(list[i])) return i;
+            }
+            return -1;
+        }
+
         /// <summary>
         /// 给定概率，计算对应的x值
         /// </summary>

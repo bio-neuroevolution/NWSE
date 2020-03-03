@@ -82,7 +82,12 @@ namespace NWSELib.net
             get => this.gene.Dimension;
         }
 
+        
         #endregion
+
+        
+
+        
 
         #region 状态信息
         /// <summary>
@@ -155,11 +160,21 @@ namespace NWSELib.net
             return this.values[tindex];
         }
 
+        #endregion
+
+        #region 缓存和初始化
+
+        public readonly List<Receptor> LeafReceptors;
+
+        
         public Node(NodeGene gene,Network net)
         {
             this.gene = gene;
             this.net = net;
+            LeafReceptors = this.gene.getLeafGenes().ConvertAll(g => (Receptor)net[g.Id]);
         }
+
+        
         #endregion
 
         #region 评价信息
@@ -207,13 +222,7 @@ namespace NWSELib.net
         {
             return this.times.Contains(time);
         }
-
-        internal double randomValue(Network net,int time)
-        {
-            double value = Session.GetConfiguration().agent.receptors.GetSensor("_"+this.Name).Range.gaussian_random();
-            this.activate(net, time, value);
-            return value;
-        }
+        
         #endregion
 
         #region 想象信息（用于推理）

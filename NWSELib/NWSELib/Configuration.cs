@@ -12,6 +12,9 @@ namespace NWSELib
     [XmlRoot(ElementName = "configuration")]
     public class Configuration
     {
+        [XmlAttribute]
+        public double realerror;
+
         [XmlArray(ElementName = "mensurations")]
         [XmlArrayItem(ElementName = "mensuration", Type = typeof(Mensuration))]
         public List<Mensuration> mensurations = new List<Mensuration>();
@@ -210,6 +213,8 @@ namespace NWSELib
             [XmlArray]
             [XmlArrayItem(Type = typeof(SensorProperty))]
             public List<SensorProperty> properties = new List<SensorProperty>();
+            [XmlAttribute]
+            public int abstractLevel;
 
             #region 数据范围分级信息
             [XmlIgnore]
@@ -257,6 +262,13 @@ namespace NWSELib
                 }
             }
             #endregion
+        
+            public bool IsActionSensor()
+            {
+                return this.group.StartsWith("action");
+            }
+
+            
         }
 
         public class SensorProperty
@@ -283,11 +295,7 @@ namespace NWSELib
 
         public class Learning
         {
-            [XmlAttribute]
-            public double eplison;
-            [XmlAttribute]
-            public double tolerable_similarity;
-
+            
             [XmlElement]
             public LearningInfernece inference = new LearningInfernece();
             [XmlElement]
@@ -315,6 +323,9 @@ namespace NWSELib
         public class Evaluation
         {
             [XmlAttribute]
+            public bool repeat;
+
+            [XmlAttribute]
             public String reward_method;
 
             [XmlAttribute]
@@ -331,12 +342,54 @@ namespace NWSELib
             public int run_count;
             [XmlAttribute]
             public double end_distance;
+
+            [XmlElement]
+            public EvaluationReward reward = new EvaluationReward();
+            [XmlElement]
+            public EvaluationPolicy policy = new EvaluationPolicy();
+
+        }
+
+        public class EvaluationPolicy
+        {
+            [XmlAttribute]
+            public String name = "evaluation";
+            [XmlAttribute]
+            public int init_plan_depth = 5;
+            [XmlAttribute]
+            public String plan_reward_range = "[-50,-50]";
+            [XmlAttribute]
+            public bool exploration;
            
+            [XmlIgnore]
+            private ValueRange _plan_reward_range;
+            [XmlIgnore]
+            public ValueRange PlanRewardRange
+            {
+                get
+                {
+                    if(_plan_reward_range == null)
+                        _plan_reward_range = new ValueRange(plan_reward_range);
+                    return _plan_reward_range;
+                }
+            }
+           
+        }
+
+        public class EvaluationReward
+        {
+            [XmlAttribute]
+            public double collision = -50;
+            [XmlAttribute]
+            public double normal = 0.1;
+            [XmlAttribute]
+            public double away =1.0;
         }
         public class Evolution
         {
             [XmlAttribute]
             public int propagate_base_count;
+
             [XmlAttribute]
             public int iter_count;
 
@@ -350,21 +403,25 @@ namespace NWSELib
         public class EvolutionSelection
         {
             [XmlAttribute]
-            public int count;
+            public int min_population_capacity;
             [XmlAttribute]
-            public double reability_lowlimit;
+            public int max_population_capacity;
+            [XmlAttribute]
+            public double reability_selection_limit;
         }
      
         public class EvolutionMutate
         {
             [XmlAttribute]
             public String handlerprob;
-            [XmlIgnore]
-            private List<double> _handlerprob;
+           
             [XmlIgnore]
             public List<double> Handlerprob 
             {
-                get => _handlerprob == null ? _handlerprob = Utility.parse(handlerprob) : _handlerprob;
+                get
+                {
+                    return Utility.parse<double>(handlerprob);
+                }
             }
         }
 

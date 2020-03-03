@@ -7,6 +7,14 @@ namespace NWSELib.net
 {
     public abstract class Handler : Node
     {
+        private MeasureTools _measureTools;
+
+        public MeasureTools GetMeasureTools()
+        {
+            if (_measureTools == null)
+                _measureTools = MeasureTools.GetMeasure(this.Cataory);
+            return _measureTools;
+        }
         /// <summary>
         /// 时间跨度
         /// </summary>

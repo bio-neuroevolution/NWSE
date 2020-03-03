@@ -11,44 +11,35 @@ namespace NWSELib.genome
     public class ReceptorGene : NodeGene
     {
         #region 数据范围和分级
-        /// <summary>
-        /// 数据抽象层级
-        /// </summary>
-        protected int _abstractLevel = 0;
-        /// <summary>
-        /// 数据抽象的取值范围
-        /// </summary>
-        internal int _abstractSectionCount=0;
+        
         /// <summary>
         /// 数据抽象层级
         /// </summary>
         public int AbstractLevel
         {
-            get { return this._abstractLevel; }
-            set
+            get
             {
-                this._abstractLevel = value;
-                this._abstractSectionCount = this.getAbstractSectionCount(value);
+                return Session.GetConfiguration().agent.receptors.GetSensor(this.name).abstractLevel;
             }
         }
 
-        public int getAbstractSectionCount(int abstraceLevel)
+        private int getAbstractSectionCount(int abstraceLevel)
         {
             Configuration.Sensor s = Session.GetConfiguration().agent.receptors.GetSensor(this.name);
-            if (s != null && s.Levels != null && abstraceLevel < s.Levels.Count)
+            if (s != null && s.Levels != null && abstraceLevel <= s.Levels.Count)
             {
                 return abstraceLevel==0?s.Levels[abstraceLevel]: s.Levels[abstraceLevel-1];
             }
             MeasureTools mt = MeasureTools.GetMeasure(this.cataory);
             if (mt == null) throw new Exception(this.Name + "无法完成分级：" + abstraceLevel.ToString() + ",");
-            if (mt.Levels != null && abstraceLevel < mt.Levels.Count)
+            if (mt.Levels != null && abstraceLevel <= mt.Levels.Count)
             {
                 return abstraceLevel == 0 ? mt.Levels[abstraceLevel] : mt.Levels[abstraceLevel - 1];
             }
             throw new Exception(this.Name + "无法完成有效分级：" + abstraceLevel.ToString() + ",");
         }
 
-        public int AbstractSectionCount { get => getAbstractSectionCount(this._abstractLevel); }
+        public int SampleCount { get => getAbstractSectionCount(this.AbstractLevel); }
 
         public List<String> AbstractLevelNames 
         {
@@ -87,8 +78,8 @@ namespace NWSELib.genome
         {
             get
             {
-                if (_abstractSectionCount == 0) return 0;
-                return this.Range.Distance / this._abstractSectionCount;
+                if (SampleCount == 0) return 0;
+                return this.Range.Distance / (this.SampleCount-1);
             }
         }
 
@@ -123,7 +114,7 @@ namespace NWSELib.genome
         /// <param name="genome"></param>
         public ReceptorGene(NWSEGenome genome):base(genome)
         {
-
+            
         }
         /// <summary>
         /// 转字符串
@@ -138,17 +129,17 @@ namespace NWSELib.genome
         /// </summary>
         /// <param name="s"></param>
         /// <returns></returns>
-        public static ReceptorGene parse(String s)
+        public static ReceptorGene parse(NWSEGenome genome,String s)
         {
             String[] ss = s.Split(';');
-            ReceptorGene gene = new ReceptorGene(null);
+            ReceptorGene gene = new ReceptorGene(genome);
             gene.name = ss[0].Substring(ss[0].IndexOf(":")+1).Trim();
 
             gene.parseInfo(ss[1].Substring(ss[1].IndexOf("info:")+5));
 
             int index = ss[2].IndexOf("abstractLevel");
             index = ss[2].IndexOf("=", index + 1);
-            gene.AbstractLevel = int.Parse(ss[2].Substring(index+1,ss[2].Length-index-1).Trim());
+            
             return gene;
 
         }

@@ -25,7 +25,8 @@ namespace NWSELib.net.handler
             Node input2 = inputs.Count <= 1 ? inputs[0] : inputs[1];
             Vector v1 = input1.Value;
             Vector v2 = input2.GetValue(t - 1);
-            Vector v = (v1-v2).normalize();
+
+            double v = this.GetMeasureTools().getChangeDirection(v1[0], v2[0]);
             base.activate(net, time, v);
             return v;
         }

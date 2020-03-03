@@ -43,6 +43,7 @@ namespace NWSELib.net
         public Dictionary<int, List<InferenceRecord>> childs = new Dictionary<int, List<InferenceRecord>>();
 
 
+        private double _reability = double.NaN;
         /// <summary>
         /// 可靠度
         /// </summary>
@@ -50,22 +51,42 @@ namespace NWSELib.net
         { 
             get
             {
-                if(this.records.Count<=0)return double.NaN;
-                List<double> ds = this.records.FindAll(r => !double.IsNaN(r.accuracyDistance)).ConvertAll(r => r.accuracyDistance);
-                if (ds == null || ds.Count <= 0) return double.NaN;
-                double dis = ds.Average();
-                return Math.Exp(-1*dis);
+                if (double.IsNaN(_reability))
+                    _reability = this.computeReability();
+                return _reability;
+            }
+        }
+        #endregion
+
+        #region 推理情景记录管理
+        public void removeWrongRecords()
+        {
+            for(int i=0;i<this.records.Count;i++)
+            {
+                if(this.records[i].accuracy <= 0)
+                    this.records.RemoveAt(i--);
             }
         }
         #endregion
 
         #region 初始化
+        public readonly List<Receptor> conditionReceptors;
+        public readonly List<Receptor> variablesReceptors;
         /// <summary>
         /// 构造函数
         /// </summary>
         /// <param name="gene"></param>
-        public Inference(NodeGene gene,Network net) : base(gene,net) { }
+        public Inference(NodeGene gene,Network net) : base(gene,net) 
+        {
+            this.getGene().sort_dimension();
+            conditionReceptors = this.getGene().getConditionIds().ConvertAll(id => (Receptor)net[id]);
+            variablesReceptors = this.getGene().getVariableIds().ConvertAll(id => (Receptor)net[id]);
+        }
         
+        public String summary()
+        {
+            return this.getGene().Text + ",r=" + this.Reability.ToString("F4");
+        }
         public override string ToString()
         {
             StringBuilder str = new StringBuilder();
@@ -152,7 +173,7 @@ namespace NWSELib.net
         /// </summary>
         /// <param name="net"></param>
         /// <returns></returns>
-        public List<Vector> getInputValues(Network net,int time)
+        public List<Vector> getInputValues(int time)
         {
             return this.getGene().getDimensions().ConvertAll(d => net.getNode(d.Item1).GetValue(time - d.Item2));
         }
@@ -190,7 +211,7 @@ namespace NWSELib.net
         /// <param name="net"></param>
         /// <param name="time"></param>
         /// <returns></returns>
-        public (List<Vector>,List<Vector>) getValues2(Network net, int time)
+        public (List<Vector>,List<Vector>) getValues2(int time)
         {
             List<Vector> c = this.getGene().conditions
                 .ConvertAll(item=>(net[item.Item1],item.Item2))
@@ -204,7 +225,7 @@ namespace NWSELib.net
             return (c, v);
         }
 
-        public (List<Vector>, List<Vector>, List<Vector>) getValues3(Network net, int time)
+        public (List<Vector>, List<Vector>, List<Vector>) getValues3(int time)
         {
             List<Vector> ce = new List<Vector>();
             List<Vector> ca = new List<Vector>();
@@ -222,135 +243,149 @@ namespace NWSELib.net
             return (ce,ca,v);
         }
 
-
-
-        /// <summary>
-        /// 将所有值中的环境部分（非动作部分）用envValues替换
-        /// 其中allValue和envValues维度相同，且只包含条件部分
-        /// </summary>
-        /// <param name="allValue"></param>
-        /// <param name="envValues"></param>
-        /// <returns></returns>
-        internal List<Vector> replaceEnvValue(List<Vector> allValue, List<Vector> envValues)
+        public InferenceRecord getEqualsRecord(List<Vector> values)
         {
-
-            List<Vector> r = new List<Vector>(allValue);
-            for (int i = 0; i < this.getGene().conditions.Count; i++)
+            Vector v1 = values.flatten().Item1;
+            foreach(InferenceRecord r in this.records)
             {
-                NodeGene gene = this.getGene().owner[this.getGene().conditions[i].Item1];
-                if (gene.IsActionSensor()) continue;
-                r[i] = envValues[i];
+                Vector v2 = r.means.flatten().Item1;
+                if (Vector.equals(v1, v2,Session.config.realerror)) return r;
+            }
+            return null;
+        }
 
+        
+        public (InferenceRecord, List<double>) getMatchRecord(List<Vector> condvalues)
+        {
+            List<(InferenceRecord, List<double>)> result = this.getMatchRecords(condvalues);
+            if (result == null || result.Count <= 0) return (null, null);
+            double d = double.MaxValue;
+            (InferenceRecord, List<double>) r = (null,null);
+            foreach(var temp in result)
+            {
+                if(temp.Item2.Average()<d)
+                {
+                    d = temp.Item2.Average();
+                    r = temp;
+                }
             }
             return r;
         }
-
-        public (InferenceRecord,double) getNearestMatchRecord(Network net, List<Vector> values, int time)
+        public List<(InferenceRecord,List<double>)> getMatchRecords(List<Vector> condvalues)
         {
-            List<(InferenceRecord, double)> result = this.getMatchRecords(net, values, time);
-            if (result == null || result.Count <= 0) return (null, 0.0);
-            double d = double.MaxValue;
-            InferenceRecord r = null;
-            foreach(var temp in result)
-            {
-                if(temp.Item2<d)
-                {
-                    d = temp.Item2;
-                    r = temp.Item1;
-                }
-            }
-            return (r, d);
-        }
-        public List<(InferenceRecord,double)> getMatchRecords(Network net,List<Vector> values,int time)
-        {
-            List<(InferenceRecord, double)> result = new List<(InferenceRecord, double)>();
+            List<(InferenceRecord, List<double>)> result = new List<(InferenceRecord, List<double>)>();
 
             foreach (InferenceRecord r in this.records)
             {
-                double dis = 0.0;
-                if(r.isConditionValueMatch(net, this, values, out dis))
+                List<double> dis = null;
+                if(r.isConditionValueMatch(condvalues, out dis))
                 {
                     result.Add((r,dis));
                 }
             }
             return result;
         }
-        public List<(InferenceRecord,double)> getMatchRecordsInThink(Network net,int time)
-        {
-            List<(InferenceRecord, double)> result = new List<(InferenceRecord, double)>();
 
-            List<(int, int)> conds = this.getGene().getConditions();
-            List<Vector> values = conds.ConvertAll(cond =>
-                net.getNode(cond.Item1).getThinkValues(time)
-            );
-            foreach(InferenceRecord record in this.records)
+        public (InferenceRecord, double) getNearestRecord(List<Vector> values)
+        {
+            InferenceRecord record = null;
+            double mindis = double.MaxValue;
+            foreach (InferenceRecord r in this.records)
             {
-                double distance = 0.0;
-                if (record.isConditionValueMatch(net, this, values, out distance))
+                double dis = r.distanceFromCondition(values).Average();
+                if(dis < mindis)
                 {
-                    result.Add((record,distance));
+                    mindis = dis;
+                    record = r;
                 }
-            }
 
-            return result;
+            }
+            return (record, mindis);
         }
 
-        /// <summary>
-        /// 取得部分条件啊匹配的记录，用于推理合成
-        /// </summary>
-        /// <param name="condIds"></param>
-        /// <param name="condValues"></param>
-        /// <returns></returns>
-        public List<InferenceRecord> getPartialMatchRecords(Network net,List<int> condIds, List<Vector> condValues)
+        public List<double> DistanceFromCondition(List<Vector> condValue1, List<Vector> condValue2)
         {
-            List<InferenceRecord> r = new List<InferenceRecord>();
-            foreach(InferenceRecord record in this.records)
-            {
-                List<Vector> meanValues = record.getConditionValueByIds(condIds);
-                if (meanValues == null || meanValues.size() != condValues.size()) continue;
-                (Vector meanValue,List<Node> meanNode) = net.flattenValues(condIds, meanValues);
-                (Vector condValue, List<Node> condNode) = net.flattenValues(condIds, condValues);
-                if (meanValue.Size != condValue.Size) continue;
-
-                bool match = true;
-                for(int i=0;i<meanNode.Count;i++)
-                {
-                    if (!MeasureTools.GetMeasure(meanNode[i].Gene.Cataory).match(meanValue[i], condValue[i]))
-                    {
-                        match = false;break;
-                    }
-                
-                }
-                if (match) r.Add(record);
-
-            }
-            return r;
+            return  net.GetReceptorDistance(this.LeafReceptors, condValue1.flatten().Item1, condValue2.flatten().Item1);
+           
         }
 
-        public List<InferenceRecord> getVariableMatchRecords(Network net, int time,List<Vector> varValues=null)
+        public (List<Vector> CondValue, List<Vector> VarValue) SplitValues2(List<Vector> values)
         {
-            //变量值无效，则从环境取
-            if(varValues == null || varValues.Count<=0)
-            {
-                varValues = this.getValues2(net,time).Item2;
-            }
-            //变量值无效
-            if (varValues.Contains(null)) return null;
+            List<Vector> condValues = new List<Vector>();
+            List<Vector> varValues = new List<Vector>();
 
-            double tempDis = 0;
-            return this.records.FindAll(r => r.isVariableMatch(varValues,out tempDis));
-            
+            int condcount = this.getGene().ConditionCount;
+            int varcount = this.getGene().VariableCount;
+            condValues.AddRange(values.GetRange(0, condcount));
+            varValues.AddRange(values.GetRange(condcount, varcount));
+            return (condValues, varValues);
         }
+
+
         #endregion
 
         #region 激活和自适应调整
+        
+        public override Object activate(Network net, int time, Object value = null)
+        {
+            //所有的输入节点都已经被激活
+            //Wether all input nodes have already been activated
+            List<(int, int)> conds = ((InferenceGene)this.Gene).getConditions();
+            List<(Node, int)> condNodes = conds.ConvertAll(c => (net.getNode(c.Item1), c.Item2));
+            if (!condNodes.All(n => n.Item1.IsActivate(time - n.Item2)))
+                return null;
+
+            List<(int, int)> vars = this.getGene().getVariables();
+            List<(Node, int)> varNodes = vars.ConvertAll(v => (net.getNode(v.Item1), v.Item2));
+            if (!varNodes.All(n => n.Item1.IsActivate(time - n.Item2)))
+                return null;
+
+            
+            //确保推理基因的各维度的顺序正确（前置条件在前，后置变量在后，且前置条件id按从小到大排列）
+            //Make sure that the dimensions of the inference gene are in the correct order
+            ((InferenceGene)this.Gene).sort_dimension();
+
+            //取得值
+            List<Vector> values = this.getInputValues(time);
+            if (values == null)
+            {
+                base.activate(net, time, null);
+                return null;
+            }
+            var temp = values.flatten();
+            Vector activeValue = temp.Item1;
+            int totaldimesion = temp.Item1.Size;
+
+            InferenceRecord record = this.getEqualsRecord(values);
+            if (record == null)
+            {
+                record = new InferenceRecord(this);
+                record.means = values.ConvertAll(v=>v.clone());
+                record.covariance = new double[totaldimesion, totaldimesion];
+                for (int i = 0; i < totaldimesion; i++) //缺省协方差矩阵为单位阵
+                    record.covariance[i, i] = 1.0;
+                this.records.Add(record);
+            }
+            record.acceptCount += 1;
+            
+
+            base.activate(net, time, activeValue);
+
+            
+            return activeValue;
+
+
+
+
+        }
+        
         /// <summary>
         /// 设置当前值
         /// </summary>
         /// <param name="value"></param>
         /// <param name="time"></param>
         /// <returns></returns>
-        public override Object activate(Network net, int time, Object value = null)
+        /*public override Object activate(Network net, int time, Object value = null)
         {
             //所有的输入节点都已经被激活
             //Wether all input nodes have already been activated
@@ -364,16 +399,16 @@ namespace NWSELib.net
             if (!varNodes.All(n => n.Item1.IsActivate(time - n.Item2)))
                 return null;
 
-            List<Node> inputs = net.getInputNodes(this.Id);
-
             Vector activeValue = null;
             //确保推理基因的各维度的顺序正确（前置条件在前，后置变量在后，且前置条件id按从小到大排列）
             //Make sure that the dimensions of the inference gene are in the correct order
             ((InferenceGene)this.Gene).sort_dimension();
 
+            List<Node> inputs = net.getInputNodes(this.Id);
+
             //根据基因定义的顺序，将输入值组成List<Vector>
             //Put the input values into the List according to the order of the input dimensions
-            List<Vector> values = this.getInputValues(net,time);
+            List<Vector> values = this.getInputValues(time);
             if(values == null)
             {
                 base.activate(net, time, null);
@@ -393,8 +428,8 @@ namespace NWSELib.net
                     record.covariance[i, i] = 1.0;
                 record.weight = 1.0;
                 record.acceptCount = 1;
-                var nearestRecord = this.getNearestMatchRecord(net, record.getMeanValues().condValues, time);
-                if (nearestRecord.Item1 != null) record.evulation = nearestRecord.Item1.evulation;
+                //var nearestRecord = this.getMatchRecord(record.getMeanValues().condValues);
+                //if (nearestRecord.Item1 != null) record.evulation = nearestRecord.Item1.evulation;
                 this.records.Add(record);
                 activeValue = values.flatten().Item1;
                 base.activate(net, time, activeValue);
@@ -422,7 +457,7 @@ namespace NWSELib.net
 
             }
             //判断是否需要加入到未归类样本中:如果节点中记录非常少，则尽量增加记录
-            if(this.records.Count<=30)
+            if(this.records.Count<=10)
             {
                 InferenceRecord record = new InferenceRecord(this);
                 record.means = values;
@@ -430,8 +465,8 @@ namespace NWSELib.net
                 for (int i = 0; i < totaldimesion; i++) //缺省协方差矩阵为单位阵
                     record.covariance[i, i] = 1.0;
                 record.acceptCount = 1;
-                var nearestRecord = this.getNearestMatchRecord(net, record.getMeanValues().condValues, time);
-                if (nearestRecord.Item1 != null) record.evulation = nearestRecord.Item1.evulation;
+                //var nearestRecord = this.getMatchRecord(record.getMeanValues().condValues);
+                //if (nearestRecord.Item1 != null) record.evulation = nearestRecord.Item1.evulation;
                 this.records.Add(record);
                 activeValue = values.flatten().Item1;
                 base.activate(net, time, activeValue);
@@ -484,8 +519,8 @@ namespace NWSELib.net
                     
                     InferenceRecord newRecord = create_newrecord_bysamples(clusters[i], des[i]);
                     newRecord.density = des[i].Average();
-                    var nearestRecord = this.getNearestMatchRecord(net, newRecord.getMeanValues().condValues, time);
-                    if (nearestRecord.Item1 != null) newRecord.evulation = nearestRecord.Item1.evulation;
+                    //var nearestRecord = this.getMatchRecord(newRecord.getMeanValues().condValues);
+                    //if (nearestRecord.Item1 != null) newRecord.evulation = nearestRecord.Item1.evulation;
                     this.records.Add(newRecord);
                 }
                 newCount = clusters.Count;
@@ -508,7 +543,7 @@ namespace NWSELib.net
             base.activate(net, time, activeValue);
             return activeValue;
 
-        }
+        }*/
         /// <summary>
         /// 对未归类样本进行聚类操作
         /// Cluster unclassified samples
@@ -673,20 +708,65 @@ namespace NWSELib.net
        
         
         
-
+        /// <summary>
+        /// 调整权重
+        /// </summary>
         public void adjust_weights()
         {
+           //根据接收样本数量设定权重
             List<double> ws = this.records.ConvertAll(r => (double)r.acceptCount);
             double max = ws.Sum();
             ws = ws.ConvertAll(w => w / max);
             for (int i = 0; i < this.records.Count; i++)
                 this.records[i].weight = ws[i]; 
 
-            /*List<double> ws = this.records.ConvertAll(r => r.gaussian.GetLogProb(r.gaussian.GetMean()));
+            /*
+             * 根据最大高斯值峰度确定权重
+             * List<double> ws = this.records.ConvertAll(r => r.gaussian.GetLogProb(r.gaussian.GetMean()));
             double max = ws.Max();
             ws = ws.ConvertAll(w => w / max);
             for (int i = 0; i < this.records.Count; i++)
                 this.records[i].weight = ws[i];*/
+        }
+        /// <summary>
+        /// 计算可靠度
+        /// </summary>
+        public double computeReability()
+        {
+            if (this.records.Count <= 0) return double.NaN;
+            double error = Session.GetConfiguration().realerror;
+
+            List<InferenceRecord> records = new List<InferenceRecord>(this.records);
+
+            double groupCount = 0,totalcount = records.Count;
+            while(records.Count>0)
+            {
+                InferenceRecord record = records[0];
+                (List<Vector> condValues,List<Vector> varValues) = record.getMeanValues();
+                records.Remove(record);
+                groupCount += 1;
+
+                //寻找与record条件相同，但是后置变量不同的记录个数(这说明发生了矛盾)
+                int count = 0;
+                for (int j=0;j<records.Count;j++)
+                {
+                    (List<Vector> cValues, List<Vector> vValues) = records[j].getMeanValues();
+                    if(Vector.equals(condValues, cValues,error) && 
+                       !Vector.equals(varValues,vValues,error))
+                    {
+                        records.RemoveAt(j--);
+                        count += 1;
+                    }
+                }
+                //如果一个记录只有一个来源数据，又没有发生矛盾，不能用它做可靠性统计。
+                if (count == 0 && record.acceptCount == 1)
+                {
+                    groupCount -= 1;
+                    totalcount -= 1;
+                }
+            }
+            
+            return this._reability = groupCount / totalcount;
         }
         #endregion
 
@@ -694,60 +774,87 @@ namespace NWSELib.net
         #region 推理
 
         /// <summary>
-        /// 前向推理：给定条件，计算后置变量值
-        /// 前向推理有三种方式
-        /// 1.将混合高斯模型看作联合模型，进行前向推理
-        /// 2.在混合高斯模型上选择距离中心最近的分量，单独对该高斯分量进行前向推理
-        /// 3.在混合高斯模型上选择距离中心最近的分量，直接选择该分量的均值的变量部分作为结果
-        /// 4.在混合高斯模型上进行采样，在采样中选择距离条件部分最近的，计算后置变量部分作为结果。
-        /// 目前用的是第三种
+        /// 前向推理
         /// </summary>
-        /// <param name="condvalues"></param>
-        /// <returns>最近的记录,,是否在容忍距离内,距离值,评估值</returns>
-        public (InferenceRecord, List<Vector>, bool vaildDistance,double distance) forward_inference2(Network net, List<Vector> condvalues)
+        /// <param name="condvalues">推理条件值</param>
+        /// <param name="inferenceMethod">推理方法：samples,record</param>
+        /// <returns></returns>
+        public (InferenceRecord record, List<Vector> postValues) forward_inference(List<Vector> condvalues,String inferenceMethod= "record")
         {
-            double distance = double.MaxValue;
-            InferenceRecord record = null;
-            bool recordMatched = false;
-            foreach (InferenceRecord r in this.records)
-            {
-                double d = 0;
-                bool match = r.isConditionValueMatch(net, this, condvalues, out d);
-                if(d < distance)
-                {
-                    record = r;
-                    distance = d;
-                    recordMatched = match;
-                }
-                
-            }
-            
-            return (record, (record==null?null:record.getMeanValues().varValues), recordMatched, distance);
+            if (inferenceMethod == "recordsample")
+                return this.forward_inference_ByRecordSample(condvalues);
+            else if (inferenceMethod == "sample")
+                return this.forward_inference_BySample(condvalues);
+            else
+                return this.forward_inference_ByRecord(condvalues);
         }
-        public (InferenceRecord, List<Vector>,double distance) forward_inference(Network net,List<Vector> condvalues)
+
+        public (InferenceRecord, List<Vector>) forward_inference_ByRecord(List<Vector> condvalues)
         {
-            double distance = double.MaxValue;
-            InferenceRecord matchedRecord = null;
-            double evaulation = double.MaxValue;
-            foreach(InferenceRecord r in this.records)
+            //(InferenceRecord record,double distance)= this.getNearestRecord(condvalues);
+            (InferenceRecord record, List<double> distances) = this.getMatchRecord(condvalues);
+            if (record == null) return (null, null);
+            return (record, record.getMeanValues().varValues);
+        }
+
+        public (InferenceRecord, List<Vector>) forward_inference_ByRecordSample(List<Vector> condvalues)
+        {
+            if (this.records.Count <= 0) return (null, null);
+
+            (InferenceRecord record, double distance) = this.getNearestRecord(condvalues);
+
+            if (record == null) return (null, null);
+
+            List<List<Vector>> s = record.sample(5);
+
+            double dis = double.MaxValue;
+            List<Vector> varValue = null;
+
+            for(int i =0;i<s.Count;i++)
             {
-                double d = 0;
-                if (!r.isConditionValueMatch(net, this, condvalues, out d))
-                    continue;
-                //if(r.evulation < evaulation) //找相近里面评估最差的？
-                if (d < distance) //找距离最近的
+                List<Vector> sample = s[i];
+                (List<Vector> sampleCondValue,List<Vector> sampleVarValue) = SplitValues2(sample);
+                double d = DistanceFromCondition(sampleCondValue, condvalues).Average();
+                if(d < dis)
                 {
-                    evaulation = r.evulation;
-                    matchedRecord = r;
-                    distance = d;
+                    dis = d;
+                    varValue = sampleVarValue;
                 }
             }
-            if (matchedRecord == null) return (null, null, distance);
-            return (matchedRecord, matchedRecord.forward_inference(this, condvalues),distance);
+
+            if (dis < distance) return (record, varValue);
+            else return (record, record.getMeanValues().varValues);
+
         }
-        
-        
-        
+
+        public (InferenceRecord, List<Vector>) forward_inference_BySample(List<Vector> condvalues)
+        {
+            if (this.records.Count <= 0) return (null, null);
+
+            List<List<Vector>> s = this.samples(5);
+
+            double dis = double.MaxValue;
+            List<Vector> varValue = null;
+
+            foreach (List<Vector> sample in s)
+            {
+                (List<Vector> sampleCondValue, List<Vector> sampleVarValue) = this.SplitValues2(sample);
+                double d = this.DistanceFromCondition(sampleCondValue, condvalues).Average();
+                if (d < dis)
+                {
+                    dis = d;
+                    varValue = sampleVarValue;
+                }
+            }
+
+            (InferenceRecord record, double distance) = this.getNearestRecord(condvalues);
+
+            if (dis < distance) return (record, varValue);
+            else return (record, record.getMeanValues().varValues);
+
+        }
+
+
 
         /// <summary>
         /// 在混合高斯模型上采样
@@ -788,7 +895,35 @@ namespace NWSELib.net
             */
         }
 
-        
+        public String doPostVariableStat()
+        {
+            Dictionary<String, List<double>> r1 = new Dictionary<String, List<double>>();
+            int total = 0;
+            foreach (InferenceRecord record in this.records)
+            {
+                Vector v = record.getMeanValues().varValues[0];
+                String strv = v[0].ToString("F4");
+                if (!r1.ContainsKey(v[0].ToString("F4")))
+                {
+                    r1.Add(strv, new List<double>());
+                    
+                }
+                r1[strv].Add(record.evulation );
+
+            }
+
+            StringBuilder str = new StringBuilder();
+            foreach(KeyValuePair<String,List<double>> t in r1)
+            {
+                if(str.ToString() != "")
+                {
+                    str.Append(System.Environment.NewLine);
+                }
+                str.Append(t.Key + "=" + t.Value.Average().ToString("F4"));
+            }
+            return str.ToString();
+
+        }
 
         #endregion
     }

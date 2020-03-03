@@ -5,6 +5,8 @@ using System.Text;
 using System.Reflection;
 using System.Linq;
 
+using NWSELib.common;
+
 namespace NWSELib
 {
     /// <summary>
@@ -17,7 +19,36 @@ namespace NWSELib
         #endregion
 
         #region 距离计算
+        public virtual double move(double value,int direction,double distance)
+        {
+            value = value + direction*distance;
+            if (value < 0) return 0;
+            else if (value > 1) return 1;
+            return value;
+        }
+        public virtual double moveTo(double src,double dest,int direction,double distance)
+        {
+            double value = src;
+            if (src <= dest)
+                value = src + direction * distance;
+            else if(src > dest)
+                value = src + direction * distance;
+            if (value < 0) return 0;
+            else if (value > 1) return 1;
+            return value;
+        }
+        public virtual double difference(double v1,double v2)
+        {
+            return v1 - v2;
+        }
         public virtual double distance(double v1, double v2) { throw new NotImplementedException(); }
+
+        public virtual int getChangeDirection(double from,double to)
+        {
+            if (from < to) return 1;
+            else if (from > to) return -1;
+            return 0;
+        }
 
         public bool match(double d1, double d2)
         {
@@ -33,6 +64,27 @@ namespace NWSELib
         #endregion
 
         #region 分级处理
+        protected Dictionary<int, double[]> _cached_sample_values = new Dictionary<int, double[]>();
+        /// <summary>
+        /// 取得被分级的采样
+        /// </summary>
+        /// <param name="sectionCount"></param>
+        /// <returns></returns>
+        public virtual double[] getRankedSamples(int count, double unit=-1)
+        {
+            if (_cached_sample_values.ContainsKey(count))
+                return _cached_sample_values[count];
+            if (unit <= 0) unit = 1.0 / (count-1);
+            double[] values = new double[count];
+            for (int i = 0; i < values.Length; i++)
+            {
+                values[i] = i * unit;
+                if (i == values.Length - 1) values[i] = 1.0;
+
+            }
+            _cached_sample_values.Add(count,values);
+            return values;
+        }
         /// <summary>
         /// 根据分级层次，分段数计算分级后的值
         /// </summary>
@@ -40,16 +92,14 @@ namespace NWSELib
         /// <param name="abstractLevel"></param>
         /// <param name="sectionCount"></param>
         /// <returns></returns>
-        public virtual double getRankedValue(double originValue, int abstractLevel,int sectionCount)
+        public virtual double getRankedValue(double originValue, int abstractLevel,int sampleCount=-1)
         {
             if (abstractLevel == 0) return originValue;
+
+            if (sampleCount == -1) sampleCount = this.Levels[abstractLevel - 1];
+            double[] values = this.getRankedSamples(sampleCount);
+            return values[values.ToList().ConvertAll(v=>Math.Abs(v-originValue)).argmin()];
             
-            double unit = this.Range.Distance / sectionCount;
-            int levelIndex = (int)((originValue - Range.Min) / unit);
-            if (levelIndex >= sectionCount)
-                levelIndex = sectionCount - 1;
-            double newValue = Range.Min + (levelIndex * unit + (levelIndex + 1) * unit) / 2.0;
-            return newValue;
         }
         /// <summary>
         /// 根据分级层次，分段数计算分级后的索引
@@ -97,6 +147,22 @@ namespace NWSELib
             {
                 return (DirectionMeasure)Measures.FirstOrDefault(m => m.name == "direction");
                 
+            }
+        }
+        public static DirectionMeasure Heading
+        {
+            get
+            {
+                return (DirectionMeasure)Measures.FirstOrDefault(m => m.name == "heading");
+
+            }
+        }
+        public static DirectionMeasure Rotate
+        {
+            get
+            {
+                return (DirectionMeasure)Measures.FirstOrDefault(m => m.name == "rotate");
+
             }
         }
         public static PositionCodeMeasure Position
@@ -190,6 +256,70 @@ namespace NWSELib
                 this.levelNames = "东,东南,南,西南,西,西北,北,东北";
             }
         }
+
+        public override double moveTo(double src, double dest, int direction, double distance)
+        {
+            if (src == dest) return move(src, direction, distance);
+            double value = src;
+            double diff = src - dest;
+            int t = diff < 0 ? 1 : -1;
+
+            if (Math.Abs(diff) <= 0.5)
+                value = src + t * direction * distance;
+            else
+                value = src - t * direction * distance;
+
+            if (value >= 1) value = value - 1;
+            else if (value < 0) value = value + 1;
+            return value;
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="direction">1表示顺时针，-1表示逆时针</param>
+        /// <param name="distance"></param>
+        /// <returns></returns>
+        public override double move(double value, int direction, double distance)
+        {
+            if (direction >= 0) value = value + distance;
+            else value -= distance;
+
+            if (value >= 1) value = value - 1;
+            else if (value < 0) value = value + 1;
+            return value;
+        }
+        public override int getChangeDirection(double from, double to)
+        {
+            if (from == to) return 0;
+            if (from >= 0 && from < 0.25)
+            {
+                if (to >= 0 && to < 0.25) return to > from ? 1 : -1;
+                else if (to >= 0.25 && to < 0.5) return 1;
+                else if (to >= 0.5 && to < 0.75) return to - from <= 0.5 ? 1 : -1;
+                else return -1;
+            } else if (from >= 0.25 && from < 0.5)
+            {
+                if (to >= 0 && to < 0.25) return -1;
+                else if (to >= 0.25 && to < 0.5) return to > from ? 1 : -1;
+                else if (to >= 0.5 && to < 0.75) return 1;
+                else return to - from <= 0.5 ? 1 : -1;
+            } else if (from >= 0.5 && from < 0.75)
+            {
+                if (to >= 0 && to < 0.25) return from-to>=0.5?1:-1;
+                else if (to >= 0.25 && to < 0.5) return -1;
+                else if (to >= 0.5 && to < 0.75) return to > from ? 1 : -1;
+                else return to > from ? 1 : -1;
+            }
+            else
+            {
+                if (to >= 0 && to < 0.25) return 1;
+                else if (to >= 0.25 && to < 0.5) return from - to >= 0.5 ? 1 : -1;
+                else if (to >= 0.5 && to < 0.75) return -1;
+                else return to > from ? 1 : -1;
+            }
+            
+        }
         /// <summary>
         /// 位置朝向（0-1）（0-2pi）信息转换为角度（0-360）
         /// </summary>
@@ -208,6 +338,50 @@ namespace NWSELib
         {
             return (rotate - 0.5) * 2 * Math.PI * MeasureTools.DRScale;
         }
+
+        /// <summary>
+        /// 取得被分级的采样
+        /// </summary>
+        /// <param name="sectionCount"></param>
+        /// <returns></returns>
+        public override double[] getRankedSamples(int count, double unit = -1)
+        {
+            if (_cached_sample_values.ContainsKey(count))
+                return _cached_sample_values[count];
+            
+            
+            double[] values = new double[count];
+            if (count == 4) values = new double[] { 0, 0.25, 0.5, 0.75 };
+            else if (count == 8) values = new double[] { 0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875 };
+            else if (count == 12) values = new double[] { 0, 0.083, 0.0167, 0.25, 0.3333, 0.4167, 0.5, 0.5833, 0.6667, 0.75, 0.8333, 0.9167 };
+            else if (count == 16) values = new double[] { 0, 0.0625, 0.125, 0.1875, 0.25, 0.3125, 0.375, 0.4375, 0.5, 0.5625, 0.625, 0.6875, 0.75, 0.8125, 0.875, 0.9375 };
+            
+            _cached_sample_values.Add(count, values);
+            return values;
+        }
+
+        /// <summary>
+        /// 根据分级层次，分段数计算分级后的值
+        /// </summary>
+        /// <param name="originValue"></param>
+        /// <param name="abstractLevel"></param>
+        /// <param name="sectionCount"></param>
+        /// <returns></returns>
+        public override double getRankedValue(double originValue, int abstractLevel, int sampleCount = -1)
+        {
+            if (abstractLevel == 0) return originValue;
+
+            if (sampleCount == -1) sampleCount = this.Levels[abstractLevel - 1];
+            double[] values = this.getRankedSamples(sampleCount);
+            List<double> temp = new List<double>(values);
+            temp.Add(1.0);
+            int index = temp.ConvertAll(v => Math.Abs(v - originValue)).argmin();
+            if (index == temp.Count - 1) return values[0];
+            else return values[index];
+            
+
+        }
+
         /// <summary>
         /// 两个角度的夹角计算，两个角度都是0-2*pi之间的值
         /// </summary>
@@ -216,10 +390,10 @@ namespace NWSELib
         /// <returns></returns>
         public override double distance(double h1, double h2)
         {
-            double x1 = Math.Cos(h1);
-            double y1 = Math.Sin(h1);
-            double x2 = Math.Cos(h2);
-            double y2 = Math.Sin(h2);
+            double x1 = Math.Cos(h1*2*Math.PI);
+            double y1 = Math.Sin(h1 * 2 * Math.PI);
+            double x2 = Math.Cos(h2 * 2 * Math.PI);
+            double y2 = Math.Sin(h2 * 2 * Math.PI);
 
             double l1 = Math.Sqrt((x1 * x1 + y1 * y1));
             double l2 = Math.Sqrt((x2 * x2 + y2 * y2));
@@ -228,12 +402,48 @@ namespace NWSELib
             double angle = Math.Acos(cos);
             if (double.IsNaN(angle)) return 0;
             if (angle < 0) angle += Math.PI * 2;
-            return angle / tolerate;
+            return angle / (2*Math.PI);
         }
 
-        
+        public override double difference(double v1, double v2)
+        {
+            return distance(v1,v2);
+        }
+
+
     }
 
+    public class HeadingMeasure : DirectionMeasure
+    {
+        
+        public HeadingMeasure(Configuration.Mensuration m) : base(m)
+        {
+            this.caption = m == null ? "heading" : m.caption;
+            this.name = m == null ? "heading" : m.name;
+            if (tolerate <= 0) tolerate = default_tolerate_angle;
+            if (this.levels == null || this.levels.Trim() == "")
+            {
+                this.levels = "8";
+                this.levelNames = "东,东南,南,西南,西,西北,北,东北";
+            }
+        }
+    }
+
+    public class RotateMeasure : DirectionMeasure
+    {
+
+        public RotateMeasure(Configuration.Mensuration m) : base(m)
+        {
+            this.caption = m == null ? "rotate" : m.caption;
+            this.name = m == null ? "rotate" : m.name;
+            if (tolerate <= 0) tolerate = default_tolerate_angle;
+            if (this.levels == null || this.levels.Trim() == "")
+            {
+                this.levels = "8";
+                this.levelNames = "-180度,-135度,-90度,-45度,0度,45度,90度,135度,180度";
+            }
+        }
+    }
 
 
     public class PositionCodeMeasure : MeasureTools
@@ -261,7 +471,9 @@ namespace NWSELib
             double c2 = d2 * 10000;
             int x1 = (int)c1 / 100, y1 = (int)c1 % 100;
             int x2 = (int)c2 / 100, y2 = (int)c2 % 100;
-            return (Math.Abs(x1 - x2) + Math.Abs(y1 - y2)) / tolerate;
+            double d = (Math.Abs(x1 - x2) + Math.Abs(y1 - y2));
+            if (d <= tolerate) return 0;
+            return d / tolerate;
         }
 
         #region 分级处理

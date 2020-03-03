@@ -16,6 +16,7 @@ using NWSELib.env;
 
 namespace NWSELib
 {
+    #region 事件句柄
     /// <summary>
     /// 推送事件消息
     /// </summary>
@@ -30,6 +31,15 @@ namespace NWSELib
     /// <param name="time"></param>
     /// <returns></returns>
     public delegate List<double> InstinctActionHandler(Network net, int time);
+
+    /// <summary>
+    /// 最优姿态
+    /// </summary>
+    /// <param name="net"></param>
+    /// <param name="time"></param>
+    /// <returns></returns>
+    public delegate Vector OptimaGestureHandler(Network net, int time);
+
     /// <summary>
     /// 计算适应度方法
     /// </summary>
@@ -37,6 +47,20 @@ namespace NWSELib
     /// <param name="session"></param>
     /// <returns></returns>
     public delegate double FitnessHandler(Network net, Session session);
+
+    /// <summary>
+    /// 推理准确度计算句柄
+    /// </summary>
+    /// <param name="net"></param>
+    /// <param name="session"></param>
+    /// <param name="observation"></param>
+    /// <param name="actions"></param>
+    /// <param name="result"></param>
+    /// <returns></returns>
+    public delegate List<Vector> InferenceVerifyHandler(Network net, Session session, List<Vector> observation,List<double> actions,List<Vector> result);
+    #endregion
+
+
     /// <summary>
     /// 执行任务
     /// </summary>
@@ -63,6 +87,16 @@ namespace NWSELib
         /// 适应度函数
         /// </summary>
         public static FitnessHandler fitnessHandler;
+
+        /// <summary>
+        /// 推理验证句柄
+        /// </summary>
+        public static InferenceVerifyHandler inferenceVerifyHandler;
+
+        /// <summary>
+        /// 取得与任务有关的最优姿态
+        /// </summary>
+        public static OptimaGestureHandler handleGetOptimaGesture;
 
         /// <summary>
         /// 配置
@@ -122,6 +156,14 @@ namespace NWSELib
         /// </summary>
         public List<Network> inds = new List<Network>();
         /// <summary>
+        /// 可以完成任务的个体集
+        /// </summary>
+        public List<Network> taskCompletedNets = new List<Network>();
+        /// <summary>
+        /// 无效推理基因
+        /// </summary>
+        public readonly static List<InferenceGene> invalidInfGenes = new List<InferenceGene>();
+        /// <summary> 
         /// 事件处理
         /// </summary>
         private EventHandler handler;
@@ -140,7 +182,10 @@ namespace NWSELib
         /// <summary>
         /// 运行中
         /// </summary>
-        public bool Running { get => running; }
+        public bool Running 
+        { 
+            get => running; 
+        }
         /// <summary>
         /// 构造函数
         /// </summary>
@@ -148,28 +193,39 @@ namespace NWSELib
         /// <param name="fitness"></param>
         /// <param name="handler"></param>
         /// <param name="instinctHandler"></param>
-        public Session(IEnv env, FitnessHandler fitness,EventHandler handler,InstinctActionHandler instinctHandler)
+        public Session(IEnv env, FitnessHandler fitness,EventHandler handler,InstinctActionHandler instinctHandler,OptimaGestureHandler handleGetOptimaGesture)
         {
             this.env = env;
             this.handler = handler;
             Session.instinctActionHandler = instinctHandler;
             Session.fitnessHandler = fitness;
+            Session.handleGetOptimaGesture = handleGetOptimaGesture;
         }
+        #endregion
 
-        
+        #region 事件处理
+
+        public const String EVT_POP_INIT = "population init...";
         public const String EVT_EVAULATION_BEGIN = "net evaulation begin";
-        public const String EVT_LOG = "log";
-        public const String EVT_STEP = "step";
         public const String EVT_EVAULATION_END = "net evaulation end";
-        public const String EVT_EVAULATION_SUMMARY = "evaulation summary";
+        public const String EVT_EVAULATION_IND = "The result of individual evaulation";
+        public const String EVT_EVOLUTION_END = "evolution end";
 
-        public const String EVT_MSG = "msg";
         public const String EVT_INVAILD_GENE = "invaild_gene";
         public const String EVT_VAILD_GENE = "vaild_gene";
+
+        public const String EVT_SELECTION = "evolution selection";
+
+        public const String EVT_LOG = "log";
+        public const String EVT_STEP = "step";
+        
+
+        public const String EVT_MSG = "msg";
+        
         public const String EVT_IND_COUNT = "ind_count";
         public const String EVT_REABILITY = "reability";
         public const String EVT_GENERATION_END = "generation_end";
-        public const String EVT_EVOLUTION_END = "evolution_end";
+        
 
         /// <summary>
         /// 事件触发函数
@@ -203,75 +259,56 @@ namespace NWSELib
             thread = new Thread(new ThreadStart(do_run));
             thread.Start();
         }
+
+        public void stop()
+        {
+            if (thread == null) return;
+            try
+            {
+                thread.Abort();
+            }
+            finally
+            {
+                thread = null;
+            }
+        }
         public void do_run()
         {
-            //初始化
+            //1.preparing...
             this.running = true;
             MeasureTools.init();
             logger = LogManager.GetLogger(typeof(Session));
             this.generation = 1;
             prepareStorePath();
 
-            //初始化初代个体
-            this.triggerEvent(Session.EVT_LOG, "population init...");
+            //2.population init... There is only a origin individual in first generation population
             orginGenome = new NWSEGenomeFactory().createOriginGenome(this);
             orginNet = new Network(orginGenome);
             inds.Clear();
             inds.Add(orginNet);
             this.root = new EvolutionTreeNode(orginNet);
+            invalidInfGenes.Clear();
+            this.triggerEvent(Session.EVT_POP_INIT, inds);
 
-            //反复迭代
+
+            //3.Interation
             while(true)
             {
-
-                this.triggerEvent(Session.EVT_LOG, "evaulating population...");
-                //环境交互过程
+                this.triggerEvent(Session.EVT_EVAULATION_BEGIN);
+                //evaluation
                 foreach (Network net in inds)
                 {
-                    if (!double.IsNaN(net.Fitness)) continue;
-                    (List<double> obs,List<double> gesture) = env.reset(net);
-                    net.Reset();
-                    this.triggerEvent(Session.EVT_EVAULATION_BEGIN, net);
-                    double reward = 0.0;
-                    bool end = false;
-                    for (int time = 0; time <= Session.GetConfiguration().evaluation.run_count; time++) 
-                    {
-                        List<double> inputs = new List<double>(obs);
-                        inputs.AddRange(gesture);
-                        List<double> actions = net.activate(inputs, time,this, reward);
-                        (obs, gesture, actions,reward,end) = env.action(net,actions);
-                        this.triggerEvent(Session.EVT_STEP,net,time, inputs,actions, obs, gesture, reward, end);
-
-                        if (end) break;
-                        judgePaused();
-                    }
-
-                    net.Fitness = Session.fitnessHandler == null ? 0 : Session.fitnessHandler(net, this);
-
-                    this.triggerEvent(Session.EVT_EVAULATION_END, net);
+                    this.doNetworkEvaluation(net);
                     judgePaused();
                 }
 
-                //最优个体
-                int maxFitnessIndex = -1;
-                double maxFitness = double.MinValue;
-                Network maxFitnessNet = null; 
-                for(int i=0;i<inds.Count;i++)
-                {
-                    if (double.IsNaN(inds[i].Fitness))
-                        continue;
-                    if(inds[i].Fitness > maxFitness)
-                    {
-                        maxFitnessIndex = i;
-                        maxFitness = inds[i].Fitness;
-                        maxFitnessNet = inds[i];
-                    }
+                //record optima individual
+                double maxFitness = inds.ConvertAll(ind=>ind.Fitness).Max();
+                List<Network> optimaNets = inds.FindAll(ind => ind.Fitness == maxFitness);
+                if (optimaNets.Count > 0)
+                    optimaNets.ForEach(net => net.save(this.currentSessionPath, this.generation));
+                this.triggerEvent(Session.EVT_EVAULATION_END, optimaNets);
 
-                }
-                 
-                this.triggerEvent(Session.EVT_EVAULATION_SUMMARY, maxFitnessNet, maxFitnessIndex, maxFitness);
-
-                maxFitnessNet.save(this.currentSessionPath,this.generation);
 
                 //是否达到最大迭代次数
                 this.generation += 1;
@@ -282,18 +319,53 @@ namespace NWSELib
                     return;
                 }
 
-                //进化过程
+                //do evolution
                 Evolution evolution = new Evolution();
                 evolution.execute(inds, this);
 
-                //triggerEvent(EVT_GENERATION_END, this);
                 judgePaused();
-
                 running = false;
 
             }
 
         }
+
+        private double doNetworkEvaluation(Network net)
+        {
+            //1 skip those haved been evaluated. We need 
+            //We need to evaluate many times only in noisy environments
+            if (!double.IsNaN(net.Fitness) && !Session.GetConfiguration().evaluation.repeat) return net.Fitness;
+
+            //init enviorment and network
+            (List<double> obs, List<double> gesture) = env.reset(net);
+            net.Reset();
+            double reward = 0.0;
+            bool end = false;
+
+            //2 Run the network until the maximum number of iterations is reached or the end signal returns from the environment
+            for (int time = 0; time <= Session.GetConfiguration().evaluation.run_count; time++)
+            {
+                List<double> inputs = new List<double>(obs);
+                inputs.AddRange(gesture);
+                List<double> actions = net.activate(inputs, time, this, reward);
+                (obs, gesture, actions, reward, end) = env.action(net, actions);
+                if (end) break;
+                judgePaused();
+            }
+
+            var reability = net.ComputeReability();
+            net.Fitness = Session.fitnessHandler == null ? 0 : Session.fitnessHandler(net, this);
+            net.TaskCompleted = end;
+            if(end)
+            {
+                this.taskCompletedNets.Add(net);
+                net.save(this.currentSessionPath, this.generation);
+            }
+            this.triggerEvent(EVT_EVAULATION_IND, net);
+            return net.Fitness;
+        }
+
+        
         /// <summary>
         /// 判断是否暂停
         /// </summary>
@@ -316,8 +388,37 @@ namespace NWSELib
             }
             return true;
         }
+        #endregion
 
-        
+        #region 无效基因
+        public static void putInvalieInferenceGenes(params InferenceGene[] inferenceGenes)
+        {
+            if (inferenceGenes == null || inferenceGenes.Length <= 0) return;
+            foreach(InferenceGene gene in inferenceGenes)
+            {
+                if (IndexOfInvalidInferenceGenes(gene) >= 0) continue;
+                invalidInfGenes.Add(gene.clone<InferenceGene>());
+
+
+            }
+        }
+
+        public static int IndexOfInvalidInferenceGenes(InferenceGene inferenceGene)
+        {
+            if (inferenceGene == null) return -1;
+            String text = inferenceGene.Text;
+            for(int i=0;i<invalidInfGenes.Count;i++)
+            {
+                if (text.Equals(invalidInfGenes[i].Text)) return i;
+            }
+            return -1;
+        }
+
+        public static bool IsInvaildGene(InferenceGene inferenceGene)
+        {
+            return IndexOfInvalidInferenceGenes(inferenceGene) >= 0;
+        }
+        #endregion
+
     }
-    #endregion
 }
