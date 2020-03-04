@@ -33,17 +33,23 @@
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
-            this.toolStripLabel1 = new System.Windows.Forms.ToolStripLabel();
+            this.toolStripLabel2 = new System.Windows.Forms.ToolStripLabel();
             this.btnERun = new System.Windows.Forms.ToolStripButton();
             this.btnEPause = new System.Windows.Forms.ToolStripButton();
             this.btnEReset = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            this.toolStripLabel1 = new System.Windows.Forms.ToolStripLabel();
             this.btnOpen = new System.Windows.Forms.ToolStripSplitButton();
             this.btnOpenFromFile = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
             this.btnOpenDemoAgent = new System.Windows.Forms.ToolStripMenuItem();
+            this.btnDemoSimple = new System.Windows.Forms.ToolStripMenuItem();
+            this.btnDemoReability = new System.Windows.Forms.ToolStripMenuItem();
+            this.btnDemoFull = new System.Windows.Forms.ToolStripMenuItem();
+            this.btnDemoCustom = new System.Windows.Forms.ToolStripMenuItem();
             this.btnOpenLastOptima = new System.Windows.Forms.ToolStripMenuItem();
             this.btnOpenOptima = new System.Windows.Forms.ToolStripMenuItem();
+            this.btnTaskCompletedInds = new System.Windows.Forms.ToolStripMenuItem();
             this.btnIEnvReset = new System.Windows.Forms.ToolStripButton();
             this.btnIInference = new System.Windows.Forms.ToolStripButton();
             this.btnIActions = new System.Windows.Forms.ToolStripButton();
@@ -55,6 +61,9 @@
             this.stepToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.stepToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.stepToolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
+            this.stepsToolStripMenuItem5 = new System.Windows.Forms.ToolStripMenuItem();
+            this.stepsToolStripMenuItem3 = new System.Windows.Forms.ToolStripMenuItem();
+            this.stepsToolStripMenuItem4 = new System.Windows.Forms.ToolStripMenuItem();
             this.untilEndToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
             this.btnPolicyShow = new System.Windows.Forms.ToolStripButton();
@@ -71,8 +80,12 @@
             this.panel2 = new System.Windows.Forms.Panel();
             this.tabControl2 = new System.Windows.Forms.TabControl();
             this.tabPage3 = new System.Windows.Forms.TabPage();
-            this.gbInd = new System.Windows.Forms.GroupBox();
+            this.splitContainer2 = new System.Windows.Forms.SplitContainer();
             this.treeViewOpenedNetwork = new System.Windows.Forms.TreeView();
+            this.panel10 = new System.Windows.Forms.Panel();
+            this.splitContainer3 = new System.Windows.Forms.SplitContainer();
+            this.txtObservation = new System.Windows.Forms.TextBox();
+            this.txtPolicy = new System.Windows.Forms.TextBox();
             this.tabPage4 = new System.Windows.Forms.TabPage();
             this.panel3 = new System.Windows.Forms.Panel();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
@@ -83,7 +96,7 @@
             this.tabPage6 = new System.Windows.Forms.TabPage();
             this.panel6 = new System.Windows.Forms.Panel();
             this.panel8 = new System.Windows.Forms.Panel();
-            this.treeViewOptimaNet = new System.Windows.Forms.TreeView();
+            this.treeviewCurNet = new System.Windows.Forms.TreeView();
             this.panel7 = new System.Windows.Forms.Panel();
             this.cbVisible = new System.Windows.Forms.CheckBox();
             this.txtTime = new System.Windows.Forms.TextBox();
@@ -103,15 +116,27 @@
             this.tabPage7 = new System.Windows.Forms.TabPage();
             this.panel9 = new System.Windows.Forms.Panel();
             this.txtMsg = new System.Windows.Forms.TextBox();
+            this.tabPage8 = new System.Windows.Forms.TabPage();
+            this.splitContainer4 = new System.Windows.Forms.SplitContainer();
+            this.listBoxInference = new System.Windows.Forms.ListBox();
+            this.dgvInfRecord = new System.Windows.Forms.DataGridView();
+            this.Text = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Column1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Column2 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.pnlMaze = new System.Windows.Forms.Panel();
+            this.pictureBoxMaze = new System.Windows.Forms.PictureBox();
             this.tabPage2 = new System.Windows.Forms.TabPage();
-            this.txtMilestone = new System.Windows.Forms.TextBox();
             this.tabPage5 = new System.Windows.Forms.TabPage();
             this.panel1 = new System.Windows.Forms.Panel();
             this.dataGridView = new System.Windows.Forms.DataGridView();
             this.ColumnGeneration = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ColumnMessage = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.toolStripLabel2 = new System.Windows.Forms.ToolStripLabel();
+            this.dgvMailstone = new System.Windows.Forms.DataGridView();
+            this.ColumnInfGeneration = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.ColumnInfType = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.ColumnInfText = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.ColumnInfReability = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.ColumnInfNet = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.toolStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.tabControl1.SuspendLayout();
@@ -120,7 +145,15 @@
             this.panel2.SuspendLayout();
             this.tabControl2.SuspendLayout();
             this.tabPage3.SuspendLayout();
-            this.gbInd.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).BeginInit();
+            this.splitContainer2.Panel1.SuspendLayout();
+            this.splitContainer2.Panel2.SuspendLayout();
+            this.splitContainer2.SuspendLayout();
+            this.panel10.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer3)).BeginInit();
+            this.splitContainer3.Panel1.SuspendLayout();
+            this.splitContainer3.Panel2.SuspendLayout();
+            this.splitContainer3.SuspendLayout();
             this.tabPage4.SuspendLayout();
             this.panel3.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
@@ -135,10 +168,19 @@
             this.panel7.SuspendLayout();
             this.tabPage7.SuspendLayout();
             this.panel9.SuspendLayout();
+            this.tabPage8.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer4)).BeginInit();
+            this.splitContainer4.Panel1.SuspendLayout();
+            this.splitContainer4.Panel2.SuspendLayout();
+            this.splitContainer4.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dgvInfRecord)).BeginInit();
+            this.pnlMaze.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxMaze)).BeginInit();
             this.tabPage2.SuspendLayout();
             this.tabPage5.SuspendLayout();
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.dgvMailstone)).BeginInit();
             this.SuspendLayout();
             // 
             // toolStrip1
@@ -165,11 +207,11 @@
             this.toolStrip1.TabIndex = 0;
             this.toolStrip1.Text = "toolStrip1";
             // 
-            // toolStripLabel1
+            // toolStripLabel2
             // 
-            this.toolStripLabel1.Name = "toolStripLabel1";
-            this.toolStripLabel1.Size = new System.Drawing.Size(73, 37);
-            this.toolStripLabel1.Text = "Interaction:";
+            this.toolStripLabel2.Name = "toolStripLabel2";
+            this.toolStripLabel2.Size = new System.Drawing.Size(64, 37);
+            this.toolStripLabel2.Text = "Evoultion:";
             // 
             // btnERun
             // 
@@ -200,11 +242,18 @@
             this.btnEReset.Size = new System.Drawing.Size(44, 37);
             this.btnEReset.Text = "Reset";
             this.btnEReset.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
+            this.btnEReset.Click += new System.EventHandler(this.btnEReset_Click);
             // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
             this.toolStripSeparator1.Size = new System.Drawing.Size(6, 40);
+            // 
+            // toolStripLabel1
+            // 
+            this.toolStripLabel1.Name = "toolStripLabel1";
+            this.toolStripLabel1.Size = new System.Drawing.Size(73, 37);
+            this.toolStripLabel1.Text = "Interaction:";
             // 
             // btnOpen
             // 
@@ -213,7 +262,8 @@
             this.toolStripMenuItem1,
             this.btnOpenDemoAgent,
             this.btnOpenLastOptima,
-            this.btnOpenOptima});
+            this.btnOpenOptima,
+            this.btnTaskCompletedInds});
             this.btnOpen.Image = ((System.Drawing.Image)(resources.GetObject("btnOpen.Image")));
             this.btnOpen.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btnOpen.Name = "btnOpen";
@@ -235,10 +285,43 @@
             // 
             // btnOpenDemoAgent
             // 
+            this.btnOpenDemoAgent.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.btnDemoSimple,
+            this.btnDemoReability,
+            this.btnDemoFull,
+            this.btnDemoCustom});
             this.btnOpenDemoAgent.Name = "btnOpenDemoAgent";
             this.btnOpenDemoAgent.Size = new System.Drawing.Size(205, 22);
             this.btnOpenDemoAgent.Text = "Open Demo Agent";
             this.btnOpenDemoAgent.Click += new System.EventHandler(this.btnOpenDemoAgent_Click);
+            // 
+            // btnDemoSimple
+            // 
+            this.btnDemoSimple.Name = "btnDemoSimple";
+            this.btnDemoSimple.Size = new System.Drawing.Size(125, 22);
+            this.btnDemoSimple.Text = "Simple";
+            this.btnDemoSimple.Click += new System.EventHandler(this.btnDemoSimple_Click);
+            // 
+            // btnDemoReability
+            // 
+            this.btnDemoReability.Name = "btnDemoReability";
+            this.btnDemoReability.Size = new System.Drawing.Size(125, 22);
+            this.btnDemoReability.Text = "Reability";
+            this.btnDemoReability.Click += new System.EventHandler(this.btnDemoReability_Click);
+            // 
+            // btnDemoFull
+            // 
+            this.btnDemoFull.Name = "btnDemoFull";
+            this.btnDemoFull.Size = new System.Drawing.Size(125, 22);
+            this.btnDemoFull.Text = "Full";
+            this.btnDemoFull.Click += new System.EventHandler(this.btnDemoFull_Click);
+            // 
+            // btnDemoCustom
+            // 
+            this.btnDemoCustom.Name = "btnDemoCustom";
+            this.btnDemoCustom.Size = new System.Drawing.Size(125, 22);
+            this.btnDemoCustom.Text = "Custom";
+            this.btnDemoCustom.Click += new System.EventHandler(this.btnDemoCustom_Click);
             // 
             // btnOpenLastOptima
             // 
@@ -253,6 +336,12 @@
             this.btnOpenOptima.Size = new System.Drawing.Size(205, 22);
             this.btnOpenOptima.Text = "Open Optima Ind";
             this.btnOpenOptima.Click += new System.EventHandler(this.btnOpenOptima_Click);
+            // 
+            // btnTaskCompletedInds
+            // 
+            this.btnTaskCompletedInds.Name = "btnTaskCompletedInds";
+            this.btnTaskCompletedInds.Size = new System.Drawing.Size(205, 22);
+            this.btnTaskCompletedInds.Text = "Task Completed Inds";
             // 
             // btnIEnvReset
             // 
@@ -294,6 +383,9 @@
             this.stepToolStripMenuItem,
             this.stepToolStripMenuItem1,
             this.stepToolStripMenuItem2,
+            this.stepsToolStripMenuItem5,
+            this.stepsToolStripMenuItem3,
+            this.stepsToolStripMenuItem4,
             this.untilEndToolStripMenuItem});
             this.toolStripSplitButton1.Image = ((System.Drawing.Image)(resources.GetObject("toolStripSplitButton1.Image")));
             this.toolStripSplitButton1.ImageTransparentColor = System.Drawing.Color.Magenta;
@@ -305,7 +397,7 @@
             // runStep5ToolStripMenuItem
             // 
             this.runStep5ToolStripMenuItem.Name = "runStep5ToolStripMenuItem";
-            this.runStep5ToolStripMenuItem.Size = new System.Drawing.Size(126, 22);
+            this.runStep5ToolStripMenuItem.Size = new System.Drawing.Size(132, 22);
             this.runStep5ToolStripMenuItem.Tag = "5";
             this.runStep5ToolStripMenuItem.Text = "5 steps";
             this.runStep5ToolStripMenuItem.Click += new System.EventHandler(this.runStep5ToolStripMenuItem_Click);
@@ -313,7 +405,7 @@
             // stepsToolStripMenuItem
             // 
             this.stepsToolStripMenuItem.Name = "stepsToolStripMenuItem";
-            this.stepsToolStripMenuItem.Size = new System.Drawing.Size(126, 22);
+            this.stepsToolStripMenuItem.Size = new System.Drawing.Size(132, 22);
             this.stepsToolStripMenuItem.Tag = "10";
             this.stepsToolStripMenuItem.Text = "10 steps";
             this.stepsToolStripMenuItem.Click += new System.EventHandler(this.runStep5ToolStripMenuItem_Click);
@@ -321,7 +413,7 @@
             // stepsToolStripMenuItem1
             // 
             this.stepsToolStripMenuItem1.Name = "stepsToolStripMenuItem1";
-            this.stepsToolStripMenuItem1.Size = new System.Drawing.Size(126, 22);
+            this.stepsToolStripMenuItem1.Size = new System.Drawing.Size(132, 22);
             this.stepsToolStripMenuItem1.Tag = "15";
             this.stepsToolStripMenuItem1.Text = "15 steps";
             this.stepsToolStripMenuItem1.Click += new System.EventHandler(this.runStep5ToolStripMenuItem_Click);
@@ -329,7 +421,7 @@
             // stepsToolStripMenuItem2
             // 
             this.stepsToolStripMenuItem2.Name = "stepsToolStripMenuItem2";
-            this.stepsToolStripMenuItem2.Size = new System.Drawing.Size(126, 22);
+            this.stepsToolStripMenuItem2.Size = new System.Drawing.Size(132, 22);
             this.stepsToolStripMenuItem2.Tag = "25";
             this.stepsToolStripMenuItem2.Text = "25 steps";
             this.stepsToolStripMenuItem2.Click += new System.EventHandler(this.runStep5ToolStripMenuItem_Click);
@@ -337,31 +429,55 @@
             // stepToolStripMenuItem
             // 
             this.stepToolStripMenuItem.Name = "stepToolStripMenuItem";
-            this.stepToolStripMenuItem.Size = new System.Drawing.Size(126, 22);
+            this.stepToolStripMenuItem.Size = new System.Drawing.Size(132, 22);
             this.stepToolStripMenuItem.Tag = "50";
-            this.stepToolStripMenuItem.Text = "50 step";
+            this.stepToolStripMenuItem.Text = "50 steps";
             this.stepToolStripMenuItem.Click += new System.EventHandler(this.runStep5ToolStripMenuItem_Click);
             // 
             // stepToolStripMenuItem1
             // 
             this.stepToolStripMenuItem1.Name = "stepToolStripMenuItem1";
-            this.stepToolStripMenuItem1.Size = new System.Drawing.Size(126, 22);
+            this.stepToolStripMenuItem1.Size = new System.Drawing.Size(132, 22);
             this.stepToolStripMenuItem1.Tag = "100";
-            this.stepToolStripMenuItem1.Text = "100 step";
+            this.stepToolStripMenuItem1.Text = "100 steps";
             this.stepToolStripMenuItem1.Click += new System.EventHandler(this.runStep5ToolStripMenuItem_Click);
             // 
             // stepToolStripMenuItem2
             // 
             this.stepToolStripMenuItem2.Name = "stepToolStripMenuItem2";
-            this.stepToolStripMenuItem2.Size = new System.Drawing.Size(126, 22);
+            this.stepToolStripMenuItem2.Size = new System.Drawing.Size(132, 22);
             this.stepToolStripMenuItem2.Tag = "200";
-            this.stepToolStripMenuItem2.Text = "200 step";
+            this.stepToolStripMenuItem2.Text = "200 steps";
             this.stepToolStripMenuItem2.Click += new System.EventHandler(this.runStep5ToolStripMenuItem_Click);
+            // 
+            // stepsToolStripMenuItem5
+            // 
+            this.stepsToolStripMenuItem5.Name = "stepsToolStripMenuItem5";
+            this.stepsToolStripMenuItem5.Size = new System.Drawing.Size(132, 22);
+            this.stepsToolStripMenuItem5.Tag = "300";
+            this.stepsToolStripMenuItem5.Text = "300 steps";
+            this.stepsToolStripMenuItem5.Click += new System.EventHandler(this.runStep5ToolStripMenuItem_Click);
+            // 
+            // stepsToolStripMenuItem3
+            // 
+            this.stepsToolStripMenuItem3.Name = "stepsToolStripMenuItem3";
+            this.stepsToolStripMenuItem3.Size = new System.Drawing.Size(132, 22);
+            this.stepsToolStripMenuItem3.Tag = "500";
+            this.stepsToolStripMenuItem3.Text = "500 steps";
+            this.stepsToolStripMenuItem3.Click += new System.EventHandler(this.runStep5ToolStripMenuItem_Click);
+            // 
+            // stepsToolStripMenuItem4
+            // 
+            this.stepsToolStripMenuItem4.Name = "stepsToolStripMenuItem4";
+            this.stepsToolStripMenuItem4.Size = new System.Drawing.Size(132, 22);
+            this.stepsToolStripMenuItem4.Tag = "800";
+            this.stepsToolStripMenuItem4.Text = "800 steps";
+            this.stepsToolStripMenuItem4.Click += new System.EventHandler(this.runStep5ToolStripMenuItem_Click);
             // 
             // untilEndToolStripMenuItem
             // 
             this.untilEndToolStripMenuItem.Name = "untilEndToolStripMenuItem";
-            this.untilEndToolStripMenuItem.Size = new System.Drawing.Size(126, 22);
+            this.untilEndToolStripMenuItem.Size = new System.Drawing.Size(132, 22);
             this.untilEndToolStripMenuItem.Tag = "0";
             this.untilEndToolStripMenuItem.Text = "until end";
             this.untilEndToolStripMenuItem.Click += new System.EventHandler(this.runStep5ToolStripMenuItem_Click);
@@ -490,6 +606,7 @@
             this.tabControl2.Controls.Add(this.tabPage4);
             this.tabControl2.Controls.Add(this.tabPage6);
             this.tabControl2.Controls.Add(this.tabPage7);
+            this.tabControl2.Controls.Add(this.tabPage8);
             this.tabControl2.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tabControl2.Location = new System.Drawing.Point(0, 0);
             this.tabControl2.Name = "tabControl2";
@@ -499,7 +616,7 @@
             // 
             // tabPage3
             // 
-            this.tabPage3.Controls.Add(this.gbInd);
+            this.tabPage3.Controls.Add(this.splitContainer2);
             this.tabPage3.Location = new System.Drawing.Point(4, 22);
             this.tabPage3.Name = "tabPage3";
             this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
@@ -508,23 +625,77 @@
             this.tabPage3.Text = "Selected Network";
             this.tabPage3.UseVisualStyleBackColor = true;
             // 
-            // gbInd
+            // splitContainer2
             // 
-            this.gbInd.Controls.Add(this.treeViewOpenedNetwork);
-            this.gbInd.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.gbInd.Location = new System.Drawing.Point(3, 3);
-            this.gbInd.Name = "gbInd";
-            this.gbInd.Size = new System.Drawing.Size(276, 324);
-            this.gbInd.TabIndex = 1;
-            this.gbInd.TabStop = false;
+            this.splitContainer2.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitContainer2.Location = new System.Drawing.Point(3, 3);
+            this.splitContainer2.Name = "splitContainer2";
+            this.splitContainer2.Orientation = System.Windows.Forms.Orientation.Horizontal;
+            // 
+            // splitContainer2.Panel1
+            // 
+            this.splitContainer2.Panel1.Controls.Add(this.treeViewOpenedNetwork);
+            // 
+            // splitContainer2.Panel2
+            // 
+            this.splitContainer2.Panel2.Controls.Add(this.panel10);
+            this.splitContainer2.Size = new System.Drawing.Size(276, 324);
+            this.splitContainer2.SplitterDistance = 91;
+            this.splitContainer2.TabIndex = 0;
             // 
             // treeViewOpenedNetwork
             // 
             this.treeViewOpenedNetwork.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.treeViewOpenedNetwork.Location = new System.Drawing.Point(3, 17);
+            this.treeViewOpenedNetwork.Location = new System.Drawing.Point(0, 0);
             this.treeViewOpenedNetwork.Name = "treeViewOpenedNetwork";
-            this.treeViewOpenedNetwork.Size = new System.Drawing.Size(270, 304);
+            this.treeViewOpenedNetwork.Size = new System.Drawing.Size(276, 91);
             this.treeViewOpenedNetwork.TabIndex = 0;
+            this.treeViewOpenedNetwork.DoubleClick += new System.EventHandler(this.treeViewOpenedNetwork_DoubleClick);
+            // 
+            // panel10
+            // 
+            this.panel10.Controls.Add(this.splitContainer3);
+            this.panel10.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panel10.Location = new System.Drawing.Point(0, 0);
+            this.panel10.Name = "panel10";
+            this.panel10.Size = new System.Drawing.Size(276, 229);
+            this.panel10.TabIndex = 0;
+            // 
+            // splitContainer3
+            // 
+            this.splitContainer3.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitContainer3.Location = new System.Drawing.Point(0, 0);
+            this.splitContainer3.Name = "splitContainer3";
+            this.splitContainer3.Orientation = System.Windows.Forms.Orientation.Horizontal;
+            // 
+            // splitContainer3.Panel1
+            // 
+            this.splitContainer3.Panel1.Controls.Add(this.txtObservation);
+            // 
+            // splitContainer3.Panel2
+            // 
+            this.splitContainer3.Panel2.Controls.Add(this.txtPolicy);
+            this.splitContainer3.Size = new System.Drawing.Size(276, 229);
+            this.splitContainer3.SplitterDistance = 113;
+            this.splitContainer3.TabIndex = 0;
+            // 
+            // txtObservation
+            // 
+            this.txtObservation.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.txtObservation.Location = new System.Drawing.Point(0, 0);
+            this.txtObservation.Multiline = true;
+            this.txtObservation.Name = "txtObservation";
+            this.txtObservation.Size = new System.Drawing.Size(276, 113);
+            this.txtObservation.TabIndex = 1;
+            // 
+            // txtPolicy
+            // 
+            this.txtPolicy.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.txtPolicy.Location = new System.Drawing.Point(0, 0);
+            this.txtPolicy.Multiline = true;
+            this.txtPolicy.Name = "txtPolicy";
+            this.txtPolicy.Size = new System.Drawing.Size(276, 112);
+            this.txtPolicy.TabIndex = 1;
             // 
             // tabPage4
             // 
@@ -622,20 +793,20 @@
             // 
             // panel8
             // 
-            this.panel8.Controls.Add(this.treeViewOptimaNet);
+            this.panel8.Controls.Add(this.treeviewCurNet);
             this.panel8.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel8.Location = new System.Drawing.Point(0, 182);
             this.panel8.Name = "panel8";
             this.panel8.Size = new System.Drawing.Size(276, 142);
             this.panel8.TabIndex = 1;
             // 
-            // treeViewOptimaNet
+            // treeviewCurNet
             // 
-            this.treeViewOptimaNet.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.treeViewOptimaNet.Location = new System.Drawing.Point(0, 0);
-            this.treeViewOptimaNet.Name = "treeViewOptimaNet";
-            this.treeViewOptimaNet.Size = new System.Drawing.Size(276, 142);
-            this.treeViewOptimaNet.TabIndex = 0;
+            this.treeviewCurNet.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.treeviewCurNet.Location = new System.Drawing.Point(0, 0);
+            this.treeviewCurNet.Name = "treeviewCurNet";
+            this.treeviewCurNet.Size = new System.Drawing.Size(276, 142);
+            this.treeviewCurNet.TabIndex = 0;
             // 
             // panel7
             // 
@@ -826,8 +997,87 @@
             this.txtMsg.Size = new System.Drawing.Size(276, 324);
             this.txtMsg.TabIndex = 0;
             // 
+            // tabPage8
+            // 
+            this.tabPage8.Controls.Add(this.splitContainer4);
+            this.tabPage8.Location = new System.Drawing.Point(4, 22);
+            this.tabPage8.Name = "tabPage8";
+            this.tabPage8.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage8.Size = new System.Drawing.Size(282, 330);
+            this.tabPage8.TabIndex = 4;
+            this.tabPage8.Text = "Structure";
+            this.tabPage8.UseVisualStyleBackColor = true;
+            // 
+            // splitContainer4
+            // 
+            this.splitContainer4.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitContainer4.Location = new System.Drawing.Point(3, 3);
+            this.splitContainer4.Name = "splitContainer4";
+            this.splitContainer4.Orientation = System.Windows.Forms.Orientation.Horizontal;
+            // 
+            // splitContainer4.Panel1
+            // 
+            this.splitContainer4.Panel1.Controls.Add(this.listBoxInference);
+            // 
+            // splitContainer4.Panel2
+            // 
+            this.splitContainer4.Panel2.Controls.Add(this.dgvInfRecord);
+            this.splitContainer4.Size = new System.Drawing.Size(276, 324);
+            this.splitContainer4.SplitterDistance = 92;
+            this.splitContainer4.TabIndex = 0;
+            // 
+            // listBoxInference
+            // 
+            this.listBoxInference.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.listBoxInference.FormattingEnabled = true;
+            this.listBoxInference.ItemHeight = 12;
+            this.listBoxInference.Location = new System.Drawing.Point(0, 0);
+            this.listBoxInference.Name = "listBoxInference";
+            this.listBoxInference.Size = new System.Drawing.Size(276, 92);
+            this.listBoxInference.TabIndex = 0;
+            this.listBoxInference.SelectedIndexChanged += new System.EventHandler(this.listBoxInference_SelectedIndexChanged);
+            // 
+            // dgvInfRecord
+            // 
+            this.dgvInfRecord.AllowUserToAddRows = false;
+            this.dgvInfRecord.AllowUserToDeleteRows = false;
+            this.dgvInfRecord.AllowUserToOrderColumns = true;
+            this.dgvInfRecord.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dgvInfRecord.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.Text,
+            this.Column1,
+            this.Column2});
+            this.dgvInfRecord.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.dgvInfRecord.Location = new System.Drawing.Point(0, 0);
+            this.dgvInfRecord.Name = "dgvInfRecord";
+            this.dgvInfRecord.ReadOnly = true;
+            this.dgvInfRecord.RowHeadersVisible = false;
+            this.dgvInfRecord.RowTemplate.Height = 23;
+            this.dgvInfRecord.Size = new System.Drawing.Size(276, 228);
+            this.dgvInfRecord.TabIndex = 0;
+            this.dgvInfRecord.DoubleClick += new System.EventHandler(this.dgvInfRecord_DoubleClick);
+            // 
+            // Text
+            // 
+            this.Text.HeaderText = "Text";
+            this.Text.Name = "Text";
+            this.Text.ReadOnly = true;
+            // 
+            // Column1
+            // 
+            this.Column1.HeaderText = "E";
+            this.Column1.Name = "Column1";
+            this.Column1.ReadOnly = true;
+            // 
+            // Column2
+            // 
+            this.Column2.HeaderText = "C";
+            this.Column2.Name = "Column2";
+            this.Column2.ReadOnly = true;
+            // 
             // pnlMaze
             // 
+            this.pnlMaze.Controls.Add(this.pictureBoxMaze);
             this.pnlMaze.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pnlMaze.Location = new System.Drawing.Point(0, 0);
             this.pnlMaze.Name = "pnlMaze";
@@ -836,9 +1086,20 @@
             this.pnlMaze.Paint += new System.Windows.Forms.PaintEventHandler(this.panel_Paint);
             this.pnlMaze.MouseMove += new System.Windows.Forms.MouseEventHandler(this.panel_MouseMove);
             // 
+            // pictureBoxMaze
+            // 
+            this.pictureBoxMaze.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pictureBoxMaze.Location = new System.Drawing.Point(0, 0);
+            this.pictureBoxMaze.Name = "pictureBoxMaze";
+            this.pictureBoxMaze.Size = new System.Drawing.Size(1126, 356);
+            this.pictureBoxMaze.TabIndex = 0;
+            this.pictureBoxMaze.TabStop = false;
+            this.pictureBoxMaze.Paint += new System.Windows.Forms.PaintEventHandler(this.pictureBoxMaze_Paint);
+            this.pictureBoxMaze.MouseMove += new System.Windows.Forms.MouseEventHandler(this.pictureBoxMaze_MouseMove);
+            // 
             // tabPage2
             // 
-            this.tabPage2.Controls.Add(this.txtMilestone);
+            this.tabPage2.Controls.Add(this.dgvMailstone);
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
@@ -846,15 +1107,6 @@
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Mailstone";
             this.tabPage2.UseVisualStyleBackColor = true;
-            // 
-            // txtMilestone
-            // 
-            this.txtMilestone.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.txtMilestone.Location = new System.Drawing.Point(3, 3);
-            this.txtMilestone.Multiline = true;
-            this.txtMilestone.Name = "txtMilestone";
-            this.txtMilestone.Size = new System.Drawing.Size(1126, 356);
-            this.txtMilestone.TabIndex = 0;
             // 
             // tabPage5
             // 
@@ -930,11 +1182,57 @@
             this.ColumnMessage.ReadOnly = true;
             this.ColumnMessage.Width = 1000;
             // 
-            // toolStripLabel2
+            // dgvMailstone
             // 
-            this.toolStripLabel2.Name = "toolStripLabel2";
-            this.toolStripLabel2.Size = new System.Drawing.Size(64, 37);
-            this.toolStripLabel2.Text = "Evoultion:";
+            this.dgvMailstone.AllowUserToAddRows = false;
+            this.dgvMailstone.AllowUserToDeleteRows = false;
+            this.dgvMailstone.AllowUserToOrderColumns = true;
+            this.dgvMailstone.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dgvMailstone.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.ColumnInfGeneration,
+            this.ColumnInfType,
+            this.ColumnInfText,
+            this.ColumnInfReability,
+            this.ColumnInfNet});
+            this.dgvMailstone.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.dgvMailstone.Location = new System.Drawing.Point(3, 3);
+            this.dgvMailstone.Name = "dgvMailstone";
+            this.dgvMailstone.ReadOnly = true;
+            this.dgvMailstone.RowTemplate.Height = 23;
+            this.dgvMailstone.Size = new System.Drawing.Size(1126, 356);
+            this.dgvMailstone.TabIndex = 0;
+            this.dgvMailstone.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellContentClick);
+            // 
+            // ColumnInfGeneration
+            // 
+            this.ColumnInfGeneration.HeaderText = "Generation";
+            this.ColumnInfGeneration.Name = "ColumnInfGeneration";
+            this.ColumnInfGeneration.ReadOnly = true;
+            // 
+            // ColumnInfType
+            // 
+            this.ColumnInfType.HeaderText = "Invalid/Valid";
+            this.ColumnInfType.Name = "ColumnInfType";
+            this.ColumnInfType.ReadOnly = true;
+            // 
+            // ColumnInfText
+            // 
+            this.ColumnInfText.HeaderText = "Inference";
+            this.ColumnInfText.Name = "ColumnInfText";
+            this.ColumnInfText.ReadOnly = true;
+            this.ColumnInfText.Width = 500;
+            // 
+            // ColumnInfReability
+            // 
+            this.ColumnInfReability.HeaderText = "Reability";
+            this.ColumnInfReability.Name = "ColumnInfReability";
+            this.ColumnInfReability.ReadOnly = true;
+            // 
+            // ColumnInfNet
+            // 
+            this.ColumnInfNet.HeaderText = "Network Id";
+            this.ColumnInfNet.Name = "ColumnInfNet";
+            this.ColumnInfNet.ReadOnly = true;
             // 
             // MainForm
             // 
@@ -947,7 +1245,6 @@
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
             this.Name = "MainForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "Form1";
             this.SizeChanged += new System.EventHandler(this.MainForm_SizeChanged);
             this.toolStrip1.ResumeLayout(false);
             this.toolStrip1.PerformLayout();
@@ -959,7 +1256,17 @@
             this.panel2.ResumeLayout(false);
             this.tabControl2.ResumeLayout(false);
             this.tabPage3.ResumeLayout(false);
-            this.gbInd.ResumeLayout(false);
+            this.splitContainer2.Panel1.ResumeLayout(false);
+            this.splitContainer2.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).EndInit();
+            this.splitContainer2.ResumeLayout(false);
+            this.panel10.ResumeLayout(false);
+            this.splitContainer3.Panel1.ResumeLayout(false);
+            this.splitContainer3.Panel1.PerformLayout();
+            this.splitContainer3.Panel2.ResumeLayout(false);
+            this.splitContainer3.Panel2.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer3)).EndInit();
+            this.splitContainer3.ResumeLayout(false);
             this.tabPage4.ResumeLayout(false);
             this.panel3.ResumeLayout(false);
             this.splitContainer1.Panel1.ResumeLayout(false);
@@ -976,11 +1283,19 @@
             this.tabPage7.ResumeLayout(false);
             this.panel9.ResumeLayout(false);
             this.panel9.PerformLayout();
+            this.tabPage8.ResumeLayout(false);
+            this.splitContainer4.Panel1.ResumeLayout(false);
+            this.splitContainer4.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer4)).EndInit();
+            this.splitContainer4.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.dgvInfRecord)).EndInit();
+            this.pnlMaze.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxMaze)).EndInit();
             this.tabPage2.ResumeLayout(false);
-            this.tabPage2.PerformLayout();
             this.tabPage5.ResumeLayout(false);
             this.panel1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.dgvMailstone)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1000,9 +1315,7 @@
         private System.Windows.Forms.ToolStripButton btnERun;
         private System.Windows.Forms.TabControl tabControl2;
         private System.Windows.Forms.TabPage tabPage3;
-        private System.Windows.Forms.GroupBox gbInd;
         private System.Windows.Forms.TabPage tabPage4;
-        private System.Windows.Forms.TextBox txtMilestone;
         private System.Windows.Forms.ToolStripStatusLabel lblindcount;
         private System.Windows.Forms.TabPage tabPage5;
         private System.Windows.Forms.Panel panel1;
@@ -1040,11 +1353,10 @@
         private System.Windows.Forms.TreeView treeViewEvolution;
         private System.Windows.Forms.Panel panel5;
         private System.Windows.Forms.TreeView treeViewEvolutionNetwork;
-        private System.Windows.Forms.TreeView treeViewOpenedNetwork;
         private System.Windows.Forms.TabPage tabPage6;
         private System.Windows.Forms.Panel panel6;
         private System.Windows.Forms.Panel panel8;
-        private System.Windows.Forms.TreeView treeViewOptimaNet;
+        private System.Windows.Forms.TreeView treeviewCurNet;
         private System.Windows.Forms.Panel panel7;
         private System.Windows.Forms.TextBox txtOptimaNetId;
         private System.Windows.Forms.Label label5;
@@ -1068,6 +1380,34 @@
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.CheckBox cbVisible;
         private System.Windows.Forms.ToolStripLabel toolStripLabel2;
+        private System.Windows.Forms.ToolStripMenuItem btnTaskCompletedInds;
+        private System.Windows.Forms.ToolStripMenuItem btnDemoSimple;
+        private System.Windows.Forms.ToolStripMenuItem btnDemoReability;
+        private System.Windows.Forms.ToolStripMenuItem btnDemoFull;
+        private System.Windows.Forms.ToolStripMenuItem btnDemoCustom;
+        private System.Windows.Forms.PictureBox pictureBoxMaze;
+        private System.Windows.Forms.ToolStripMenuItem stepsToolStripMenuItem3;
+        private System.Windows.Forms.ToolStripMenuItem stepsToolStripMenuItem4;
+        private System.Windows.Forms.ToolStripMenuItem stepsToolStripMenuItem5;
+        private System.Windows.Forms.SplitContainer splitContainer2;
+        private System.Windows.Forms.TreeView treeViewOpenedNetwork;
+        private System.Windows.Forms.Panel panel10;
+        private System.Windows.Forms.SplitContainer splitContainer3;
+        private System.Windows.Forms.TextBox txtObservation;
+        private System.Windows.Forms.TextBox txtPolicy;
+        private System.Windows.Forms.TabPage tabPage8;
+        private System.Windows.Forms.SplitContainer splitContainer4;
+        private System.Windows.Forms.ListBox listBoxInference;
+        private System.Windows.Forms.DataGridView dgvInfRecord;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Text;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Column1;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Column2;
+        private System.Windows.Forms.DataGridView dgvMailstone;
+        private System.Windows.Forms.DataGridViewTextBoxColumn ColumnInfGeneration;
+        private System.Windows.Forms.DataGridViewTextBoxColumn ColumnInfType;
+        private System.Windows.Forms.DataGridViewTextBoxColumn ColumnInfText;
+        private System.Windows.Forms.DataGridViewTextBoxColumn ColumnInfReability;
+        private System.Windows.Forms.DataGridViewTextBoxColumn ColumnInfNet;
     }
 }
 

@@ -25,6 +25,9 @@ namespace NWSELib.genome
         /// </summary>
         public List<double> param = new List<double>();
 
+        /// <summary>
+        /// 所有输入的维度
+        /// </summary>
         public override List<int> Dimensions
         {
             get
@@ -42,27 +45,6 @@ namespace NWSELib.genome
         {
             return this.inputs.ConvertAll(i => owner[i]);
         }
-
-        public HandlerGene mutate()
-        {
-            HandlerGene gene = this.clone<HandlerGene>();
-            NodeGene g = owner[gene.inputs[0]];
-            int num = 0, maxcount = 5;
-            while(++num<=maxcount)
-            {
-                List<NodeGene> gs = null;
-                if (num <= maxcount / 2) gs = owner.filterByCataory(owner.receptorGenes.ConvertAll(r => (NodeGene)r), g.Cataory);
-                else gs = owner.filterByCataory(owner.getReceptorAndHandlerGenes(), g.Cataory);
-                int index = rng.Next(0, gs.Count);
-                if (gene.inputs.Contains(gs[index].Id)) continue;
-                gene.inputs[0] = gs[index].Id;
-                gene.sortInput();
-                gene.Id = Session.idGenerator.getGeneId(gene);
-                return gene;
-            }
-            return null;
-        }
-
         #endregion
 
         #region 显示和初始化
@@ -82,19 +64,13 @@ namespace NWSELib.genome
             {
                 List<NodeGene> inputs = this.inputs.ConvertAll(i => owner[i]);
                 inputs.Sort();
-                //return function + "(" + inputs.ConvertAll(x => x.Text).Aggregate((m, n) =>"{" + m + "}"+ ",{" + n + "}") + ")";
                 return function + "(" + inputs.ConvertAll(x => x.Text).Aggregate((m, n) => m + "," + n) + ")";
             }
         }
-
-
         public override T clone<T>()
         {
             return new HandlerGene(this.owner, this.function, this.inputs, this.param.ToArray()).copy<T>(this);
         }
-
-
-
         public void sortInput()
         {
             this.inputs.Sort();

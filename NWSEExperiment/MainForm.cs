@@ -45,8 +45,6 @@ namespace NWSEExperiment
             this.Width = Session.GetConfiguration().view.width;
             this.Height = Session.GetConfiguration().view.height;
 
-            
-            
         }
 
         private void btnshowTrail_Click(object sender, EventArgs e)
@@ -71,6 +69,144 @@ namespace NWSEExperiment
         }
         #endregion
 
+        #region 事件处理
+        public void eventHandler(String eventName, int generation, params Object[] states)
+        {
+            if(eventName == Session.EVT_POP_INIT)
+            {
+                showLog(generation, eventName);
+                this.refreshEvolutionTree();
+                refreshEvolutionState();
+
+
+            }
+            else if (eventName == Session.EVT_EVAULATION_BEGIN)
+            {
+                showLog(generation, eventName);
+            }
+            else if (eventName == Session.EVT_EVAULATION_IND)
+            {
+                Network net = (Network)states[0];
+                demoNet = net;
+                demoAgent = (RobotAgent)evolutionMaze.GetAgent(net.Id);
+                showLog(generation, "network id="+net.Id.ToString()+",fitness="+net.Fitness.ToString("F4") + ",reability="+net.Reability.ToString("F4")
+                  +",completed="+net.TaskCompleted.ToString());
+
+            }
+            else if (eventName == Session.EVT_EVAULATION_END)
+            {
+                if (evolutionSession == null) return;
+                //记录当前最优个体
+                List<Network> optimaNets = (List<Network>)states[0];
+                this.optima_generation = generation;
+                this.optima_net = optimaNets.Count>0?(Network)optimaNets[0]:null;
+                this.optimaAgent = (RobotAgent)evolutionMaze.GetAgent(optima_net.Id);
+                //刷新进化树信息
+                txtDepth.Text = evolutionSession.root.depth.ToString();
+                txtGeneration.Text = evolutionSession.Generation.ToString();
+                txtIndCount.Text = evolutionSession.inds.Count.ToString();
+                refreshEvolutionTree();
+                //刷新最优个体信息
+                this.refreshEvolutionState();
+                //刷新菜单
+                refreshTaskCompletedMenu();
+                if (optimaNets.Count > 0)
+                    optimaNets.ForEach(net => insertOptimaMenu(net));
+                //显示日志
+                showLog(generation, "评估完成，最优个体："+txtOptimaNetId.Text);  
+
+            }
+            else if (eventName == Session.EVT_INVAILD_GENE)
+            {
+                Network net = (Network)states[0];
+                List<Inference> infs = (List<Inference>)states[1];
+                foreach(Inference inf in infs)
+                {
+                    int index = dgvMailstone.Rows.Add();
+                    dgvMailstone.Rows[index].Cells[0].Value = generation;
+                    dgvMailstone.Rows[index].Cells[1].Value = "Invalid";
+                    dgvMailstone.Rows[index].Cells[2].Value = inf.getGene().Text;
+                    dgvMailstone.Rows[index].Cells[3].Value = inf.Reability;
+                }
+                
+            }
+            else if (eventName == Session.EVT_VAILD_GENE)
+            {
+                Network net = (Network)states[0];
+                List<NodeGene> genes = (List<NodeGene>)states[1];
+                foreach(NodeGene gene in genes)
+                {
+                    if (!(gene is InferenceGene)) continue;
+                    int index = dgvMailstone.Rows.Add();
+                    dgvMailstone.Rows[index].Cells[0].Value = generation;
+                    dgvMailstone.Rows[index].Cells[1].Value = "valid";
+                    dgvMailstone.Rows[index].Cells[2].Value = gene.Text;
+                    dgvMailstone.Rows[index].Cells[3].Value = net[gene.Id].Reability;
+                }
+            }
+            else if(eventName == Session.EVT_SELECTION)
+            {
+                int prevcount = (int)states[0];
+                int count = (int)states[1];
+                double reability_lowlimit = (double)states[2];
+                showLog(generation,"prevcount="+prevcount.ToString()+",count="+count.ToString()+ ",reability_lowlimit="+ reability_lowlimit.ToString("F4"));
+            }
+            else if (eventName == Session.EVT_EVOLUTION_END)
+            {
+                showLog(generation, "迭代次数达到，进化结束");
+            }
+            else if (eventName == Session.EVT_LOG)
+            {
+                showLog(generation, states[0].ToString());
+            }
+            else if (eventName == Session.EVT_STEP)
+            {
+                Network network = (Network)states[0];
+                this.demoNet = network;
+                this.demoAgent = (RobotAgent)evolutionMaze.GetAgent(demoNet.Id);
+                int time = (int)states[1];
+                txtTime.Text = time.ToString();
+
+
+                txtMsg.Text += "net=" + network.ToString() + System.Environment.NewLine;
+                txtMsg.Text += "time=" + time.ToString() + System.Environment.NewLine;
+                txtMsg.Text += "observation=" + states[2].ToString() + System.Environment.NewLine;
+                txtMsg.Text += "gesture=" + (states[3]==null?"":states[3].ToString()) + System.Environment.NewLine;
+                txtMsg.Text += "actions=" + (states[4]==null?"":states[4].ToString()) + System.Environment.NewLine;
+                txtMsg.Text += "reward=" + (states[5]==null?"":states[5].ToString()) + System.Environment.NewLine;
+                txtMsg.Text += "end=" + states[6].ToString() + System.Environment.NewLine;
+                txtMsg.Text += System.Environment.NewLine;
+
+                if (cbVisible.Checked)
+                    this.Refresh();
+
+                if (optima_net == null || network.Fitness > optima_net.Fitness)
+                {
+                    this.optima_generation = generation;
+                    this.optima_net = (Network)states[0];
+                    txtMaxFitness.Text = network.Fitness.ToString("F6");
+                    txtOptimaNetId.Text = network.ToString();
+                }
+            }
+            else if (eventName == Session.EVT_GENERATION_END)
+            {
+                this.refreshEvolutionTree();
+                txtDepth.Text = evolutionSession.root.getDepth().ToString();
+                txtGeneration.Text = evolutionSession.Generation.ToString();
+                txtIndCount.Text = evolutionSession.inds.Count.ToString();
+            }
+        }
+
+        public void showLog(int generation, String message, String cataory = "info", String type = "")
+        {
+            if (dataGridView.Rows.Count > 1024)
+                dataGridView.Rows.Clear();
+            dataGridView.Rows.Insert(0, 1);
+            dataGridView.Rows[0].Cells[0].Value = generation.ToString();
+            dataGridView.Rows[0].Cells[1].Value = message;
+        }
+        #endregion
+
         #region 进化过程
 
         public HardMaze evolutionMaze;
@@ -89,7 +225,8 @@ namespace NWSEExperiment
             optima_net = null;
             optima_generation = -1;
 
-            evolutionSession = new Session(this.evolutionMaze, new FitnessHandler(evolutionMaze.compute_fitness), EventHandler, new InstinctActionHandler(HardMaze.createInstinctAction));
+            evolutionSession = new Session(this.evolutionMaze, new FitnessHandler(evolutionMaze.compute_fitness), EventHandler, new InstinctActionHandler(HardMaze.createInstinctAction),
+                new OptimaGestureHandler(evolutionMaze.GetOptimaGestureHandler));
         }
         private void btnERun_Clicked(object sender, EventArgs e)
         {
@@ -110,103 +247,17 @@ namespace NWSEExperiment
             }
         }
 
+        private void btnEReset_Click(object sender, EventArgs e)
+        {
+            if (evolutionSession == null) return;
+            evolutionSession.stop();
+        }
+
         public void EventHandler(String eventName, int generation, params Object[] states)
         {
             this.Invoke(new BeginInvokeDelegate(eventHandler), eventName, generation, states);
         }
-        public void eventHandler(String eventName, int generation, params Object[] states)
-        { 
-            if (eventName == Session.EVT_EVAULATION_BEGIN)
-            {
-                txtCurNet.Text = ((Network)states[0]).ToString();
-                txtCurNet.Tag = states[0];
-                txtTime.Text = "0";
-
-                demoNet = ((Network)states[0]);
-                demoAgent = (RobotAgent)this.evolutionMaze.GetAgent(demoNet.Id);
-                if (demoAgent != null) demoAgent.Visible = cbVisible.Checked;
-                this.Refresh();
-            }
-            else if (eventName == Session.EVT_LOG)
-            {
-                showLog(generation, states[0].ToString());
-            }
-            else if (eventName == Session.EVT_STEP)
-            {
-                Network network = (Network)states[0];
-                int time = (int)states[1];
-
-                txtTime.Text = time.ToString();
-
-                txtMsg.Text += "net=" + network.ToString() + System.Environment.NewLine;
-                txtMsg.Text += "time=" + time.ToString() + System.Environment.NewLine;
-                txtMsg.Text += "observation=" + states[2].ToString() + System.Environment.NewLine;
-                txtMsg.Text += "actions=" + states[3].ToString() + System.Environment.NewLine;
-                txtMsg.Text += "result=" + states[4].ToString() + System.Environment.NewLine;
-                txtMsg.Text += "gesture=" + states[5].ToString() + System.Environment.NewLine;
-                txtMsg.Text += "reward=" + states[6].ToString() + System.Environment.NewLine;
-                txtMsg.Text += "end=" + states[7].ToString() + System.Environment.NewLine;
-                txtMsg.Text += System.Environment.NewLine;
-
-                if(cbVisible.Checked)
-                    this.Refresh();
-                
-            }
-            else if (eventName == Session.EVT_EVAULATION_END)
-            {
-                if (demoNet == null) return;
-                //txtMaxFitness.Text = demoNet.Fitness.ToString("F4");
-                //txtOptimaNetId.Text = demoNet.ToString();
-            }
-            else if (eventName == Session.EVT_EVAULATION_SUMMARY)
-            {
-                if (evolutionSession == null) return;
-
-                this.optima_generation = generation;
-                this.optima_net = (Network)states[0];
-
-                ToolStripItem tItem = this.btnOpenOptima.DropDownItems.Add("Generation:" + evolutionSession.Generation.ToString() + ",ind=" + optima_net.Id.ToString());
-                tItem.Tag = optima_net;
-
-                txtDepth.Text = evolutionSession.root.getDepth().ToString();
-                txtGeneration.Text = evolutionSession.Generation.ToString();
-                txtIndCount.Text = evolutionSession.inds.Count.ToString();
-               
-                txtMaxFitness.Text = ((double)states[2]).ToString("F6");
-                txtOptimaNetId.Text = optima_net.ToString();
-
-                refreshNetwork(optima_net, treeViewOptimaNet);
-
-                refreshEvolutionTree();
-
-                showLog(generation, txtOptimaNetId.Text);
-
-                insertOptimaMenu(this.optima_net);
-            }
-            else if (eventName == Session.EVT_INVAILD_GENE)
-            {
-                Network net = (Network)states[0];
-                NodeGene gene = (NodeGene)states[1];
-                txtMilestone.Text += "########" + generation.ToString() + "########" + System.Environment.NewLine;
-                txtMilestone.Text += "gene was eliminated in generation" + generation.ToString() + ":" + System.Environment.NewLine;
-                txtMilestone.Text += gene.ToString() + System.Environment.NewLine;
-            }
-            else if (eventName == Session.EVT_VAILD_GENE)
-            {
-                Network net = (Network)states[0];
-                NodeGene gene = (NodeGene)states[1];
-                txtMilestone.Text += "########" + generation.ToString() + "########" + System.Environment.NewLine;
-                txtMilestone.Text += "gene was considered valid in generation" + generation.ToString() + ":" + System.Environment.NewLine;
-                txtMilestone.Text += gene.ToString() + System.Environment.NewLine;
-            }
-            else if (eventName == Session.EVT_GENERATION_END)
-            {
-                this.refreshEvolutionTree();
-                txtDepth.Text = evolutionSession.root.getDepth().ToString();
-                txtGeneration.Text = evolutionSession.Generation.ToString();
-                txtIndCount.Text = evolutionSession.inds.Count.ToString();
-            }
-        }
+        
 
         private void treeViewEvolution_AfterSelect(object sender, TreeViewEventArgs e)
         {
@@ -253,6 +304,17 @@ namespace NWSEExperiment
             
         }
 
+        private void refreshEvolutionState()
+        {
+            txtGeneration.Text = this.evolutionSession.Generation.ToString();
+            txtIndCount.Text = this.evolutionSession.inds.Count.ToString();
+            txtMaxFitness.Text = this.optima_net == null ? "0.0" : this.optima_net.Fitness.ToString("F4");
+            txtDepth.Text = this.evolutionSession.root.getDepth().ToString();
+            txtOptimaNetId.Text = this.optima_net == null ? "" : this.optima_net.ToString();
+            txtCurNet.Text = this.demoNet == null ? "" : this.demoNet.ToString();
+
+        }
+
         public void refreshNetwork(Network net,TreeView tv)
         {
             tv.Nodes.Clear();
@@ -279,14 +341,7 @@ namespace NWSEExperiment
             }
         }
 
-        public void showLog(int generation, String message,String cataory="info",String type="")
-        {
-            if (dataGridView.Rows.Count > 1024)
-                dataGridView.Rows.Clear();
-            dataGridView.Rows.Insert(0, 1);
-            dataGridView.Rows[0].Cells[0].Value = generation.ToString();
-            dataGridView.Rows[0].Cells[1].Value = message;
-        }
+        
 
         
         #endregion
@@ -296,6 +351,11 @@ namespace NWSEExperiment
         private Network demoNet;
         
         public void panel_Paint(object sender, PaintEventArgs e)
+        {
+            
+        }
+
+        private void pictureBoxMaze_Paint(object sender, PaintEventArgs e)
         {
             //画迷宫
             if (evolutionMaze == null) return;
@@ -310,8 +370,7 @@ namespace NWSEExperiment
             }
         }
 
-
-        private void panel_MouseMove(object sender, MouseEventArgs e)
+        private void pictureBoxMaze_MouseMove(object sender, MouseEventArgs e)
         {
             if (MeasureTools.Position == null) return;
             if (evolutionMaze == null) return;
@@ -323,6 +382,12 @@ namespace NWSEExperiment
                 this.statusXY.Text = String.Format("X={0:000.00},Y={1:000.00}", mazeX, mazeY);
             else
                 this.statusXY.Text = String.Format("X={0:000.00},Y={1:000.00},pos={2:0.0000},grid=[{3},{4}]", mazeX, mazeY, poscode, gridx, gridy);
+        }
+
+
+        private void panel_MouseMove(object sender, MouseEventArgs e)
+        {
+            
         }
         #endregion
 
@@ -357,27 +422,34 @@ namespace NWSEExperiment
         {
             if(demoNet == null)
             {
-                demoNet = new Network(genomeFactory.createDemoGenome(evolutionSession)); 
+                //demoNet = new Network(genomeFactory.createDemoGenome(evolutionSession)); 
+                demoNet = new Network(genomeFactory.createAccuracyLowLimitTestGenome2(evolutionSession));
+                //demoNet = new Network(genomeFactory.createAccuracyHighLimitTestGenome(evolutionSession));
+                refreshNetwork(demoNet, treeViewOpenedNetwork);
             }
             interactiveMode = true;
             interactive_time = 0;
-            (obs, gesture) = evolutionMaze.reset(optima_net);
+            (obs, gesture) = evolutionMaze.reset(demoNet);
             demoAgent = evolutionMaze.Agents[0];
+            demoAgent.Visible = true;
 
-            (int ptx, int pty) = MeasureTools.Position.poscodeSplit(obs[11]);
-            this.txtMsg.Text = "第" + interactive_time.ToString() + "次交互" + System.Environment.NewLine;
-            this.txtMsg.Text += "障碍=" + Utility.toString(obs.GetRange(0, 6)) + System.Environment.NewLine; ;
-            this.txtMsg.Text += "位置=" + obs[11].ToString("F4") + "(" + ptx.ToString() + "," + pty.ToString() + ")" + System.Environment.NewLine;
-            this.txtMsg.Text += "目标=" + Utility.toString(obs.GetRange(6, 4)) + System.Environment.NewLine; ;
-            this.txtMsg.Text += "朝向=" + MeasureTools.Direction.headingToDegree(gesture[0]).ToString("F2") +"("+ gesture[0].ToString("F2")+")"+ System.Environment.NewLine;
-            this.txtMsg.Text += "到达=" + end.ToString() + System.Environment.NewLine;
-            this.txtMsg.Text += System.Environment.NewLine;
+            this.txtObservation.Text = "第" + interactive_time.ToString() + "次交互" + System.Environment.NewLine;
+            this.txtObservation.Text += observationToString(obs, gesture,0,false);
+
+            prevObservationText = this.txtObservation.Text;
             inferencing = false;
             this.Refresh();
             
         }
         
-
+        private String observationToString(List<double> obs,List<double> gestures,double reward,bool end)
+        {
+            List<double> observation = new List<double>(obs);
+            observation.AddRange(gestures);
+            return  demoNet.GetObservationText(observation) +
+            "奖励=" + reward.ToString("F4") + System.Environment.NewLine +
+            "到达=" + end.ToString() + System.Environment.NewLine;
+        }
         /// <summary>
         /// 推理
         /// </summary>
@@ -388,17 +460,24 @@ namespace NWSEExperiment
             //网络执行
             List<double> inputs = new List<double>(obs);
             inputs.AddRange(gesture);
-            actions = this.optima_net.activate(inputs, interactive_time,evolutionSession,reward);
+            actions = this.demoNet.activate(inputs, interactive_time,evolutionSession,reward);
             //显示推理链
-            this.txtMsg.Text += this.optima_net.showActionPlan();
+            if(this.demoNet.policyName == "policy")
+                this.txtPolicy.Text = this.demoNet.actionPlanChain.ToString();
+            else
+                this.txtPolicy.Text = this.demoNet.actionPlanChain.Last.ToString();
 
             interactive_time += 1;
             inferencing = true;
+
+            //refreshNetwork(demoNet, treeViewOpenedNetwork);
+
             this.Refresh();
 
 
         }
-        
+
+        private String prevObservationText;
         /// <summary>
         /// 显示行动效果
         /// </summary>
@@ -406,31 +485,60 @@ namespace NWSEExperiment
         /// <param name="e"></param>
         private void toolStripButton7_Click(object sender, EventArgs e)
         {
-            (obs,gesture,actions,reward,end) = ((IEnv)this.evolutionMaze).action(this.optima_net,
-                this.optima_net.Effectors.ConvertAll(x => x.Value[0]));
-            (int ptx, int pty) = MeasureTools.Position.poscodeSplit(obs[11]);
+            (obs,gesture,actions,reward,end) = ((IEnv)this.evolutionMaze).action(this.demoNet,
+                this.demoNet.Effectors.ConvertAll(x => x.Value[0]));
 
-            this.txtMsg.Text += "第" + interactive_time.ToString() + "次交互" + System.Environment.NewLine;
-            this.txtMsg.Text += "障碍=" + Utility.toString(obs.GetRange(0, 6)) + System.Environment.NewLine; ;
-            this.txtMsg.Text += "目标=" + Utility.toString(obs.GetRange(6, 4)) + System.Environment.NewLine; ;
-            this.txtMsg.Text += "位置=" + obs[11].ToString("F4")+"("+ ptx.ToString()+","+pty.ToString()+")"+System.Environment.NewLine;
-            this.txtMsg.Text += "朝向=" + MeasureTools.Direction.headingToDegree(gesture[0]).ToString("F2") + "(" + gesture[0].ToString("F2") + ")" + System.Environment.NewLine;
-            this.txtMsg.Text += "奖励=" + this.reward+ System.Environment.NewLine;
-            this.txtMsg.Text += "碰撞=" + this.optimaAgent.PrevCollided.ToString() + "->" + optimaAgent.HasCollided.ToString();
-            this.txtMsg.Text += System.Environment.NewLine;
+            this.txtObservation.Text = prevObservationText;
 
+            prevObservationText = "第" + interactive_time.ToString() + "次交互" + System.Environment.NewLine;
+            prevObservationText += observationToString(obs, gesture, reward, end);
+
+            this.txtObservation.Text += System.Environment.NewLine;
+            this.txtObservation.Text += prevObservationText;
             //this.optima_net.setReward(reward, interactive_time);
             inferencing = false;
             this.Refresh();
            
         }
 
+        private void treeViewOpenedNetwork_DoubleClick(object sender, EventArgs e)
+        {
+            if (demoNet != null)
+                refreshNetwork(demoNet, treeViewOpenedNetwork);
+        }
+
         private void btnOpenDemoAgent_Click(object sender, EventArgs e)
+        {
+            
+        }
+
+        private void btnDemoSimple_Click(object sender, EventArgs e)
         {
             interactiveMode = true;
             initInteraction();
-            demoNet = new Network(genomeFactory.createDemoGenome(evolutionSession));
+            demoNet = new Network(genomeFactory.createSimpleGenome(evolutionSession));
             this.refreshNetwork(demoNet, treeViewOpenedNetwork);
+        }
+
+        private void btnDemoReability_Click(object sender, EventArgs e)
+        {
+            interactiveMode = true;
+            initInteraction();
+            demoNet = new Network(genomeFactory.createReabilityGenome(evolutionSession));
+            this.refreshNetwork(demoNet, treeViewOpenedNetwork);
+        }
+
+        private void btnDemoFull_Click(object sender, EventArgs e)
+        {
+            interactiveMode = true;
+            initInteraction();
+            demoNet = new Network(genomeFactory.createFullGenome(evolutionSession));
+            this.refreshNetwork(demoNet, treeViewOpenedNetwork);
+        }
+
+        private void btnDemoCustom_Click(object sender, EventArgs e)
+        {
+
         }
 
         private void btnOpenFromFile_Click(object sender, EventArgs e)
@@ -459,6 +567,7 @@ namespace NWSEExperiment
         public void clearOptimaMenu()
         {
             btnOpenOptima.DropDownItems.Clear();
+            btnTaskCompletedInds.DropDownItems.Clear();
         }
         private void insertOptimaMenu(Network net)
         {
@@ -468,6 +577,28 @@ namespace NWSEExperiment
             menuItem = (ToolStripMenuItem)btnOpenOptima.DropDownItems.Add(net.ToString());
             menuItem.Tag = net;
             menuItem.Click += btnOpenOptima_Click;
+        }
+        public void refreshTaskCompletedMenu()
+        {
+            if (evolutionSession == null) return;
+            this.btnTaskCompletedInds.DropDownItems.Clear();
+            if (evolutionSession.taskCompletedNets == null || evolutionSession.taskCompletedNets.Count <= 0) return;
+            foreach(Network net in evolutionSession.taskCompletedNets)
+            {
+                ToolStripItem item = btnTaskCompletedInds.DropDownItems.Add(net.ToString());
+                item.Tag = net;
+                item.Click += TaskCompletedNet_Click;
+            }
+
+        }
+        
+
+        private void TaskCompletedNet_Click(object sender, EventArgs e)
+        {
+            ToolStripItem menuItem = (ToolStripItem)sender;
+            if (menuItem.Tag == null) return;
+            demoNet = (Network)menuItem.Tag;
+            this.initInteraction();
         }
 
         private ToolStripMenuItem matchOptimaMenu(int netid)
@@ -480,8 +611,6 @@ namespace NWSEExperiment
             }
             return null;
         }
-
-
 
         private void runStep5ToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -510,17 +639,57 @@ namespace NWSEExperiment
         #region 当前个体的内部结构
         private void btnIndStructLevel1_Click(object sender, EventArgs e)
         {
-            this.txtMsg.Text += System.Environment.NewLine;
+            if (this.demoNet == null) return;
+            List<Inference> infs = this.demoNet.Inferences;
+            if (infs == null || infs.Count <= 0) return;
+
+            listBoxInference.Items.Clear();
+            foreach(Inference inf in infs)
+            {
+                int index = listBoxInference.Items.Add(inf.Id.ToString()+":"+inf.summary());
+            }
+
+            /*this.txtMsg.Text += System.Environment.NewLine;
             this.txtMsg.Text += "#####个体结构(Level1)#####";
             //打印推理记忆节点现状
-            List<Inference> infs = this.optima_net.Inferences;
+            List<Inference> infs = this.demoNet.Inferences;
             for (int i = 0; i < infs.Count; i++)
             {
                 Inference inf = (Inference)infs[i];
                 this.txtMsg.Text += inf.ToString();
             }
             this.txtMsg.Text += "##############";
-            this.txtMsg.Text += System.Environment.NewLine;
+            this.txtMsg.Text += System.Environment.NewLine;*/
+        }
+
+        private void listBoxInference_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (this.demoNet == null) return;
+            List<Inference> infs = this.demoNet.Inferences;
+            if (infs == null || infs.Count <= 0) return;
+
+            int index = listBoxInference.SelectedIndex;
+            if (index < 0) return;
+
+            int p = listBoxInference.Items[index].ToString().IndexOf(":");
+            if (p < 0) return;
+
+            int id = int.Parse(listBoxInference.Items[index].ToString().Substring(0,p));
+            Inference inf = (Inference)this.demoNet[id];
+            if (inf == null) return;
+
+            dgvInfRecord.Tag = inf;
+            dgvInfRecord.Rows.Clear();
+            foreach(InferenceRecord record in inf.Records)
+            {
+                index = dgvInfRecord.Rows.Add();
+                dgvInfRecord.Rows[index].Cells[0].Value = record.summary();
+                dgvInfRecord.Rows[index].Cells[1].Value = record.evulation.ToString("F4");
+                dgvInfRecord.Rows[index].Cells[2].Value = record.acceptCount.ToString();
+                dgvInfRecord.Rows[index].Tag = record;
+            }
+
+
         }
 
         private void btnIndStructLevel2_Click(object sender, EventArgs e)
@@ -528,7 +697,7 @@ namespace NWSEExperiment
             this.txtMsg.Text += System.Environment.NewLine;
             this.txtMsg.Text += "#####个体结构(Level2)#####";
             //打印推理记忆节点现状
-            List<Inference> infs = this.optima_net.imagination.inferences;
+            List<Inference> infs = this.demoNet.Inferences;
             for (int i = 0; i < infs.Count; i++)
             {
                 Inference inf = (Inference)infs[i];
@@ -546,11 +715,27 @@ namespace NWSEExperiment
 
         }
 
+        private void dgvInfRecord_DoubleClick(object sender, EventArgs e)
+        {
+            Inference inf = (Inference)dgvInfRecord.Tag;
+            if (inf == null) return;
+            MessageBox.Show(inf.doPostVariableStat());
+        }
+
+
+
+
+
+
+
 
 
 
         #endregion
 
-        
+        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+
+        }
     }
 }

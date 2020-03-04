@@ -29,6 +29,7 @@ namespace NWSEExperiment.maze
         public Rectangle AOIRectangle { get; set; }
         public List<Point> POIPosition { get; set; }
         public float maxDistance; // Distance from corner to corner. Determined by AOI.
+        public double maxGoalDistance;
 
         public Point2D start_point; //Start location of the agent
         public Point2D goal_point;
@@ -83,6 +84,16 @@ namespace NWSEExperiment.maze
             TextReader infile = new StreamReader(name);
             HardMaze k = (HardMaze)x.Deserialize(infile);
             k.maxDistance = (float)Math.Sqrt(k.AOIRectangle.Width * k.AOIRectangle.Width + k.AOIRectangle.Height * k.AOIRectangle.Height);
+
+            k.maxGoalDistance = float.MinValue;
+            double d = k.goal_point.distance(new Point2D(k.AOIRectangle.X,k.AOIRectangle.Y));
+            if (d > k.maxGoalDistance) k.maxGoalDistance = d;
+            d = k.goal_point.distance(new Point2D(k.AOIRectangle.X+k.AOIRectangle.Width, k.AOIRectangle.Y));
+            if (d > k.maxGoalDistance) k.maxGoalDistance = d;
+            d = k.goal_point.distance(new Point2D(k.AOIRectangle.X, k.AOIRectangle.Y+k.AOIRectangle.Height));
+            if (d > k.maxGoalDistance) k.maxGoalDistance = d;
+            d = k.goal_point.distance(new Point2D(k.AOIRectangle.X+ k.AOIRectangle.Width, k.AOIRectangle.Y + k.AOIRectangle.Height));
+            if (d > k.maxGoalDistance) k.maxGoalDistance = d;
 
             k.name = name;
 
@@ -218,9 +229,9 @@ namespace NWSEExperiment.maze
 
             agent.reset(this.start_point);
             List<double> obs =agent.getObserve();
-            obs.Add(0); //没有发生碰撞冲突
-            var poscode = MeasureTools.Position.poscodeCompute(this.AOIRectangle, agent.Location.X, agent.Location.Y);
-            obs.Add(poscode.Item1);
+            //obs.Add(0); //没有发生碰撞冲突
+            /*var poscode = MeasureTools.Position.poscodeCompute(this.AOIRectangle, agent.Location.X, agent.Location.Y);
+            obs.Add(poscode.Item1);*/
 
             
             List<double> gesture = new List<double>();
@@ -237,10 +248,10 @@ namespace NWSEExperiment.maze
             bool noncollision = agent.doAction(actions.ToArray());
 
             List<double> obs = agent.getObserve();
-            obs.Add(agent.HasCollided?1:0);
+            //obs.Add(agent.HasCollided?1:0);
 
-            var poscode = MeasureTools.Position.poscodeCompute(this.AOIRectangle,agent.Location.X,agent.Location.Y);
-            obs.Add(poscode.Item1);
+            /*var poscode = MeasureTools.Position.poscodeCompute(this.AOIRectangle,agent.Location.X,agent.Location.Y);
+            obs.Add(poscode.Item1);*/
 
             List<double> gesture = new List<double>();
             gesture.Add(agent.Heading/(2*Math.PI));
@@ -252,22 +263,27 @@ namespace NWSEExperiment.maze
             return (obs, gesture, actions,reward,end);
         }
 
+        public Vector GetOptimaGestureHandler(Network net, int time)
+        {
+            RobotAgent agent = this.agents[net.Id];
+            Radar radar = (Radar)(agent.GoalSensors[0]);
+            return new Vector(radar.getActivation());
+            
+        }
+
+
+
         public static List<double> createInstinctAction(Network net, int time)
         {
-            String[] g = { "g1", "g2", "g3", "g4" };
-            double[] cAngle = { 0, Math.PI / 2, Math.PI, -Math.PI/ 2 };
-            for(int i =0;i<g.Length;i++)
-            {
-                double v = net.getNode(g[i]).GetValue(time)[0];
-                if (v <= 0) continue;
-                double angle = v;
-                if (v < 0.5) angle += 0.5;
-                else if (v > 0.5) angle -= 0.5;
-                else angle = 1.0;
-                
-                return new double[] { angle }.ToList();
-            }
-            return new double[] { 0.5 }.ToList(); ;
+            double v1 = net.getNode("g1").GetValue(time)[0];
+            double v2 = net.getNode("heading").GetValue(time)[0];
+            double v = v1 - v2;
+            if(v < -0.5) v = 1.0 + v;
+            else if (v > 0.5) v = 1.0 - v;
+            
+            return new double[] { v + 0.5 }.ToList();
+
+            
             /*
             //如果面朝目标，则直接向前走
             if (net.getNode("g1").GetValue(time)[0] == 1)
@@ -382,10 +398,39 @@ namespace NWSEExperiment.maze
         
         public double compute_reward(Agent agent)
         {
-            if (Session.GetConfiguration().evaluation.reward_method == "collision")
+            String rewardmethod = Session.GetConfiguration().evaluation.reward_method;
+            if (rewardmethod == "collision")
                 return compute_reward_collision(agent);
+            else if (rewardmethod == "radar")
+                return compute_reward_radar(agent);
+            else if (rewardmethod == "heading")
+                return compute_reward_heading(agent);
             //else if (Session.GetConfiguration().evaluation.reward_method == "optiomatraces")
             return compute_reward_optiomatraces((RobotAgent)agent);
+        }
+        public double compute_reward_heading(Agent agent)
+        {
+            RobotAgent robot = (RobotAgent)agent;
+
+            (double cur, double prev) = ((RobotAgent)agent).GetDistanceOfFront();
+            if (robot.HasCollided) return 0;
+            return cur;
+        }
+        public double compute_reward_radar(Agent agent)
+        {
+            RobotAgent robot = (RobotAgent)agent;
+
+            (double cur,double prev) = ((RobotAgent)agent).GetDistanceOfFront();
+            double d = cur - prev;
+            //if (cur == 1.0 && d == 0) d += 0.1;
+            if (robot.PrevCollided && !robot.HasCollided)
+                d += 0.1;
+            else if (!robot.PrevCollided && robot.HasCollided)
+                d += -10.0;
+            else if (robot.PrevCollided && robot.HasCollided)
+                d += -10.1;
+
+            return d;
         }
         /// <summary>
         /// 如果是
@@ -405,6 +450,13 @@ namespace NWSEExperiment.maze
         }
         public double compute_reward_optiomatraces(RobotAgent agent)
         {
+            if (agent.PrevCollided && !agent.HasCollided)
+                return 1.0;
+            else if (!agent.PrevCollided && agent.HasCollided)
+                return -50.0;
+            else if (agent.PrevCollided && agent.HasCollided)
+                return -50.0;
+
             //计算离Agent的前一个点最近的最优点
             int optima_index=-1,posindex=-1;
             double min = double.MaxValue ;

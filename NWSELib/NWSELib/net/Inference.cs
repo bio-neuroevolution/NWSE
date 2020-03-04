@@ -367,16 +367,8 @@ namespace NWSELib.net
                 this.records.Add(record);
             }
             record.acceptCount += 1;
-            
-
             base.activate(net, time, activeValue);
-
-            
             return activeValue;
-
-
-
-
         }
         
         /// <summary>

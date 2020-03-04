@@ -261,6 +261,7 @@ namespace NWSEExperiment.maze
         public double Heading { get => heading; set => heading = value; }
         public Point2D Location { get { return traces==null|| traces.Count<=0?null: traces[traces.Count-1]; } set { traces.Add(value);  } }
 
+        public double prevFrontDistance;
         public override bool Visible { get; set; }
         public Point2D OldLocation 
         { 
@@ -298,7 +299,6 @@ namespace NWSEExperiment.maze
 
         int RangefinderRange = 100;
         int PiesliceRange = 2000;
-        double AngularVelocity = 0;
 
         #endregion
 
@@ -385,6 +385,7 @@ namespace NWSEExperiment.maze
                 WallSensors.Add(new RangeFinder(startAngle, this, RangefinderRange, 0.0));
                 startAngle += delta;
             }
+            
 
             // Set up the single rear-facing rangefinder
             startAngle -= delta; // Set the StartAngle to facing due right
@@ -442,7 +443,7 @@ namespace NWSEExperiment.maze
             //temp.Y -= (float)AreaOfImpact.Position.Y;
 
             angle = (float)temp.angle();
-            angle -= Heading;
+            //angle -= Heading;
             angle *= 57.297f; // convert radians to degrees
 
             while (angle > 360)
@@ -450,7 +451,9 @@ namespace NWSEExperiment.maze
             while (angle < 0)
                 angle += 360;
 
-            foreach (Radar r in GoalSensors)
+            Radar r0 = (Radar)GoalSensors[0];
+            r0.Activation = angle / 360;
+            /*foreach (Radar r in GoalSensors)
             {
                 if ((angle < 45 || angle >= 315) && r.StartAngle == 315)
                 {
@@ -462,9 +465,9 @@ namespace NWSEExperiment.maze
                     r.Activation = angle / 360;
                     break;
                 }
-            }
+            }*/
 
-            
+
 
             // Update the compass/northstar GoalSensors
             // Note: This is trivial compared to rangefinder updates, which check against all walls for collision. No need to gate it to save CPU.
@@ -494,6 +497,7 @@ namespace NWSEExperiment.maze
             }
 
             // Update the rangefinders
+            prevFrontDistance = ((RangeFinder)WallSensors[2]).DistanceToClosestObject;
             foreach (RangeFinder r in WallSensors)
             {
                 r.update();
@@ -604,10 +608,20 @@ namespace NWSEExperiment.maze
 
         }*/
 
+        public (double cur,double prev) GetDistanceOfFront()
+        {
+            double cur = ((RangeFinder)WallSensors[2]).DistanceToClosestObject;
+            cur /= RangefinderRange;
+
+            double prev = prevFrontDistance / RangefinderRange;
+            return (cur,prev);
+        }
+
         public override List<double> getObserve()
         {
 
-            double[] obs = new double[this.WallSensors.Count + this.GoalSensors.Count];
+            //double[] obs = new double[this.WallSensors.Count + this.GoalSensors.Count];
+            double[] obs = new double[this.WallSensors.Count];
             // Update wall sensor inputs
             for (int j = 0; j < WallSensors.Count; j++)
             {
@@ -616,11 +630,15 @@ namespace NWSEExperiment.maze
             }
 
             // Update pie slice sensor inputs
-            for (int j = WallSensors.Count; j < WallSensors.Count + GoalSensors.Count; j++)
+            /*obs[WallSensors.Count] = (float)((Radar)GoalSensors[0]).getActivation();
+            if (obs[WallSensors.Count] > 1.0) obs[WallSensors.Count] = 1.0f;
+            obs[WallSensors.Count + 1] = this.Location.distance(this.maze.goal_point)/this.maze.maxGoalDistance;*/
+
+            /*for (int j = WallSensors.Count; j < WallSensors.Count + GoalSensors.Count; j++)
             {
                 obs[j] = (float)((Radar)GoalSensors[j - WallSensors.Count]).getActivation();
                 if (obs[j] > 1.0) obs[j] = 1.0f;
-            }
+            }*/
 
             return obs.ToList();
         }
@@ -745,8 +763,23 @@ namespace NWSEExperiment.maze
         Brush eva_brush = new SolidBrush(Color.Black);
         public void drawEvaulation(Graphics g, CoordinateFrame frame)
         {
-            if (this.net.lastActionPlan == null) return;
-            List<(List<double>,double,List<Vector>)> records = this.net.lastActionPlan.actionEvaulationRecords;
+            if (this.net.actionPlanChain.Length == 0) return;
+            if (this.net.policyName == "policy" && this.net.actionPlanChain.Length > 1) return;
+
+            List<(List<double>, double)> records = null;
+            String fmt = "";
+            if (this.net.policyName == "policy")
+            {
+                records = this.net.actionPlanChain.Root.actionEvaulationRecords;
+                fmt = "F0";
+            } 
+            else
+            {
+                records = this.net.actionPlanChain.Last.actionEvaulationRecords;
+                fmt = "F3";
+            }
+             
+
             if (records == null || records.Count <= 0) return;
             //records = records.FindAll(r => !double.IsNaN(r.Item2));
             //if (records == null || records.Count <= 0) return;
@@ -759,7 +792,7 @@ namespace NWSEExperiment.maze
             
             for(int i=0;i< records.Count;i++)
             {
-                (List<double>, double,List<Vector>) r = records[i];
+                (List<double>, double) r = records[i];
                 double action = r.Item1[0];
                 double futureHeading  = Heading + (action - 0.5) * Max_Rotate_Action * 2;
                 if (futureHeading < 0) futureHeading += 2 * Math.PI;
@@ -773,7 +806,7 @@ namespace NWSEExperiment.maze
                 Point2D l2 = frame.convertToDisplay(p2);
                 g.DrawLine(dash_pen, (float)l1.X, (float)l1.Y, (float)l2.X, (float)l2.Y);
                 //g.DrawLine(System.Drawing.Pens.Red, (float)l1.X, (float)l1.Y, (float)l2.X, (float)l2.Y);
-                g.DrawString(double.IsNaN(records[i].Item2)?"Nan":records[i].Item2.ToString("F2"), eva_font, eva_brush, (float)l2.X, (float)l2.Y);
+                g.DrawString(double.IsNaN(records[i].Item2)?"Nan":records[i].Item2.ToString(fmt), eva_font, eva_brush, (float)l2.X, (float)l2.Y);
             }
         }
         #endregion

@@ -341,6 +341,7 @@ namespace NWSELib
             net.Reset();
             double reward = 0.0;
             bool end = false;
+            this.triggerEvent(EVT_STEP, net, 0,obs,gesture,null,reward,end);
 
             //2 Run the network until the maximum number of iterations is reached or the end signal returns from the environment
             for (int time = 0; time <= Session.GetConfiguration().evaluation.run_count; time++)
@@ -349,6 +350,7 @@ namespace NWSELib
                 inputs.AddRange(gesture);
                 List<double> actions = net.activate(inputs, time, this, reward);
                 (obs, gesture, actions, reward, end) = env.action(net, actions);
+                this.triggerEvent(EVT_STEP, net, 0, obs, gesture, actions,reward,end);
                 if (end) break;
                 judgePaused();
             }

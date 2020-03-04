@@ -98,6 +98,12 @@
     <Content Include="QDMaze.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="QDMaze_LD.xml" />
+    <Content Include="QDMaze_LU.xml" />
+    <Content Include="QDMaze_LV.xml" />
+    <Content Include="QDMaze_RD.xml" />
+    <Content Include="QDMaze_RU.xml" />
+    <Content Include="QDMaze_RV.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
