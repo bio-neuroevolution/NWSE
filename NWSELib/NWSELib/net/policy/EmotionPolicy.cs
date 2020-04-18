@@ -23,43 +23,76 @@ namespace NWSELib.net.policy
         /// 期望方向
         /// </summary>
         private Vector expectDirection;
+        /// <summary>
+        /// 最优动作维持次数
+        /// </summary>
+        private int optimaMaintainCount;
         
 
         public EmotionPolicy(Network net) : base(net) { }
 
-        public override ActionPlan execute(int time, Session session)
+        public override ActionPlan Execute(int time, Session session)
         {
             //1.1 处理reward
             processReward(time);
 
-            //1.2 仍在随机动作阶段
-            if (time < 100)
-            {
-                return net.actionPlanChain.PutNext(ActionPlan.CreateRandomPlan(net, time, "随机漫游"));
-            }
-            //1.3 初始化值差异方向感
-            List<double> actions = null;
+            //取得当前姿态和最优姿态
             Vector curGesture = net.GetReceptorGesture(null);
             Vector optimaGesture = Session.handleGetOptimaGesture(net, time);
+            policyState = new PolicyState();
+            policyState.curGesture = curGesture.clone();
+            policyState.optimaGesture = optimaGesture.clone();
+
+            //1.2 仍在随机动作阶段
+            if (time < Session.GetConfiguration().learning.development.step)
+            {
+                ActionPlan actionPlan = ActionPlan.CreateRandomPlan(net, time, "random walk");
+                policyState.policeText = actionPlan.judgeType;
+                policyState.action = actionPlan.actions[0];
+                return net.actionPlanChain.PutNext(actionPlan);
+            }
+
+            //1.3 初始化值差异方向感
+            List<double> actions = null;
+            Dictionary<Vector, Vector> actionToGesture = null;
             if (expectGesture == null)
             {
                 expectGesture = optimaGesture.clone();
-                actions = net.doInference(expectGesture);
-                return net.actionPlanChain.Reset(ActionPlan.CreateActionPlan(net, actions, time, ActionPlan.JUDGE_INFERENCE, "最优姿态"));
+                actions = net.doInference(time,expectGesture,out actionToGesture);
+                policyState.objectiveGesture = expectGesture.clone();
+                policyState.action = actions[0];
+                policyState.policeText = "optima posture";
+                return net.actionPlanChain.Reset(ActionPlan.CreateActionPlan(net, actions, time, ActionPlan.JUDGE_INFERENCE, "optima posture"));
             }
 
             //1.4计算当前环境状态下的评估
-            double envEvaluation = doEvaluateEnviornment();
+            double envEvaluation = doEvaluateEnviornment(time, policyState);
 
             //1.5当前姿态是最优姿态，且当前环境状态为正评估，执行维持动作，结束
             if (net.IsGestureInTolerateDistance(curGesture, optimaGesture) && envEvaluation >= 0)
             {
-                return net.actionPlanChain.PutNext(ActionPlan.createMaintainPlan(net, time, "最优姿态维持", envEvaluation, 0));
+                optimaMaintainCount += 1;
+                ActionPlan plan = ActionPlan.createMaintainPlan(net, time, "maintain optimal posture", envEvaluation, 0);
+                policyState.action = plan.actions[0];
+                policyState.policeText = plan.judgeType;
+                return net.actionPlanChain.PutNext(plan);
+
+            }
+            if(optimaMaintainCount > 0)
+            {
+                optimaMaintainCount = 0;
+                if(envEvaluation>=0)
+                {
+                    actions = net.doInference(time, optimaGesture,out actionToGesture);
+                    policyState.action = actions[0];
+                    policyState.policeText = "adjust optimal posture";
+                    return net.actionPlanChain.Reset(ActionPlan.CreateActionPlan(net, actions, time, ActionPlan.JUDGE_INFERENCE, "adjust optimal posture"));
+                }
             }
 
             //1.6 计算偏离方向（如果与最优姿态出现偏离，计算偏离的方向）
             //对应距离来说，方向是指偏大偏小，对于角度来说，方向是指顺时针逆时针
-            if(expectDirection == null)
+            if (expectDirection == null)
             {
                 List<Receptor> gestureReceptors = net.GesturesReceptors;
                 List<MeasureTools> measureTools = net.GestureMeasureTools;
@@ -73,7 +106,6 @@ namespace NWSELib.net.policy
                 }
             }
 
-
             //1.6 当前环境是正评估或未知评估
             int K = 1;
             Vector objectiveGesture = null;
@@ -83,24 +115,43 @@ namespace NWSELib.net.policy
                 //1.6.1维持小于K步，执行维持动作
                 if (maintainSteps <= K)
                 {
-                    return net.actionPlanChain.PutNext(ActionPlan.createMaintainPlan(net, time, "正评估姿态维持", envEvaluation, 0));
+                    ActionPlan plan = ActionPlan.createMaintainPlan(net, time, "positive evaluation and maintenance ", envEvaluation, 0);
+                    policyState.action = plan.actions[0];
+                    policyState.policeText = plan.judgeType;
+                    return net.actionPlanChain.PutNext(plan);
                 }
                 //1.6.2 当前环境是正评估,目标姿态为当前姿态向期望方向靠近
                 else
                 {
-                    objectiveGesture = moveGesture(curGesture, optimaGesture, expectDirection, 1);
-                    actions = net.doInference(objectiveGesture);
-                    actions = checkMaxActions(actions);
-                    actions = checkMove(actions, curGesture, objectiveGesture);
-                    return net.actionPlanChain.Reset(ActionPlan.CreateActionPlan(net, actions, time, ActionPlan.JUDGE_INFERENCE, "正评估后期望提升"));
+                    Vector tempCurGesture = curGesture;
+                    while (true)
+                    {
+                        objectiveGesture = moveGesture(tempCurGesture, optimaGesture, expectDirection, 1);
+                        actions = net.doInference(time, objectiveGesture, out actionToGesture);
+                        actions = checkMaxActions(actions);
+                        actions = checkMove(actions, curGesture, objectiveGesture);
+                        policyState.setGestureAction(envEvaluation, curGesture, objectiveGesture, actions[0], actionToGesture);
+                        policyState.policeText = "Expectation improvement after positive evaluation";
+                        return net.actionPlanChain.Reset(ActionPlan.CreateActionPlan(net, actions, time, ActionPlan.JUDGE_INFERENCE, "Expectation improvement after positive evaluation"));
+                    }
                 }
             }
             //1.7 当前奖励是负，切换期望姿态
             objectiveGesture = moveGesture(curGesture, optimaGesture, expectDirection, -1);
-            actions = net.doInference(objectiveGesture);
+            actions = net.doInference(time,objectiveGesture,out actionToGesture);
             actions = checkMaxActions(actions);
-            actions = checkMove(actions, curGesture, objectiveGesture);
-            return net.actionPlanChain.Reset(ActionPlan.CreateActionPlan(net, actions, time, ActionPlan.JUDGE_INFERENCE, "负奖励后期望下降"));
+            if(actions[0] == 0.5)
+            {
+                if (expectDirection == 1) actions[0] -= 0.1;
+                else if (expectDirection == -1) actions[0] += 0.1;
+            }
+
+            policyState.setGestureAction(envEvaluation, curGesture, objectiveGesture, actions[0],actionToGesture);
+            policyState.setGestureAction(envEvaluation, curGesture, objectiveGesture, actions[0], actionToGesture);
+            policyState.policeText = "lower expectations after negative evaluation";
+
+            //actions = checkMove(actions, curGesture, objectiveGesture);
+            return net.actionPlanChain.Reset(ActionPlan.CreateActionPlan(net, actions, time, ActionPlan.JUDGE_INFERENCE, "lower expectations after negative evaluation"));
         }
 
         private Vector moveGesture(Vector curGesture, Vector optimaGesture, Vector expectDirection, int closeOrAway)
@@ -126,80 +177,7 @@ namespace NWSELib.net.policy
             }
             return result;
         }
-        /// <summary>
-        /// </summary>
-        /// <param name="time"></param>
-        /// <param name="session"></param>
-        /// <returns></returns>
-        /*public override ActionPlan execute(int time, Session session)
-        {
-            //1.1 处理reward
-            processReward(time);
-
-            //1.2 仍在随机动作阶段
-            if (time < 100)
-            {
-                return net.actionPlanChain.PutNext(ActionPlan.CreateRandomPlan(net, time, "随机漫游"));
-            }
-            //1.3 设置期望姿态
-            List<double> actions = null;
-            Vector optimaGesture = Session.handleGetOptimaGesture(net,time);
-            if (expectGesture == null)
-            {
-                expectGesture = optimaGesture.clone();
-                actions = net.doInference(expectGesture);
-                return net.actionPlanChain.Reset(ActionPlan.CreateActionPlan(net,actions,time,ActionPlan.JUDGE_INFERENCE,"最优姿态"));
-            }
-
-            //1.4计算当前环境状态下的评估
-            double envEvaluation = doEvaluateEnviornment();
-
-            //1.5当前姿态是最优姿态，且当前环境状态为正评估，执行维持动作，结束
-            Vector curGesture = net.GetReceptorGesture(null);
-            if (net.IsGestureInTolerateDistance(curGesture, optimaGesture) && envEvaluation >= 0)
-            {
-                return net.actionPlanChain.PutNext(ActionPlan.createMaintainPlan(net,time,"最优姿态维持",envEvaluation,0));
-            }
-
-            
-            //1.6 当前环境是正评估或未知评估
-            int K = 1;
-            Vector objectiveGesture = null;
-            Vector nextexpectGesture = null;
-            int maintainSteps = net.actionPlanChain.Length;
-            if (envEvaluation >= 0)
-            {
-                //1.6.1维持小于K步，执行维持动作
-                if (maintainSteps <= K)
-                {
-                    return net.actionPlanChain.PutNext(ActionPlan.createMaintainPlan(net, time, "正评估姿态维持", envEvaluation, 0));
-                }
-                //1.6.2 当前环境是正评估，且维持大于等于K步，推理产生从当前状态到期望姿态的动作，修改期望姿态使之更靠近最优姿态（当前姿态和最优姿态之间）
-                else
-                {
-                    (objectiveGesture, nextexpectGesture) = switchObjectiveGesture(optimaGesture, expectGesture, curGesture, 1);
-                    expectGesture = nextexpectGesture;
-                    actions = net.doInference(objectiveGesture);
-                    actions = checkMaxActions(actions);
-                    if (actions == null)
-                    {
-                        return net.actionPlanChain.PutNext(ActionPlan.createMaintainPlan(net, time, "正评估且期望姿态不可达", envEvaluation, 0));
-                    }
-                    else
-                    {
-                        return net.actionPlanChain.Reset(ActionPlan.CreateActionPlan(net, actions, time, ActionPlan.JUDGE_INFERENCE, "正评估后期望提升"));
-                    }
-                }
-            }
-            //1.7 当前奖励是负，切换期望姿态
-            (objectiveGesture, nextexpectGesture) = switchObjectiveGesture(optimaGesture, expectGesture, curGesture, -1);
-            expectGesture = nextexpectGesture;
-            actions = net.doInference(objectiveGesture);
-            actions = checkMaxActions(actions);
-            return net.actionPlanChain.Reset(ActionPlan.CreateActionPlan(net, actions, time, ActionPlan.JUDGE_INFERENCE, "负奖励后期望下降"));
-
-
-        }*/
+        
         private List<double> checkMaxActions(List<double> actions)
         {
             for(int i=0;i<actions.Count;i++)
@@ -211,7 +189,7 @@ namespace NWSELib.net.policy
         private List<double> checkMove(List<double> actions,Vector curGesture,Vector objecttiveGesture)
         {
             List<MeasureTools> gestureMesureTools = net.GestureMeasureTools;   
-            if (Vector.equals(curGesture, objecttiveGesture))
+            if (!Vector.equals(curGesture, objecttiveGesture))
             {
                 for(int i=0;i<actions.Count;i++)
                 {
@@ -283,7 +261,7 @@ namespace NWSELib.net.policy
 
         private void processReward(int time)
         {
-            if (net.reward == 0) return;
+            if (net.reward >= 0) return;
             var s = net.GetReceoptorSplit();
             this.scene.Put(s.env, s.gesture, net.reward);
 
@@ -304,39 +282,25 @@ namespace NWSELib.net.policy
         /// 
         /// </summary>
         /// <returns></returns>
-        private double doEvaluateEnviornment(Vector env=null)
+        private double doEvaluateEnviornment(int time, PolicyState policyState)
         {
-            //取得当前环境
-            if (env == null)
-            {
-                var obs = net.GetReceoptorSplit();
-                env = obs.env;
-            }
+            var obs = net.GetReceoptorSplit();
+            Vector env = obs.env;
+            
+
             //在记忆库中查找当前环境
-            SceneItem sceneItem = this.scene.Get(env);
-            if (sceneItem != null) return sceneItem.evaluation;
-
-            //记录库中不存在的话，尝试推理在当前环境下执行维持动作会不会在记忆库中找到
-            List<Vector> observation = net.GetReceoptorValues();
-            observation = net.ReplaceMaintainAction(observation);
-            for(int i=0;i<3;i++)
+            SceneItem sceneItem = this.scene.GetMatched(env);
+            if (sceneItem != null)
             {
-                List<Vector> newObs = net.forward_inference(observation);
-                Vector newEnv = net.GetReceptorEnv(newObs.flatten().Item1);
-                sceneItem = this.scene.Get(env);
-                if (sceneItem != null) return sceneItem.evaluation;
-                observation = newObs;
+                policyState.AddEnviormentEvaluation(0, env, sceneItem.evaluation);
+                return sceneItem.evaluation;
             }
 
-            //如果找不到，则尝试在记忆库中找一个相似的作为替代
-            List<double> dis = this.scene.items.ConvertAll(item => item.env.manhantan_distance(env));
-            int minindex = dis.argmin();
-            double mindis = dis[minindex];
-            if (mindis < 0.1 * env.Size)
-                return this.scene.items[minindex].evaluation;
-
-            //如果还没有找到，说明这是一种新环境，以前没有出现过
+            double forcastReward = net.DoForcastReward(time, obs.gesture, env,3,0);
+            policyState.AddEnviormentEvaluation(0, env, forcastReward);
             return 0;
+
+            
         }
 
         
@@ -348,6 +312,16 @@ namespace NWSELib.net.policy
         public SceneItem Get(Vector env)
         {
             return items.FirstOrDefault(item => Vector.equals(env, item.env));
+        }
+        public SceneItem GetMatched(Vector env)
+        {
+            List<double> dis =items.ConvertAll(item => item.env.manhantan_distance(env));
+            if (dis == null || dis.Count <= 0) return null;
+            int minindex = dis.argmin();
+            double mindis = dis[minindex];
+            if (mindis < 0.05 * env.Size)
+                return items[minindex];
+            return null;
         }
         public void Put(Vector env, Vector gesture, double evaluation) 
         {
@@ -373,6 +347,11 @@ namespace NWSELib.net.policy
             this.env = env.clone();
             this.gesture = gesture.clone();
             this.evaluation = evaluation;
+        }
+
+        public override string ToString()
+        {
+            return Utility.toString(env) + "->" + evaluation.ToString("F4");
         }
     }
 }

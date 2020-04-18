@@ -50,8 +50,10 @@ namespace NWSELib
                 distribution = new double[handlers.Count];
                 for (int i = 0; i < distribution.Length; i++) distribution[i] = 1.0 / handlers.Count;
             }
-            int index = new Random().Next(0, handlers.Count);
-            return handlers[index];
+            Microsoft.ML.Probabilistic.Distributions.Discrete discrete = new Microsoft.ML.Probabilistic.Distributions.Discrete(distribution);
+            int x = discrete.Sample();
+            return handlers[x];
+
         }
 
         
@@ -295,11 +297,17 @@ namespace NWSELib
 
         public class Learning
         {
-            
+            [XmlElement]
+            public LearningDevelopment development = new LearningDevelopment();
             [XmlElement]
             public LearningInfernece inference = new LearningInfernece();
             [XmlElement]
             public LearningImagination imagination = new LearningImagination();
+        }
+        public class LearningDevelopment
+        {
+            [XmlAttribute]
+            public int step;
         }
         public class LearningInfernece
         {
@@ -420,7 +428,7 @@ namespace NWSELib
             {
                 get
                 {
-                    return Utility.parse<double>(handlerprob);
+                    return Utility.parse(handlerprob);
                 }
             }
         }

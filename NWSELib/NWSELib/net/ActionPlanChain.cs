@@ -99,10 +99,10 @@ namespace NWSELib.net
     public class ActionPlan
     {
         #region 基本信息
-        public const String JUDGE_RANDOM = "随机行动";
-        public const String JUDGE_INSTINCT = "本能行动";
-        public const String JUDGE_INFERENCE = "推理行动";
-        public const String JUDGE_MAINTAIN = "维持行动";
+        public const String JUDGE_RANDOM = "random action";
+        public const String JUDGE_INSTINCT = "instinct action";
+        public const String JUDGE_INFERENCE = "inference action";
+        public const String JUDGE_MAINTAIN = "amintain action";
 
         private static List<double> maintainAction = new double[] { 0.5 }.ToList();
         public static List<double> MaintainAction { get => maintainAction; }
@@ -233,15 +233,7 @@ namespace NWSELib.net
             plan.judgeType = ActionPlan.JUDGE_RANDOM;
             plan.reason = reason;
 
-            plan.expect = expect;
-            plan.planSteps = planSteps > 0 ? planSteps : Session.GetConfiguration().evaluation.policy.init_plan_depth;
-
-
-            List<Vector> envValues = net.GetReceptorSceneValues();
-            List<InferenceRecord> records = net.GetMatchInfRecords(envValues, plan.actions, time);
-            if (records != null && records.Count > 0)
-                plan.inferenceRecords = records.ConvertAll(r => (r, 0.0));
-
+            
 
 
             return plan;
@@ -331,14 +323,14 @@ namespace NWSELib.net
             Dictionary<String, StringBuilder> d = new Dictionary<string, StringBuilder>();
             foreach(var r in this.inferenceRecords)
             {
-                String infstr = r.Item1.inf.summary();
+                String infstr = r.Item1.inf.Summary();
                 
                 if (!d.ContainsKey(infstr))
                 {
                     d.Add(infstr,new StringBuilder());
                 }
                 StringBuilder rstr = d[infstr];
-                rstr.Append(r.Item1.summary()+ System.Environment.NewLine);
+                rstr.Append(r.Item1.Summary()+ System.Environment.NewLine);
             }
 
             StringBuilder str = new StringBuilder();
@@ -358,7 +350,7 @@ namespace NWSELib.net
             {
                 if (receptors[i].getGene().IsActionSensor()) continue;
                 if (str.ToString() != "") str.Append(",");
-                str.Append(receptors[i].getValueText(this.observation[i]));
+                str.Append(receptors[i].GetValueText(this.observation[i]));
             }
             return str.ToString();
         }
@@ -370,7 +362,7 @@ namespace NWSELib.net
             for (int i = 0; i < receptors.Count; i++)
             {
                 if (str.ToString() != "") str.Append(",");
-                str.Append(receptors[i].getValueText(this.actions[i]));
+                str.Append(receptors[i].GetValueText(this.actions[i]));
             }
             return str.ToString();
         }

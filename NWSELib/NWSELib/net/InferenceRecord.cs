@@ -43,10 +43,12 @@ namespace NWSELib.net
         /// 创建缺省协方差矩阵
         /// </summary>
         /// <returns></returns>
-        public double[,] createDefaultCoVariance()
+        public double[,] createDefaultCovariance(double coeff = 0.1)
         {
             if (this.means == null) return null;
             this.covariance = new double[this.means.size(), this.means.size()];
+            for (int i = 0; i < this.means.size(); i++)
+                this.covariance[i, i] = coeff;
             return this.covariance;
         }
         /// <summary>
@@ -74,7 +76,7 @@ namespace NWSELib.net
 
         #region 统计数据
         /// <summary>
-        /// 接收数量
+        /// 接收数量:多少个样本归属该记录
         /// </summary>
         public int acceptCount;
         /// <summary>
@@ -82,13 +84,18 @@ namespace NWSELib.net
         /// </summary>
         public double evulation = double.NaN;
         /// <summary>
-        /// 使用次数
+        /// 使用次数，推理过程使用的次数
         /// </summary>
         public int usedCount;
         /// <summary>
         /// 表示该前置条件和后置变量映射关系的准确程度
         /// </summary>
         public double accuracy = double.NaN;
+
+        /// <summary>
+        /// 上层抽象记录
+        /// </summary>
+        public InferenceRecord parent;
         /// <summary>
         /// 抽象之前的记录
         /// </summary>
@@ -104,7 +111,7 @@ namespace NWSELib.net
         /// <param name="xh"></param>
         /// <param name="prefix"></param>
         /// <returns></returns>
-        public string toString(Inference inf, int xh, String prefix = "   ")
+        public string ToString(Inference inf, int xh, String prefix = "   ")
         {
             StringBuilder str = new StringBuilder();
 
@@ -118,7 +125,7 @@ namespace NWSELib.net
         private String meanToString(Inference inf)
         {
             (Vector flattenedValue, List<int> sizes) = this.means.flatten();
-            return inf.getValueText(flattenedValue);
+            return inf.GetValueText(flattenedValue);
         }
 
         public override string ToString()
@@ -126,7 +133,7 @@ namespace NWSELib.net
             return this.means.toString();
         }
 
-        public String summary()
+        public String Summary()
         {
             return this.means.toString() + ",e=" + evulation.ToString("F4")+",accept="+acceptCount.ToString();
         }
@@ -134,31 +141,18 @@ namespace NWSELib.net
         #endregion
 
         #region 均值处理
-        public Vector getActionValueInCondition()
-        {
-            List<Vector> vs = new List<Vector>();
-            List<int> actionIds = this.inf.getGene().getActionSensorsConditions();
-            List<int> condIds = this.inf.getGene().getConditionIds();
-            for(int i=0;i<condIds.Count;i++)
-            {
-                if(actionIds.Contains(condIds[i]))
-                {
-                    vs.Add(this.means[i]);
-                }
-            }
-            return vs.flatten().Item1;
-        }
+        
         /// <summary>
         /// 分解均值为条件和结论部分
         /// </summary>
         /// <returns></returns>
-        public (List<Vector> condValues, List<Vector> varValues) getMeanValues()
+        public (List<Vector> condValues, List<Vector> varValues) GetMeanValues()
         {
             List<Vector> condValues = new List<Vector>();
             List<Vector> varValues = new List<Vector>();
 
-            int condcount = this.inf.getGene().ConditionCount;
-            int varcount = this.inf.getGene().VariableCount;
+            int condcount = this.inf.GetGene().ConditionCount;
+            int varcount = this.inf.GetGene().VariableCount;
             condValues.AddRange(this.means.GetRange(0, condcount));
             varValues.AddRange(this.means.GetRange(condcount,varcount));
             return (condValues, varValues);
@@ -179,16 +173,13 @@ namespace NWSELib.net
             List<Vector> expects = new List<Vector>();
 
             //动作比较特殊，每个动作都要设置结构，尽管该节点可能不涉及
-            int actioncount = inf.net.Effectors.Count;
-            for (int i = 0; i < actioncount; i++)
-                actions.Add(new Vector(0.5));//0.5表示啥都不做
+            actions = inf.net.CreateDefaultActions();
 
             //分解条件部分
-           
-            List<(int, int)> conditions = inf.getGene().conditions;
+            List<int> conditions = inf.GetGene().conditions;
             for (int i = 0; i < conditions.Count; i++)
             {
-                Node node = inf.net.getNode(conditions[i].Item1);
+                Node node = inf.net[conditions[i]];
                 if (node.Gene.IsActionSensor())
                 {
                     Effector effector = (Effector)inf.net.Effectors.FirstOrDefault(e => "_" + e.Name == node.Name);
@@ -201,37 +192,13 @@ namespace NWSELib.net
                 }
             }
 
-            int condCount = inf.getGene().ConditionCount;
-            int varCount = inf.getGene().VariableCount;
+            int condCount = inf.GetGene().ConditionCount;
+            int varCount = inf.GetGene().VariableCount;
             return (env, actions, this.means.GetRange(condCount, varCount));
         }
 
-        // <summary>
-        /// 将记录值分解为环境、后置变量部分
-        /// </summary>
-        /// <param name="net"></param>
-        /// <param name="record"></param>
-        /// <returns></returns>
-        public (List<Vector>, List<Vector>) splitRecordMeans2()
-        {
-            return this.getMeanValues();
-        }
-        /// <summary>
-        /// 取得条件中的一部分
-        /// </summary>
-        /// <param name="condIds"></param>
-        /// <returns></returns>
-        public List<Vector> getConditionValueByIds(List<int> condIds)
-        {
-            List<Vector> r = new List<Vector>();
-            List<(int, int)> conditions = this.inf.getGene().conditions;
-            for(int i=0;i<conditions.Count;i++)
-            {
-                if (condIds.Contains(conditions[i].Item1))
-                    r.Add(this.means[i]);
-            }
-            return r;
-        }
+        
+        
         #endregion
 
         #region  统计学习功能
@@ -240,9 +207,9 @@ namespace NWSELib.net
         /// </summary>
         /// <param name="count"></param>
         /// <returns></returns>
-        public List<List<Vector>> sample(int count)
+        public List<List<Vector>> DoSamples(int count)
         {
-            this.initGaussian();
+            this.InitGaussian();
             try
             {
                 List<int> dimension = means.ConvertAll(v => v.Size);
@@ -258,16 +225,41 @@ namespace NWSELib.net
                 for (int i = 0; i < this.covariance.GetLength(0); i++)
                     this.covariance[i, i] += 0.001;
                 this.gaussian = null;
-                this.initGaussian();
-                return sample(count);
+                this.InitGaussian();
+                return DoSamples(count);
             }
+        }
+
+        protected void checkGaussian()
+        {
+            if (gaussian == null) return;
+
+            for (int i = 0; i < covariance.GetLength(0); i++)
+            {
+                for (int j = 0; j < covariance.GetLength(1); j++)
+                {
+                    if (double.IsNaN(covariance[i, j]))
+                    {
+                        if (i == j) covariance[i, j] = 1.0;
+                        else covariance[i, j] = 0.0;
+                    }
+                }
+            }
+
+            if (gaussian.GetMean().ToList().Exists(v => double.IsNaN(v)))
+                return;
+
+            
+
         }
         /// <summary>
         /// 根据均值和协方差数据生成高斯对象
         /// </summary>
-        public void initGaussian()
+        public void InitGaussian()
         {
-            if (gaussian != null) return;
+            if (gaussian != null)
+                return;
+
             Microsoft.ML.Probabilistic.Math.Vector mean = null;
             Microsoft.ML.Probabilistic.Math.PositiveDefiniteMatrix covar = null;
             try
@@ -275,13 +267,15 @@ namespace NWSELib.net
                 mean = this.means.toMathVector();
                 covar = new Microsoft.ML.Probabilistic.Math.PositiveDefiniteMatrix(covariance);
                 gaussian = VectorGaussian.FromMeanAndVariance(mean, covar);
+
+                checkGaussian();
             }
             catch (Exception e)
             {
                 //这里异常的主要原因是得到的协方差矩阵不是正定矩阵。
                 //This happens if the diagonal values of the covariance matrix are (very close to) zero. 
                 //A simple fix is add a very small constant number to c.
-                logger.Error(e.Message);
+                //logger.Error(e.Message);
                 for (int i = 0; i < covariance.GetLength(0); i++)
                 {
                     for (int j = 0; j < covariance.GetLength(1); j++)
@@ -293,7 +287,10 @@ namespace NWSELib.net
                 }
                 covar = new Microsoft.ML.Probabilistic.Math.PositiveDefiniteMatrix(covariance);
                 gaussian = VectorGaussian.FromMeanAndVariance(mean, covar);
+                checkGaussian();
             }
+
+            
         }
 
         /// <summary>
@@ -301,55 +298,30 @@ namespace NWSELib.net
         /// </summary>
         /// <param name="values"></param>
         /// <returns></returns>
-        internal double prob(List<Vector> values)
+        public double Prob(List<Vector> values)
         {
-            this.initGaussian();
+            this.InitGaussian();
             Microsoft.ML.Probabilistic.Math.Vector v = values.toMathVector();
             return Math.Exp(gaussian.GetLogProb(v));
         }
-        /// <summary>
-        /// 给定值距均值的马氏距离
-        /// </summary>
-        /// <param name="values"></param>
-        /// <returns></returns>
-        public double mahalanobis_distance(List<Vector> values)
-        {
-            Microsoft.ML.Probabilistic.Math.Vector value = values.toMathVector();
-
-            Microsoft.ML.Probabilistic.Math.Matrix m = new Microsoft.ML.Probabilistic.Math.Matrix(value.Count, 1);
-            m.SetTo(value.ToArray());
-
-            return Math.Sqrt((m.Transpose() * this.gaussian.GetVariance().Inverse() * m)[0, 0]);
-        }
+        
         /// <summary>
         /// 前向推理
-        /// 单个高斯的前向推理有两种方案：
-        /// 1.只要条件满足，返回均值
-        /// 2.只要条件满足，返回高斯采样中和条件最近的
-        /// 目前实现的只是第1种
-        /// </summary>
-        /// <param name="inf"></param>
-        /// <param name="allCondValues"></param>
-        /// <returns></returns>
-        public List<Vector> forward_inference(Inference inf, List<Vector> allCondValues)
-        {
-            return this.getMeanValues().varValues;
-        }
+        
         #endregion
 
         #region 自适应学习
+        public const double variance = 0.1;
         /// <summary>
         /// 对推理记录的均值和协方差矩阵进行调整
         /// Adjust the mean and covariance matrix of the record of inference node
         /// </summary>
         /// <param name="net"></param>
         /// <param name="inf"></param>
-        internal void do_adjust(Network net)
+        public void DoAdjust(Network net)
         {
-            List<int> dimensions = inf.getGene().Dimensions;
-            int totaldimension = dimensions.Sum();
             List<List<Vector>> values = new List<List<Vector>>();
-            for (int i = 0; i < Session.GetConfiguration().learning.inference.accept_max_count; i++)
+            for (int i = 0; i < this.acceptCount; i++)
                 values.Add(this.means);
             for (int i = 0; i < this.acceptRecords.Count; i++)
                 values.Add(this.acceptRecords[i]);
@@ -358,57 +330,33 @@ namespace NWSELib.net
             this.covariance = Vector.covariance(flatten.ToArray());
 
             this.gaussian = null;
-            this.initGaussian();
+            this.InitGaussian();
+            this.acceptCount += this.acceptRecords.Count;
             this.acceptRecords.Clear();
 
         }
 
-        /// <summary>
-        /// 根据前后观察验证该记录的准确度
-        /// 以time为后置变量获得时间，若前置条件匹配，则检查后置变量是否与实际匹配
-        /// </summary>
-        /// <param name="net"></param>
-        /// <returns></returns>
-        public double adjustAccuracy(int time)
-        {
-            //取得inf的真实条件值和后置变量值
-            (List<Vector> realCondValues, List<Vector> realVarValues) = inf.getValues2(time);
-            //判断条件部分是否匹配
-            List<double> dc = null;
-            bool match = this.isConditionValueMatch(realCondValues, out dc);
-            if (!match) return this.accuracy;
-
-            List<double> dvs = this.ditanceFromVariable(realVarValues);
-
-            int n1 = realCondValues.size(), n2 = realVarValues.size();
-            //this.accuracy = 1 - (n1 * dc + dvs.Sum()) / (n1 + n2);
-            this.accuracy = 1 - dvs.Average();
-
-            return this.accuracy;
-        }
+        
         #endregion
 
         #region 环境与推理的匹配性检查
-
-        
-        
-        public bool isConditionValueMatch(List<Vector> condValues, out List<double> distances)
+        public bool IsConditionMatch(List<Vector> condValues, out List<double> distances)
         {
-            distances = distanceFromCondition(condValues);
-            for (int i=0;i<inf.conditionReceptors.Count;i++)
+            distances = DistanceFromCondition(condValues);
+            for (int i=0;i<inf.ConditionNodes.Count;i++)
             {
-                if (!inf.conditionReceptors[i].IsTolerateDistance(distances[i]))
+                if (!inf.ConditionNodes[i].IsTolerateDistance(distances[i]))
                     return false;
             }
             return true;
         }
 
-        public bool isVariableMatch(List<Vector> varValues,out List<double> distances)
+        public bool IsVariableMatch(List<Vector> varValues,out List<double> distances)
         {
-            distances = ditanceFromVariable(varValues);
-            for (int i = 0; i < inf.variablesReceptors.Count; i++)
+            distances = DistanceFromVariable(varValues);
+            for (int i = 0; i < inf.VariableNodes.Count; i++)
             {
-                if (!inf.variablesReceptors[i].IsTolerateDistance(distances[i]))
+                if (!inf.VariableNodes[i].IsTolerateDistance(distances[i]))
                     return false;
             }
             return true;
@@ -416,22 +364,22 @@ namespace NWSELib.net
 
         
 
-        public List<double> distanceFromCondition(List<Vector> value)
+        public List<double> DistanceFromCondition(List<Vector> value)
         {
             Vector v1 = value.flatten().Item1;
             Vector v2 = this.means.flatten().Item1;
 
             List<double> distances = new List<double>();
-            for (int i = 0; i < this.inf.conditionReceptors.Count; i++)
+            for (int i = 0; i < this.inf._conditionNodes.Count; i++)
             {
-                double d = this.inf.conditionReceptors[i].distance(v1[i], v2[i]);
+                double d = this.inf.ConditionNodes[i].distance(v1[i], v2[i]);
                 distances.Add(d);
             }
 
             return distances;
         }
 
-        public List<double> distanceFromConditions(List<int> ids, List<Vector> values)
+        public List<double> DistanceFromConditions(List<int> ids, List<Vector> values)
         {
             Vector v1 = values.flatten().Item1;
             Vector v2 = this.splitMeans3().Item1.flatten().Item1;
@@ -446,15 +394,15 @@ namespace NWSELib.net
             return dis;
         }
 
-        public List<double> ditanceFromVariable(List<Vector> value)
+        public List<double> DistanceFromVariable(List<Vector> value)
         {
             Vector v1 = value.flatten().Item1;
-            Vector v2 = this.getMeanValues().varValues.flatten().Item1;
+            Vector v2 = this.GetMeanValues().varValues.flatten().Item1;
 
             List<double> distances = new List<double>();
-            for (int i = 0; i < this.inf.variablesReceptors.Count; i++)
+            for (int i = 0; i < this.inf.VariableNodes.Count; i++)
             {
-                double d = this.inf.variablesReceptors[i].distance(v1[i], v2[i]);
+                double d = this.inf.VariableNodes[i].distance(v1[i], v2[i]);
                 distances.Add(d);
             }
 
@@ -462,7 +410,7 @@ namespace NWSELib.net
         }
 
         
-        public List<double> distance(List<Vector> value)
+        public List<double> Distance(List<Vector> value)
         {
             Vector v1 = value.flatten().Item1;
             Vector v2 = this.means.flatten().Item1;
@@ -477,19 +425,7 @@ namespace NWSELib.net
         }
 
 
-        /// <summary>
-        /// 本记录的均值中条件部分与输入值的曼哈顿距离
-        /// </summary>
-        /// <param name="net"></param>
-        /// <param name="inf"></param>
-        /// <param name="condValues"></param>
-        /// <returns></returns>
-        public double getConditionValueDistance(Network net, Inference inf, List<Vector> condValues)
-        {
-            (List<Vector> meanCondValues, List<Vector> meanVarValues) = this.getMeanValues();
-
-            return Vector.max_manhantan_distance(condValues, meanCondValues);
-        }
+        
 
         
 

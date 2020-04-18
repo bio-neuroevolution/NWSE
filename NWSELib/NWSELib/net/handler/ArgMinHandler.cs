@@ -9,13 +9,15 @@ using NWSELib.common;
 
 namespace NWSELib.net.handler
 {
-    public class ArgMinHandler : Handler
+    public class ArgminHandler : Handler
     {
-        public ArgMinHandler(NodeGene gene, Network net) : base(gene, net)
+        public ArgminHandler(NodeGene gene, Network net) : base(gene, net)
         {
            
         }
-        public override Object activate(Network net, int time, Object value = null)
+
+        
+        public override Object Activate(Network net, int time, Object value = null)
         {
             List<Node> inputs = net.getInputNodes(this.Id);
             if (!inputs.All(n => n.IsActivate(time)))
@@ -24,8 +26,21 @@ namespace NWSELib.net.handler
             int index = lengths.argmin();
             int nodeid = inputs[index].Id;
 
-            base.activate(net, time, (double)index);
+            base.Activate(net, time, (double)index);
             return this.Value;
         }
+
+        public override void think(Network net, int time, Vector value)
+        {
+            List<Node> inputs = net.getInputNodes(this.Id);
+            if (!inputs.All(n => n.IsThinkCompleted(time)))
+                return;
+
+            List<double> lengths = inputs.ConvertAll(input => input.getThinkValues(time).length());
+            int index = lengths.argmin();
+            base.think(net, time, (double)inputs[index].Id);
+
+        }
+
     }
 }

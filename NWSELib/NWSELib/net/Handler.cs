@@ -37,7 +37,7 @@ namespace NWSELib.net
         /// </summary>
         /// <param name="value">为空，则取当前最新值</param>
         /// <returns></returns>
-        public override String getValueText(Vector value = null)
+        public override String GetValueText(Vector value = null)
         {
             if (value == null) value = Value;
             if (value == null) return "";

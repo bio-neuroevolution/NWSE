@@ -1085,4 +1085,30 @@
     <Height>788</Height>
   </AOIRectangle>
   <POIPosition />
+  <OptimaTraces>
+    <Polyline>
+      <Points>
+        <Point2D><X>475.43621826171875</X><Y>1013.3971557617188</Y></Point2D>
+        <Point2D><X>475</X><Y>733</Y></Point2D>
+        <Point2D><X>254</X><Y>733</Y></Point2D>
+        <Point2D><X>254</X><Y>838</Y></Point2D>
+        <Point2D><X>254</X><Y>948</Y></Point2D>
+        <Point2D><X>254</X><Y>1100</Y></Point2D>
+        <Point2D><X>372</X><Y>1100</Y></Point2D>
+        <Point2D><X>474.71585083007812</X><Y>1400.117431640625</Y></Point2D>
+      </Points>
+    </Polyline>
+    <Polyline>
+      <Points>
+        <Point2D><X>475.43621826171875</X><Y>1013.3971557617188</Y></Point2D>
+        <Point2D><X>475</X><Y>733</Y></Point2D>
+        <Point2D><X>683</X><Y>733</Y></Point2D>
+        <Point2D><X>683</X><Y>838</Y></Point2D>
+        <Point2D><X>683</X><Y>948</Y></Point2D>
+        <Point2D><X>683</X><Y>1100</Y></Point2D>
+        <Point2D><X>567</X><Y>1100</Y></Point2D>
+        <Point2D><X>474.71585083007812</X><Y>1400.117431640625</Y></Point2D>
+      </Points>
+    </Polyline>
+  </OptimaTraces>
 </HardMaze>

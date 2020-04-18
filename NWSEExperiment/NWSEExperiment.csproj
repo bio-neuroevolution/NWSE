@@ -57,6 +57,8 @@
     </Compile>
     <Compile Include="maze\EngineUtilities.cs" />
     <Compile Include="maze\HardMaze.cs" />
+    <Compile Include="maze\OptimaTraceFitness.cs" />
+    <Compile Include="maze\PerformanceEvaluation.cs" />
     <Compile Include="maze\RobotAgent.cs" />
     <Compile Include="maze\StandardCollisionChecker.cs" />
     <Compile Include="maze\Wall.cs" />
@@ -95,15 +97,34 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="QDMaze.xml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    <Content Include="QDMaze1.xml" />
+    <Content Include="QDMaze2.xml" />
+    <Content Include="QDMaze3.xml" />
+    <Content Include="QDMaze4.xml" />
+    <Content Include="QDMaze_U.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="QDMaze_LD.xml" />
-    <Content Include="QDMaze_LU.xml" />
-    <Content Include="QDMaze_LV.xml" />
-    <Content Include="QDMaze_RD.xml" />
-    <Content Include="QDMaze_RU.xml" />
-    <Content Include="QDMaze_RV.xml" />
+    <Content Include="QDMaze.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="QDMaze_LD.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="QDMaze_LU.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="QDMaze_LV.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="QDMaze_RD.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="QDMaze_RU.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="QDMaze_RV.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

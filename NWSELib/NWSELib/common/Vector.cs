@@ -136,7 +136,7 @@ namespace NWSELib.common
         }
         public static implicit operator List<double>(Vector v)
         {
-            return v.ToList();
+            return v==null?new List<double>():v.ToList();
         }
         public static implicit operator Vector(List<double> v)
         {
@@ -244,6 +244,19 @@ namespace NWSELib.common
         public static double[,] covariance(params Vector[] vs)
         {
             int size = VectorExtender.maxSize(vs);
+            double[,] result = new double[size, size];
+            if(vs.Length<=1)
+            {
+                for (int i = 0; i < size; i++)
+                {
+                    for (int j = 0; j < size; j++)
+                    {
+                        if (i == j) result[i, j] = 0.1;
+                        else result[i, j] = 0;
+                    }
+                }
+                return result;
+            }
             List<Vector> cv = new List<Vector>();
             List<double> avg = new List<double>();
 
@@ -256,7 +269,7 @@ namespace NWSELib.common
             int dim = avg.Count;
             int n = cv[0].Size;
             Vector r = new Vector(true, dim * (dim + 1) / 2);
-            double[,] result = new double[size, size];
+            
             for (int i = 0; i < size; i++)
             {
                 for (int j = 0; j < size; j++)

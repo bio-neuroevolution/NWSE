@@ -1,0 +1,20 @@
+12
+3
+ReceptorGene:d1;info:id=1,name=d1,desc=left,generation=1,cataory=distance,group=env.distance,validity=0;param:abstractLevel=0
+ReceptorGene:d2;info:id=2,name=d2,desc=left front,generation=1,cataory=distance,group=env.distance,validity=0;param:abstractLevel=0
+ReceptorGene:d3;info:id=3,name=d3,desc=front,generation=1,cataory=distance,group=env.distance,validity=0;param:abstractLevel=0
+ReceptorGene:d4;info:id=4,name=d4,desc=right front,generation=1,cataory=distance,group=env.distance,validity=0;param:abstractLevel=0
+ReceptorGene:d5;info:id=5,name=d5,desc=right,generation=1,cataory=distance,group=env.distance,validity=0;param:abstractLevel=0
+ReceptorGene:d6;info:id=6,name=d6,desc=rear,generation=1,cataory=distance,group=env.distance,validity=0;param:abstractLevel=0
+ReceptorGene:heading;info:id=7,name=heading,desc=heading,generation=1,cataory=heading,group=body.heading,validity=0;param:abstractLevel=0
+ReceptorGene:_a2;info:id=8,name=_a2,desc=action,generation=1,cataory=rotate,group=action,validity=0;param:abstractLevel=0
+HandlerGene:variation(d3);info:id=56,name=,desc=,generation=4,cataory=distance,group=env.distance,validity=0;function=variation;inputs=3;param=
+InferenceGene:_a2=>d3;dimensions:8=>3;info:id=11,name=,desc=,generation=1,cataory=,group=,validity=-1;param:
+InferenceGene:_a2=>d6;dimensions:8=>6;info:id=14,name=,desc=,generation=1,cataory=,group=,validity=-1;param:
+InferenceGene:d1=>d5;dimensions:1=>5;info:id=19,name=,desc=,generation=1,cataory=,group=,validity=-1;param:
+InferenceGene:_a2=>variation(d3);dimensions:8=>56;info:id=57,name=,desc=,generation=4,cataory=distance,group=,validity=-1;param:
+InferenceGene:heading=>heading;dimensions:7=>7;info:id=58,name=,desc=,generation=1,cataory=,group=,validity=-1;param:
+InferenceGene:d1,d4=>d1;dimensions:1,4=>1;info:id=59,name=,desc=,generation=1,cataory=,group=,validity=-1;param:
+InferenceGene:d6=>d2;dimensions:6=>2;info:id=60,name=,desc=,generation=1,cataory=,group=,validity=-1;param:
+InferenceGene:d1,variation(d3)=>d4;dimensions:1,56=>4;info:id=61,name=,desc=,generation=1,cataory=,group=,validity=-1;param:
+handlerSelectionProb=0.350,0.350,0.300,0.000,0.000,0.000,0.000,0.000,0.000,0.000

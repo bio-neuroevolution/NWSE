@@ -13,6 +13,7 @@ using NWSELib.evolution;
 using NWSELib.genome;
 using NWSELib.net;
 using NWSELib.env;
+using NWSELib.net.policy;
 
 namespace NWSELib
 {
@@ -49,6 +50,14 @@ namespace NWSELib
     public delegate double FitnessHandler(Network net, Session session);
 
     /// <summary>
+    /// 任务启动句柄
+    /// </summary>
+    /// <param name="net"></param>
+    /// <param name="session"></param>
+    /// <returns></returns>
+    public delegate List<double> TaskBeginHandler(Network net, Session session);
+
+    /// <summary>
     /// 推理准确度计算句柄
     /// </summary>
     /// <param name="net"></param>
@@ -58,6 +67,9 @@ namespace NWSELib
     /// <param name="result"></param>
     /// <returns></returns>
     public delegate List<Vector> InferenceVerifyHandler(Network net, Session session, List<Vector> observation,List<double> actions,List<Vector> result);
+
+
+    
     #endregion
 
 
@@ -97,6 +109,10 @@ namespace NWSELib
         /// 取得与任务有关的最优姿态
         /// </summary>
         public static OptimaGestureHandler handleGetOptimaGesture;
+
+        public static TaskBeginHandler taskBeginHandler;
+
+        
 
         /// <summary>
         /// 配置
@@ -159,6 +175,8 @@ namespace NWSELib
         /// 可以完成任务的个体集
         /// </summary>
         public List<Network> taskCompletedNets = new List<Network>();
+
+
         /// <summary>
         /// 无效推理基因
         /// </summary>
@@ -193,13 +211,14 @@ namespace NWSELib
         /// <param name="fitness"></param>
         /// <param name="handler"></param>
         /// <param name="instinctHandler"></param>
-        public Session(IEnv env, FitnessHandler fitness,EventHandler handler,InstinctActionHandler instinctHandler,OptimaGestureHandler handleGetOptimaGesture)
+        public Session(IEnv env, FitnessHandler fitness,EventHandler handler,InstinctActionHandler instinctHandler,OptimaGestureHandler handleGetOptimaGesture, TaskBeginHandler taskBeginHandler)
         {
             this.env = env;
             this.handler = handler;
             Session.instinctActionHandler = instinctHandler;
             Session.fitnessHandler = fitness;
             Session.handleGetOptimaGesture = handleGetOptimaGesture;
+            Session.taskBeginHandler = taskBeginHandler;
         }
         #endregion
 
@@ -208,13 +227,15 @@ namespace NWSELib
         public const String EVT_POP_INIT = "population init...";
         public const String EVT_EVAULATION_BEGIN = "net evaulation begin";
         public const String EVT_EVAULATION_END = "net evaulation end";
-        public const String EVT_EVAULATION_IND = "The result of individual evaulation";
+        public const String EVT_EVAULATION_IND_BEGIN = "individual evaulation begin";
+        public const String EVT_EVAULATION_IND_END = "The result of individual evaulation";
         public const String EVT_EVOLUTION_END = "evolution end";
 
         public const String EVT_INVAILD_GENE = "invaild_gene";
         public const String EVT_VAILD_GENE = "vaild_gene";
 
         public const String EVT_SELECTION = "evolution selection";
+        public const String EVT_GENERATION_END = "generation_end";
 
         public const String EVT_LOG = "log";
         public const String EVT_STEP = "step";
@@ -224,7 +245,7 @@ namespace NWSELib
         
         public const String EVT_IND_COUNT = "ind_count";
         public const String EVT_REABILITY = "reability";
-        public const String EVT_GENERATION_END = "generation_end";
+        
         
 
         /// <summary>
@@ -306,8 +327,10 @@ namespace NWSELib
                 double maxFitness = inds.ConvertAll(ind=>ind.Fitness).Max();
                 List<Network> optimaNets = inds.FindAll(ind => ind.Fitness == maxFitness);
                 if (optimaNets.Count > 0)
-                    optimaNets.ForEach(net => net.save(this.currentSessionPath, this.generation));
+                    optimaNets.ForEach(net => net.Save(this.currentSessionPath, this.generation));
                 this.triggerEvent(Session.EVT_EVAULATION_END, optimaNets);
+
+                this.root.Save(this.currentSessionPath + "\\tree");
 
 
                 //是否达到最大迭代次数
@@ -336,34 +359,45 @@ namespace NWSELib
             //We need to evaluate many times only in noisy environments
             if (!double.IsNaN(net.Fitness) && !Session.GetConfiguration().evaluation.repeat) return net.Fitness;
 
+
             //init enviorment and network
+
             (List<double> obs, List<double> gesture) = env.reset(net);
             net.Reset();
             double reward = 0.0;
             bool end = false;
+            this.triggerEvent(EVT_EVAULATION_IND_BEGIN, net);
             this.triggerEvent(EVT_STEP, net, 0,obs,gesture,null,reward,end);
 
             //2 Run the network until the maximum number of iterations is reached or the end signal returns from the environment
-            for (int time = 0; time <= Session.GetConfiguration().evaluation.run_count; time++)
+            int maxtime = Session.GetConfiguration().evaluation.run_count;
+            for (int time = 0; time < maxtime; time++)
             {
                 List<double> inputs = new List<double>(obs);
                 inputs.AddRange(gesture);
-                List<double> actions = net.activate(inputs, time, this, reward);
+                List<double> actions = net.Activate(inputs, time, this, reward);
                 (obs, gesture, actions, reward, end) = env.action(net, actions);
-                this.triggerEvent(EVT_STEP, net, 0, obs, gesture, actions,reward,end);
+                this.triggerEvent(EVT_STEP, net, time, obs, gesture, actions,reward,end);
                 if (end) break;
                 judgePaused();
             }
 
-            var reability = net.ComputeReability();
+            //评估可靠性和适应度
+            var reability = net.Reability;
             net.Fitness = Session.fitnessHandler == null ? 0 : Session.fitnessHandler(net, this);
             net.TaskCompleted = end;
             if(end)
             {
                 this.taskCompletedNets.Add(net);
-                net.save(this.currentSessionPath, this.generation);
+                net.Save(this.currentSessionPath, this.generation);
             }
-            this.triggerEvent(EVT_EVAULATION_IND, net);
+            //评估无效基因
+            List<Inference> invaildInference = net.FindInvaildInference();
+            List<InferenceGene> invaildInferenceGenes = invaildInference.ConvertAll(inf => inf.GetGene());
+            Session.putInvalieInferenceGenes(invaildInferenceGenes.ToArray());
+            triggerEvent(Session.EVT_INVAILD_GENE, net, invaildInference);
+            //评估结束
+            this.triggerEvent(EVT_EVAULATION_IND_END, net);
             return net.Fitness;
         }
 

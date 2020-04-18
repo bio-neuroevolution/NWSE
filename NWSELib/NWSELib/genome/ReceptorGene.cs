@@ -99,9 +99,17 @@ namespace NWSELib.genome
         /// 取得输入基因
         /// </summary>
         /// <returns></returns>
-        public override List<NodeGene> getInputGenes()
+        public override List<NodeGene> GetInputGenes()
         {
             return null;
+        }
+
+        public Vector GetPropertyValue()
+        {
+            Configuration.Sensor sensor = Session.GetConfiguration().agent.receptors.GetSensor(this.name);
+            if (sensor.properties == null || sensor.properties.Count <= 0)
+                return double.NaN;
+            return sensor.properties[0].Value;
         }
         #endregion
 

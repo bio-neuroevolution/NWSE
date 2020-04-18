@@ -408,5 +408,12 @@ namespace NWSELib.common
 		}
 
 		#endregion
+
+		
+	}
+
+	public class Polyline
+	{
+		public List<Point2D> Points = new List<Point2D>();
 	}
 }

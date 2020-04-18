@@ -41,7 +41,7 @@ namespace NWSELib.genome
         /// 取得输入基因
         /// </summary>
         /// <returns></returns>
-        public override List<NodeGene> getInputGenes()
+        public override List<NodeGene> GetInputGenes()
         {
             return this.inputs.ConvertAll(i => owner[i]);
         }
@@ -52,7 +52,7 @@ namespace NWSELib.genome
         {
             this.function = function;
             this.inputs.AddRange(inputs);
-            if (ps != null || ps.Length <= 0) param.AddRange(ps);
+            if (ps != null && ps.Length > 0) param.AddRange(ps);
         }
 
         /// <summary>
@@ -109,7 +109,7 @@ namespace NWSELib.genome
             t2 = s.IndexOf("=", t1 + 1);
             t3 = s.IndexOf(";", t2 + 1);
             String inputstr = s.Substring(t2 + 1, t3 - t2 - 1).Trim();
-            List<int> inputids = Utility.parse<int>(inputstr);
+            List<int> inputids = Utility.parse(inputstr).ConvertAll(v=>(int)v);
             //解析info
             HandlerGene gene = new HandlerGene(genome, function, inputids, null);
             gene.parseInfo(info);
@@ -117,7 +117,7 @@ namespace NWSELib.genome
             t1 = s.IndexOf("param");
             t2 = s.IndexOf("=", t1 + 1);
             String paramtext = s.Substring(t2 + 1, s.Length - t2 - 1).Trim();
-            gene.param = Utility.parse<double>(paramtext);
+            gene.param = Utility.parse(paramtext);
 
             return gene;
         }

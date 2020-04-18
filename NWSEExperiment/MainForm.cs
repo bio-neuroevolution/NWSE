@@ -17,6 +17,7 @@ using NWSELib.genome;
 using NWSELib.evolution;
 using NWSELib.env;
 using NWSELib.common;
+using NWSELib.net.policy;
 
 namespace NWSEExperiment
 {
@@ -24,7 +25,9 @@ namespace NWSEExperiment
 
     public partial class MainForm : Form
     {
+
         #region 基本信息
+
         public bool interactiveMode = false;
 
         public delegate void BeginInvokeDelegate(String eventName, int generation, params Object[] ps);
@@ -45,6 +48,7 @@ namespace NWSEExperiment
             this.Width = Session.GetConfiguration().view.width;
             this.Height = Session.GetConfiguration().view.height;
 
+            
         }
 
         private void btnshowTrail_Click(object sender, EventArgs e)
@@ -84,13 +88,21 @@ namespace NWSEExperiment
             {
                 showLog(generation, eventName);
             }
-            else if (eventName == Session.EVT_EVAULATION_IND)
+            else if (eventName == Session.EVT_EVAULATION_IND_BEGIN)
+            {
+                Network net = (Network)states[0];
+                demoNet = net;
+                demoAgent = (RobotAgent)evolutionMaze.GetAgent(net.Id);
+                this.refreshNetwork(demoNet, treeviewCurNet);
+            }
+            else if (eventName == Session.EVT_EVAULATION_IND_END)
             {
                 Network net = (Network)states[0];
                 demoNet = net;
                 demoAgent = (RobotAgent)evolutionMaze.GetAgent(net.Id);
                 showLog(generation, "network id="+net.Id.ToString()+",fitness="+net.Fitness.ToString("F4") + ",reability="+net.Reability.ToString("F4")
                   +",completed="+net.TaskCompleted.ToString());
+                
 
             }
             else if (eventName == Session.EVT_EVAULATION_END)
@@ -125,10 +137,12 @@ namespace NWSEExperiment
                     int index = dgvMailstone.Rows.Add();
                     dgvMailstone.Rows[index].Cells[0].Value = generation;
                     dgvMailstone.Rows[index].Cells[1].Value = "Invalid";
-                    dgvMailstone.Rows[index].Cells[2].Value = inf.getGene().Text;
+                    dgvMailstone.Rows[index].Cells[2].Value = inf.GetGene().Text;
                     dgvMailstone.Rows[index].Cells[3].Value = inf.Reability;
+                    dgvMailstone.Rows[index].Cells[4].Value = net.Id;
+
+                    logger.Info("Invalid gene:generation=" + generation.ToString() + ",gene=" + inf.GetGene().Text + ",reability=" + inf.Reability.ToString("F4")+",netid="+net.Id.ToString());
                 }
-                
             }
             else if (eventName == Session.EVT_VAILD_GENE)
             {
@@ -142,6 +156,9 @@ namespace NWSEExperiment
                     dgvMailstone.Rows[index].Cells[1].Value = "valid";
                     dgvMailstone.Rows[index].Cells[2].Value = gene.Text;
                     dgvMailstone.Rows[index].Cells[3].Value = net[gene.Id].Reability;
+                    dgvMailstone.Rows[index].Cells[4].Value = net.Id;
+
+                    logger.Info("Valid gene:generation=" + generation.ToString() + ",gene=" + gene.Text + ",reability=" + net[gene.Id].Reability.ToString("F4") + ",netid=" + net.Id.ToString());
                 }
             }
             else if(eventName == Session.EVT_SELECTION)
@@ -158,6 +175,7 @@ namespace NWSEExperiment
             else if (eventName == Session.EVT_LOG)
             {
                 showLog(generation, states[0].ToString());
+                
             }
             else if (eventName == Session.EVT_STEP)
             {
@@ -168,25 +186,12 @@ namespace NWSEExperiment
                 txtTime.Text = time.ToString();
 
 
-                txtMsg.Text += "net=" + network.ToString() + System.Environment.NewLine;
-                txtMsg.Text += "time=" + time.ToString() + System.Environment.NewLine;
-                txtMsg.Text += "observation=" + states[2].ToString() + System.Environment.NewLine;
-                txtMsg.Text += "gesture=" + (states[3]==null?"":states[3].ToString()) + System.Environment.NewLine;
-                txtMsg.Text += "actions=" + (states[4]==null?"":states[4].ToString()) + System.Environment.NewLine;
-                txtMsg.Text += "reward=" + (states[5]==null?"":states[5].ToString()) + System.Environment.NewLine;
-                txtMsg.Text += "end=" + states[6].ToString() + System.Environment.NewLine;
-                txtMsg.Text += System.Environment.NewLine;
+                
 
                 if (cbVisible.Checked)
                     this.Refresh();
 
-                if (optima_net == null || network.Fitness > optima_net.Fitness)
-                {
-                    this.optima_generation = generation;
-                    this.optima_net = (Network)states[0];
-                    txtMaxFitness.Text = network.Fitness.ToString("F6");
-                    txtOptimaNetId.Text = network.ToString();
-                }
+                this.refreshEvolutionState();
             }
             else if (eventName == Session.EVT_GENERATION_END)
             {
@@ -204,7 +209,12 @@ namespace NWSEExperiment
             dataGridView.Rows.Insert(0, 1);
             dataGridView.Rows[0].Cells[0].Value = generation.ToString();
             dataGridView.Rows[0].Cells[1].Value = message;
+
+            logger.Info("generation=" + generation.ToString() + ",message=" + message);
         }
+
+        
+
         #endregion
 
         #region 进化过程
@@ -226,7 +236,8 @@ namespace NWSEExperiment
             optima_generation = -1;
 
             evolutionSession = new Session(this.evolutionMaze, new FitnessHandler(evolutionMaze.compute_fitness), EventHandler, new InstinctActionHandler(HardMaze.createInstinctAction),
-                new OptimaGestureHandler(evolutionMaze.GetOptimaGestureHandler));
+                new OptimaGestureHandler(evolutionMaze.GetOptimaGestureHandler),
+                new TaskBeginHandler(evolutionMaze.TaskBeginHandler));
         }
         private void btnERun_Clicked(object sender, EventArgs e)
         {
@@ -335,7 +346,7 @@ namespace NWSEExperiment
                 TreeNode t2 = t.Nodes.Add("records");
                 for(int i=0;i<inf.Records.Count;i++)
                 {
-                    TreeNode t3 = t2.Nodes.Add(inf.Records[i].toString(inf,i));
+                    TreeNode t3 = t2.Nodes.Add(inf.Records[i].ToString(inf,i));
                     t3.Tag = inf.Records[i];
                 }
             }
@@ -412,7 +423,11 @@ namespace NWSEExperiment
             reward = 0;
             end = false;
             inferencing = false;
+            if (demoNet != null) demoAgent = new RobotAgent(demoNet, evolutionMaze);
+            this.refreshNetwork(demoNet, treeViewOpenedNetwork);
         }
+
+        
         /// <summary>
         /// 交互式环境重置
         /// </summary>
@@ -422,8 +437,8 @@ namespace NWSEExperiment
         {
             if(demoNet == null)
             {
-                //demoNet = new Network(genomeFactory.createDemoGenome(evolutionSession)); 
-                demoNet = new Network(genomeFactory.createAccuracyLowLimitTestGenome2(evolutionSession));
+                demoNet = new Network(genomeFactory.createSimpleGenome(evolutionSession)); 
+                
                 //demoNet = new Network(genomeFactory.createAccuracyHighLimitTestGenome(evolutionSession));
                 refreshNetwork(demoNet, treeViewOpenedNetwork);
             }
@@ -433,7 +448,9 @@ namespace NWSEExperiment
             demoAgent = evolutionMaze.Agents[0];
             demoAgent.Visible = true;
 
-            this.txtObservation.Text = "第" + interactive_time.ToString() + "次交互" + System.Environment.NewLine;
+            
+
+            this.txtObservation.Text = "time=" + interactive_time.ToString() + System.Environment.NewLine;
             this.txtObservation.Text += observationToString(obs, gesture,0,false);
 
             prevObservationText = this.txtObservation.Text;
@@ -447,8 +464,8 @@ namespace NWSEExperiment
             List<double> observation = new List<double>(obs);
             observation.AddRange(gestures);
             return  demoNet.GetObservationText(observation) +
-            "奖励=" + reward.ToString("F4") + System.Environment.NewLine +
-            "到达=" + end.ToString() + System.Environment.NewLine;
+            "reward=" + reward.ToString("F4") + System.Environment.NewLine +
+            "arrived=" + end.ToString() + System.Environment.NewLine;
         }
         /// <summary>
         /// 推理
@@ -460,12 +477,10 @@ namespace NWSEExperiment
             //网络执行
             List<double> inputs = new List<double>(obs);
             inputs.AddRange(gesture);
-            actions = this.demoNet.activate(inputs, interactive_time,evolutionSession,reward);
+            actions = this.demoNet.Activate(inputs, interactive_time,evolutionSession,reward);
             //显示推理链
-            if(this.demoNet.policyName == "policy")
-                this.txtPolicy.Text = this.demoNet.actionPlanChain.ToString();
-            else
-                this.txtPolicy.Text = this.demoNet.actionPlanChain.Last.ToString();
+            this.txtPolicy.Text = this.demoNet.policy.policyState.ToString();
+
 
             interactive_time += 1;
             inferencing = true;
@@ -490,7 +505,7 @@ namespace NWSEExperiment
 
             this.txtObservation.Text = prevObservationText;
 
-            prevObservationText = "第" + interactive_time.ToString() + "次交互" + System.Environment.NewLine;
+            prevObservationText = "time=" + interactive_time.ToString()+ System.Environment.NewLine;
             prevObservationText += observationToString(obs, gesture, reward, end);
 
             this.txtObservation.Text += System.Environment.NewLine;
@@ -534,6 +549,7 @@ namespace NWSEExperiment
             initInteraction();
             demoNet = new Network(genomeFactory.createFullGenome(evolutionSession));
             this.refreshNetwork(demoNet, treeViewOpenedNetwork);
+            
         }
 
         private void btnDemoCustom_Click(object sender, EventArgs e)
@@ -547,7 +563,7 @@ namespace NWSEExperiment
             dlg.Filter = "*.ind|*.ind";
             if (dlg.ShowDialog() != DialogResult.OK)
                 return;
-            demoNet = Network.load(dlg.FileName);
+            demoNet = Network.Load(dlg.FileName);
             this.initInteraction();
         }
 
@@ -621,6 +637,7 @@ namespace NWSEExperiment
             {
                 toolStripButton5_Click(null,null);
                 toolStripButton7_Click(null, null);
+                if (end) return;
                 if(steps > 0)
                 {
                     steps -= 1;
@@ -646,7 +663,7 @@ namespace NWSEExperiment
             listBoxInference.Items.Clear();
             foreach(Inference inf in infs)
             {
-                int index = listBoxInference.Items.Add(inf.Id.ToString()+":"+inf.summary());
+                int index = listBoxInference.Items.Add(inf.Id.ToString()+":"+inf.Summary());
             }
 
             /*this.txtMsg.Text += System.Environment.NewLine;
@@ -661,7 +678,11 @@ namespace NWSEExperiment
             this.txtMsg.Text += "##############";
             this.txtMsg.Text += System.Environment.NewLine;*/
         }
-
+        /// <summary>
+        /// 显示推理节点的详细信息
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void listBoxInference_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (this.demoNet == null) return;
@@ -680,33 +701,19 @@ namespace NWSEExperiment
 
             dgvInfRecord.Tag = inf;
             dgvInfRecord.Rows.Clear();
-            foreach(InferenceRecord record in inf.Records)
+            foreach(InferenceRecord record in inf.ValidRecords)
             {
                 index = dgvInfRecord.Rows.Add();
-                dgvInfRecord.Rows[index].Cells[0].Value = record.summary();
-                dgvInfRecord.Rows[index].Cells[1].Value = record.evulation.ToString("F4");
-                dgvInfRecord.Rows[index].Cells[2].Value = record.acceptCount.ToString();
+                dgvInfRecord.Rows[index].Cells[0].Value = record.Summary();
+                dgvInfRecord.Rows[index].Cells[1].Value = record.acceptCount.ToString();
+                dgvInfRecord.Rows[index].Cells[2].Value = record.usedCount.ToString();
                 dgvInfRecord.Rows[index].Tag = record;
             }
 
 
         }
 
-        private void btnIndStructLevel2_Click(object sender, EventArgs e)
-        {
-            this.txtMsg.Text += System.Environment.NewLine;
-            this.txtMsg.Text += "#####个体结构(Level2)#####";
-            //打印推理记忆节点现状
-            List<Inference> infs = this.demoNet.Inferences;
-            for (int i = 0; i < infs.Count; i++)
-            {
-                Inference inf = (Inference)infs[i];
-                this.txtMsg.Text += inf.ToString();
-            }
-            this.txtMsg.Text += "##############";
-            this.txtMsg.Text += System.Environment.NewLine;
-        }
-
+        
         private void btnPolicyShow_Click(object sender, EventArgs e)
         {
             
@@ -736,6 +743,33 @@ namespace NWSEExperiment
         private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
 
+        }
+
+        private void btnOpenMaze_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog dlg = new OpenFileDialog();
+            dlg.Filter = "*.xml|*.xml";
+            if (dlg.ShowDialog() == DialogResult.Cancel) return;
+            HardMaze maze = HardMaze.loadEnvironment(dlg.FileName);
+            if (demoNet != null) demoAgent = new RobotAgent(demoNet,maze);
+            evolutionMaze = maze;
+
+            evolutionSession = new Session(evolutionMaze, new FitnessHandler(evolutionMaze.compute_fitness), EventHandler, new InstinctActionHandler(HardMaze.createInstinctAction), new OptimaGestureHandler(evolutionMaze.GetOptimaGestureHandler), new TaskBeginHandler(evolutionMaze.TaskBeginHandler));
+
+            this.Refresh();
+        }
+
+        
+        private void btnEvaluation_Click(object sender, EventArgs e)
+        {
+            FolderBrowserDialog dlg = new FolderBrowserDialog();
+            dlg.SelectedPath = Application.StartupPath;
+            if (dlg.ShowDialog() != DialogResult.OK) return;
+
+            String robotPath = dlg.SelectedPath;
+            String mazePath = Application.StartupPath + @"\maze";
+            PerformanceEvaluation performanceEvaluation = new PerformanceEvaluation();
+            performanceEvaluation.Execute(robotPath, mazePath,new NWSELib.EventHandler(EventHandler), 3000);
         }
     }
 }

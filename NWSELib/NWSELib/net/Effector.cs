@@ -11,13 +11,14 @@ namespace NWSELib.net
         {
 
         }
+        
 
-        public override String getValueText(Vector value = null)
+        public override String GetValueText(Vector value = null)
         {
             if (value == null) value = Value;
             if (value == null) return "";
             Receptor receptor = (Receptor)net["_" + this.Gene.Name];
-            return receptor.getValueText(value);
+            return receptor.GetValueText(value);
         }
 
     }

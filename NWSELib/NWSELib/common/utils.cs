@@ -21,13 +21,10 @@ namespace NWSELib.common
         /// <returns></returns>
         public static List<double> parse(String s)
         {
+            if (s == null || s.Trim() == "") return new List<double>();
             return s.Split(',').ToList().ConvertAll(x => Double.Parse(x)).ToList<double>();
         }
-        public static List<T> parse<T>(String s)
-        {
-            if (s == null || s.Trim() == "") return new List<T>();
-            return s.Split(',').ToList().ConvertAll(x => (T)(Object)Double.Parse(x));
-        }
+        
         public static string toString(List<int> values, String sep = ",")
         {
             if (values == null || values.Count <= 0) return "";
@@ -86,7 +83,11 @@ namespace NWSELib.common
         /// <returns></returns>
         public static int argmax(this List<double> values)
         {
-            double max = values.Max();
+            if (values == null || values.Count <= 0) return -1;
+            if (values.All(v => double.IsNaN(v))) return -1;
+            if (values.Count == 1) return 0;
+            
+            double max = values.FindAll(v => !double.IsNaN(v)).Max();
             for(int i=0;i<values.Count;i++)
             {
                 if (max == values[i]) return i;
@@ -100,10 +101,10 @@ namespace NWSELib.common
         /// <returns></returns>
         public static int argmin(this List<double> values)
         {
-            double max = values.Min();
+            double min = values.FindAll(v=>!double.IsNaN(v)).Min();
             for (int i = 0; i < values.Count; i++)
             {
-                if (max == values[i]) return i;
+                if (min == values[i]) return i;
             }
             return 0;
         }
@@ -118,7 +119,7 @@ namespace NWSELib.common
             {
                 for(int j=i+1;j< temp.Count;j++)
                 {
-                    if(temp[i] > temp[j])
+                    if(double.IsNaN(temp[i]) || temp[i] > temp[j])
                     {
                         double t = temp[i];
                         temp[i] = temp[j];

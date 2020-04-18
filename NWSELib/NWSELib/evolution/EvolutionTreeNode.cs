@@ -2,6 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Xml.Serialization;
+using System.IO;
 
 namespace NWSELib.evolution
 {
@@ -10,9 +12,11 @@ namespace NWSELib.evolution
     /// </summary>
     public class EvolutionTreeNode
     {
+        
         /// <summary>
         /// 父节点
         /// </summary>
+        [XmlIgnore]
         public EvolutionTreeNode parent = null;
         /// <summary>
         /// 是否被淘汰
@@ -33,7 +37,7 @@ namespace NWSELib.evolution
 
         public override string ToString()
         {
-            return this.network.ToString() + ",extinct=" + extinct + ",childs=" + this.childs.Count.ToString();
+            return this.network.ToString() + ",extinct=" + extinct + ",childs=" + this.childs.Count.ToString() + ",parent="+ (parent==null?"0": parent.network.Id.ToString())+",depth="+ depth.ToString()+",net="+this.network.Id.ToString();
         }
         /// <summary>
         /// 构造函数
@@ -122,6 +126,56 @@ namespace NWSELib.evolution
                 r = getAliveNodes(child, r);
             }
             return r;
+        }
+
+        public void Save(String path)
+        {
+            DirectoryInfo directoryInfo = new DirectoryInfo(path);
+            if (!directoryInfo.Exists)
+                directoryInfo.Create();
+            FileInfo fileInfo = new FileInfo(path+@"\evolution.tree");
+            if (fileInfo.Exists) fileInfo.Delete();
+
+            StringBuilder str = BuildString();
+            System.IO.File.WriteAllText(fileInfo.FullName, str.ToString());
+
+            saveNetwork(directoryInfo,this);
+
+        }
+        private void saveNetwork(DirectoryInfo directoryInfo, EvolutionTreeNode node)
+        {
+            if (node == null) return;
+            String filename = node.network.GetFileName(directoryInfo.FullName);
+            if (!Directory.Exists(filename))
+                node.network.Save(directoryInfo.FullName, node.network.Genome.generation);
+
+            foreach (EvolutionTreeNode child in node.childs)
+            {
+                saveNetwork(directoryInfo, child);
+            }
+
+        }
+        public StringBuilder BuildString()
+        {
+            StringBuilder str = new StringBuilder();
+            str.Append(this+ System.Environment.NewLine);
+            return buildString(this,str);
+        }
+        private StringBuilder buildString(EvolutionTreeNode node,StringBuilder str)
+        {
+            if (str == null) str = new StringBuilder();
+            if (node == null) return str;
+
+            foreach (EvolutionTreeNode child in node.childs)
+            {
+                str.Append(child.ToString() + System.Environment.NewLine);
+            }
+
+            foreach (EvolutionTreeNode child in node.childs)
+            {
+                str = buildString(child,str);
+            }
+            return str;
         }
 
     }

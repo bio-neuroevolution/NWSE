@@ -6,14 +6,99 @@ using NWSELib.common;
 
 namespace NWSELib.net.policy
 {
+    public class PolicyState
+    {
+
+        public class EnviornmentEvaluation
+        {
+            public int num;
+            public Vector env;
+            public double evaulation;
+
+            public override String ToString()
+            {
+                return num.ToString() + ";" + Utility.toString(env) + ";" + evaulation.ToString("F4");
+            }
+        }
+
+        public List<EnviornmentEvaluation> envEvaluations = new List<EnviornmentEvaluation>();
+
+        public override string ToString()
+        {
+            StringBuilder str = new StringBuilder();
+            if(envEvaluations.Count>0)
+            {
+                str.Append("evaluate enviorment:" + System.Environment.NewLine +
+                   envEvaluations.ConvertAll(e => e.ToString() + System.Environment.NewLine).Aggregate((x, y) => x + y));
+            }
+            if (curGesture != null)
+            {
+                str.Append(
+                       "evaluate action:" + System.Environment.NewLine +
+                       "curGesture:" + Utility.toString(curGesture) + System.Environment.NewLine +
+                        "optimaGesture:" + Utility.toString(optimaGesture) + System.Environment.NewLine +
+                       "objectiveGesture:" + Utility.toString(objectiveGesture) + System.Environment.NewLine +
+                       "action:" + action.ToString("F4") + System.Environment.NewLine +
+                       "policy:" + policeText + System.Environment.NewLine);
+            }
+
+            /*if(actionToGesture!=null && this.actionToGesture.Count>0)
+            {
+                str.Append("action details:" + System.Environment.NewLine);
+                foreach(KeyValuePair<Vector,Vector> keyValue in actionToGesture)
+                {
+                    str.Append("action:" + keyValue.Key[0].ToString("F3") + ",gesture:" + keyValue.Value[0].ToString("F4") + System.Environment.NewLine);
+                }
+            }*/
+
+            return str.ToString();
+        }
+
+
+        public double evaulation;
+        public Vector curGesture;
+        public Vector optimaGesture;
+        public Vector objectiveGesture;
+        public Dictionary<Vector, Vector> actionToGesture;
+        public double action;
+
+        public String policeText;
+
+        public PolicyState() {  }
+        public void AddEnviormentEvaluation(int num,Vector env,double evaulation)
+        {
+            EnviornmentEvaluation enviormentEvaluation = new EnviornmentEvaluation()
+            {
+                num = num,
+                env = env.clone(),
+                evaulation = evaulation
+            };
+            envEvaluations.Add(enviormentEvaluation);
+
+        }
+
+        public void setGestureAction(double evaulation, Vector curGesture, Vector objectiveGesture, double action,Dictionary<Vector, Vector> actionToGesture)
+        {
+            this.evaulation = evaulation;
+            this.curGesture = curGesture.clone();
+            this.objectiveGesture = objectiveGesture.clone();
+            this.action = action;
+            this.actionToGesture = new Dictionary<Vector, Vector>(actionToGesture);
+            
+        }
+
+    }
+
     public abstract class Policy
     {
         #region  基本属性和抽象方法
         public abstract String Name { get; }
-        public abstract ActionPlan execute(int time, Session session);
+        public abstract ActionPlan Execute(int time, Session session);
 
         public Network net;
         public Configuration.EvaluationPolicy policyConfig;
+
+        public PolicyState policyState = new PolicyState();
 
         #endregion
 
@@ -28,11 +113,7 @@ namespace NWSELib.net.policy
 
         public static Policy GetPolicy(Network net,String name)
         {
-            if(items == null)
-            {
-                items = new List<Policy>(new Policy[] { new CollisionPolicy(net),new EvaluationPolicy(net),new EmotionPolicy(net)});
-            }
-            return items.FirstOrDefault(item => item.Name == name);
+            return new EmotionPolicy(net);
         }
         #endregion
 

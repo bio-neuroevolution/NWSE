@@ -11,23 +11,34 @@ using System.Text;
 
 namespace NWSELib.net
 {
-    
-   
+
+
     /// <summary>
     /// 推理节点
     /// </summary>
     public class Inference : Node
     {
-        #region 成员
+        #region 推断记录
         static ILog logger = LogManager.GetLogger(typeof(Inference));
+
+        
+
         /// <summary>
-        /// 推理节点存储的记录
+        /// 所有推断记录
         /// </summary>
         protected List<InferenceRecord> records = new List<InferenceRecord>();
+
+
         /// <summary>
         /// 推理节点存储的记录
         /// </summary>
-        public List<InferenceRecord> Records { get => this.records; }
+        public List<InferenceRecord> Records { get => records; }
+
+        
+        
+        #endregion
+
+        #region 中间过程数据
         /// <summary>
         /// 新样本,尚未归属到任何记录中，因为要积累一些才进行记录融合
         /// </summary>
@@ -37,55 +48,29 @@ namespace NWSELib.net
         /// </summary>
         public List<double> density = new List<double>();
 
-        /// <summary>
-        /// 下一级别记录
-        /// </summary>
-        public Dictionary<int, List<InferenceRecord>> childs = new Dictionary<int, List<InferenceRecord>>();
-
-
-        private double _reability = double.NaN;
-        /// <summary>
-        /// 可靠度
-        /// </summary>
-        public override double Reability 
-        { 
-            get
-            {
-                if (double.IsNaN(_reability))
-                    _reability = this.computeReability();
-                return _reability;
-            }
-        }
         #endregion
 
-        #region 推理情景记录管理
-        public void removeWrongRecords()
-        {
-            for(int i=0;i<this.records.Count;i++)
-            {
-                if(this.records[i].accuracy <= 0)
-                    this.records.RemoveAt(i--);
-            }
-        }
-        #endregion
+        
+        
 
         #region 初始化
-        public readonly List<Receptor> conditionReceptors;
-        public readonly List<Receptor> variablesReceptors;
+        public readonly List<Node> _conditionNodes;
+        public readonly List<Node> _variablesNodes;
         /// <summary>
         /// 构造函数
         /// </summary>
         /// <param name="gene"></param>
         public Inference(NodeGene gene,Network net) : base(gene,net) 
         {
-            this.getGene().sort_dimension();
-            conditionReceptors = this.getGene().getConditionIds().ConvertAll(id => (Receptor)net[id]);
-            variablesReceptors = this.getGene().getVariableIds().ConvertAll(id => (Receptor)net[id]);
+            _conditionNodes = this.GetGene().conditions.ConvertAll(id => (Node)net[id]);
+            _variablesNodes = this.GetGene().variables.ConvertAll(id => (Node)net[id]);
         }
+        public List<Node> ConditionNodes { get => this._conditionNodes; }
+        public List<Node> VariableNodes { get => this._variablesNodes; }
         
-        public String summary()
+        public String Summary()
         {
-            return this.getGene().Text + ",r=" + this.Reability.ToString("F4");
+            return this.GetGene().Text + ",r=" + this.Reability.ToString("F4");
         }
         public override string ToString()
         {
@@ -94,7 +79,7 @@ namespace NWSELib.net
             str.Append("记录数=" + Records.Count.ToString() + System.Environment.NewLine);
             for (int j = 0; j < Records.Count; j++)
             {
-                str.Append(Records[j].toString(this,j));
+                str.Append(Records[j].ToString(this,j));
                 
             }
             return str.ToString();
@@ -110,7 +95,7 @@ namespace NWSELib.net
             str.Append("记录数=" + Records.Count.ToString() + System.Environment.NewLine);
             for (int j = 0; j < Records.Count; j++)
             {
-                str.Append(Records[j].toString(this,j));
+                str.Append(Records[j].ToString(this,j));
 
             }
             return str.ToString();
@@ -122,49 +107,12 @@ namespace NWSELib.net
         /// 推理基因
         /// </summary>
         /// <returns></returns>
-        public InferenceGene getGene()
+        public InferenceGene GetGene()
         {
             return (InferenceGene)gene;
         }
         
-        /// <summary>
-        /// 取得所有维度的节点id
-        /// </summary>
-        /// <returns></returns>
-        public List<int> getIdList()
-        {
-            return this.getGene().getDimensions().ConvertAll(d => d.Item1);
-        }
-
         
-
-        /// <summary>
-        /// 将各维度的id分解为环境类(含姿态)、动作类、后置变量类
-        /// </summary>
-        /// <returns></returns>
-        public (List<int>, List<int>, List<int>) splitIds()
-        {
-            List<int> e = new List<int>();
-            List<int> a = new List<int>();
-            List<int> v = this.getGene().variables.ConvertAll(var => var.Item1);
-
-            
-            List<(int, int)> ds = this.getGene().conditions;
-            for (int i = 0; i < ds.Count; i++)
-            {
-                NodeGene g = this.getGene().owner[ds[i].Item1];
-                if (g.IsActionSensor())
-                    a.Add(ds[i].Item1);
-                else
-                    e.Add(ds[i].Item1);
-            }
-            return (e, a, v);
-        }
-
-        public override List<Node> getInputNodes(Network net)
-        {
-            return this.getGene().getDimensions().ConvertAll(d=>net.getNode(d.Item1));
-        }
         #endregion
 
         #region 值管理
@@ -173,9 +121,14 @@ namespace NWSELib.net
         /// </summary>
         /// <param name="net"></param>
         /// <returns></returns>
-        public List<Vector> getInputValues(int time)
+        public List<Vector> GetInputValues(int time)
         {
-            return this.getGene().getDimensions().ConvertAll(d => net.getNode(d.Item1).GetValue(time - d.Item2));
+            int timediff = this.GetGene().timediff;
+            List<Vector> r1 = this.GetGene().conditions.ConvertAll(d => net[d].GetValue(time - timediff));
+            List<Vector> r2 = this.GetGene().variables.ConvertAll(d => net[d].GetValue(time));
+            r1.AddRange(r2);
+            return r1;
+            
         }
 
         /// <summary>
@@ -183,70 +136,48 @@ namespace NWSELib.net
         /// </summary>
         /// <param name="value">为空，则取当前最新值</param>
         /// <returns></returns>
-        public override String getValueText(Vector value = null)
+        public override String GetValueText(Vector value = null)
         {
             if (value == null) value = Value;
             if (value == null) return "";
-            List<Receptor> receptors = this.getGene().getLeafGenes().ConvertAll(g=>(Receptor)net[g.Id]);
-            int condCount = this.getGene().ConditionCount;
-            int varCount = this.getGene().VariableCount;
+            List<Receptor> receptors = this.GetGene().getLeafGenes().ConvertAll(g=>(Receptor)net[g.Id]);
+            int condCount = this.GetGene().ConditionCount;
+            int varCount = this.GetGene().VariableCount;
 
             StringBuilder str = new StringBuilder();
-            for(int i=0;i<receptors.Count;i++)
+            for (int i = 0; i <this.ConditionNodes.Count;i++)
             {
-                if(str.ToString() != "")
-                {
-                    if(i == condCount && varCount > 0)
-                        str.Append("=>");
-                    else str.Append(",");
-                }
-                str.Append(receptors[i].getValueText(new Vector(value[i])));
+                if (i > 0) str.Append(",");
+                if (ConditionNodes[i] is Receptor)
+                    str.Append(ConditionNodes[i].GetValueText(new Vector(value[i])));
+                else
+                    str.Append(value[i].ToString("F4"));
+
             }
+            str.Append("=>");
+
+            for(int i=0;i<VariableNodes.Count;i++)
+            {
+                if (i > 0) str.Append(",");
+                if (VariableNodes[i] is Receptor)
+                    str.Append(VariableNodes[i].GetValueText(new Vector(value[i+ ConditionNodes.Count])));
+                else
+                    str.Append(value[i + ConditionNodes.Count].ToString("F4"));
+            }
+
+            
             return str.ToString();
         }
 
-        /// <summary>
-        /// 取得前置条件和后置变量值
-        /// </summary>
-        /// <param name="net"></param>
-        /// <param name="time"></param>
-        /// <returns></returns>
-        public (List<Vector>,List<Vector>) getValues2(int time)
-        {
-            List<Vector> c = this.getGene().conditions
-                .ConvertAll(item=>(net[item.Item1],item.Item2))
-                .ConvertAll(item=>item.Item1.GetValue(time-item.Item2));
+        
 
-            List<Vector> v = this.getGene().variables
-                .ConvertAll(item => (net[item.Item1], item.Item2))
-                .ConvertAll(item => item.Item1.GetValue(time - item.Item2));
-            
+        
 
-            return (c, v);
-        }
-
-        public (List<Vector>, List<Vector>, List<Vector>) getValues3(int time)
-        {
-            List<Vector> ce = new List<Vector>();
-            List<Vector> ca = new List<Vector>();
-            List<Vector> v = new List<Vector>();
-
-            List<(int, int)> conditions = this.getGene().conditions;
-            for (int i = 0; i < conditions.Count; i++)
-            {
-                Node node = net.getNode(conditions[i].Item1);
-                if (node.Gene.IsActionSensor())
-                    ca.Add(node.GetValue(time - conditions[i].Item2));
-                else
-                    ce.Add(node.GetValue(time - conditions[i].Item2));
-            }
-            return (ce,ca,v);
-        }
-
-        public InferenceRecord getEqualsRecord(List<Vector> values)
+        public InferenceRecord GetEqualsRecord(List<Vector> values)
         {
             Vector v1 = values.flatten().Item1;
-            foreach(InferenceRecord r in this.records)
+            List<InferenceRecord> records = UsedRecords;
+            foreach (InferenceRecord r in records)
             {
                 Vector v2 = r.means.flatten().Item1;
                 if (Vector.equals(v1, v2,Session.config.realerror)) return r;
@@ -255,9 +186,9 @@ namespace NWSELib.net
         }
 
         
-        public (InferenceRecord, List<double>) getMatchRecord(List<Vector> condvalues)
+        public (InferenceRecord, List<double>) GetMatchRecord(List<Vector> condvalues)
         {
-            List<(InferenceRecord, List<double>)> result = this.getMatchRecords(condvalues);
+            List<(InferenceRecord, List<double>)> result = this.GetMatchRecords(condvalues);
             if (result == null || result.Count <= 0) return (null, null);
             double d = double.MaxValue;
             (InferenceRecord, List<double>) r = (null,null);
@@ -271,14 +202,15 @@ namespace NWSELib.net
             }
             return r;
         }
-        public List<(InferenceRecord,List<double>)> getMatchRecords(List<Vector> condvalues)
+        public List<(InferenceRecord,List<double>)> GetMatchRecords(List<Vector> condvalues)
         {
             List<(InferenceRecord, List<double>)> result = new List<(InferenceRecord, List<double>)>();
 
-            foreach (InferenceRecord r in this.records)
+            List<InferenceRecord> records = UsedRecords;
+            foreach (InferenceRecord r in records)
             {
                 List<double> dis = null;
-                if(r.isConditionValueMatch(condvalues, out dis))
+                if(r.IsConditionMatch(condvalues, out dis))
                 {
                     result.Add((r,dis));
                 }
@@ -290,9 +222,11 @@ namespace NWSELib.net
         {
             InferenceRecord record = null;
             double mindis = double.MaxValue;
-            foreach (InferenceRecord r in this.records)
+
+            List<InferenceRecord> records = UsedRecords;
+            foreach (InferenceRecord r in records)
             {
-                double dis = r.distanceFromCondition(values).Average();
+                double dis = r.DistanceFromCondition(values).Average();
                 if(dis < mindis)
                 {
                     mindis = dis;
@@ -314,8 +248,8 @@ namespace NWSELib.net
             List<Vector> condValues = new List<Vector>();
             List<Vector> varValues = new List<Vector>();
 
-            int condcount = this.getGene().ConditionCount;
-            int varcount = this.getGene().VariableCount;
+            int condcount = this.GetGene().ConditionCount;
+            int varcount = this.GetGene().VariableCount;
             condValues.AddRange(values.GetRange(0, condcount));
             varValues.AddRange(values.GetRange(condcount, varcount));
             return (condValues, varValues);
@@ -325,7 +259,7 @@ namespace NWSELib.net
         #endregion
 
         #region 激活和自适应调整
-        
+        /*
         public override Object activate(Network net, int time, Object value = null)
         {
             //所有的输入节点都已经被激活
@@ -369,7 +303,8 @@ namespace NWSELib.net
             record.acceptCount += 1;
             base.activate(net, time, activeValue);
             return activeValue;
-        }
+        }*/
+
         
         /// <summary>
         /// 设置当前值
@@ -377,33 +312,25 @@ namespace NWSELib.net
         /// <param name="value"></param>
         /// <param name="time"></param>
         /// <returns></returns>
-        /*public override Object activate(Network net, int time, Object value = null)
+        public override Object Activate(Network net, int time, Object value = null)
         {
             //所有的输入节点都已经被激活
             //Wether all input nodes have already been activated
-            List<(int,int)> conds = ((InferenceGene)this.Gene).getConditions();
-            List<(Node, int)> condNodes = conds.ConvertAll(c => (net.getNode(c.Item1), c.Item2));
-            if (!condNodes.All(n => n.Item1.IsActivate(time - n.Item2)))
+            if (!ConditionNodes.All(n => n.IsActivate(time - this.GetGene().timediff)))
+                return null;
+            if (!VariableNodes.All(n => n.IsActivate(time)))
                 return null;
 
-            List<(int, int)> vars = this.getGene().getVariables();
-            List<(Node, int)> varNodes = vars.ConvertAll(v => (net.getNode(v.Item1), v.Item2));
-            if (!varNodes.All(n => n.Item1.IsActivate(time - n.Item2)))
-                return null;
 
-            Vector activeValue = null;
-            //确保推理基因的各维度的顺序正确（前置条件在前，后置变量在后，且前置条件id按从小到大排列）
-            //Make sure that the dimensions of the inference gene are in the correct order
-            ((InferenceGene)this.Gene).sort_dimension();
-
-            List<Node> inputs = net.getInputNodes(this.Id);
 
             //根据基因定义的顺序，将输入值组成List<Vector>
             //Put the input values into the List according to the order of the input dimensions
-            List<Vector> values = this.getInputValues(time);
+            Vector activeValue = null;
+            List<Node> inputs = net.getInputNodes(this.Id); 
+            List<Vector> values = this.GetInputValues(time);
             if(values == null)
             {
-                base.activate(net, time, null);
+                base.Activate(net, time, null);
                 return null;
             }
             int totaldimesion = values.flatten().Item1.Size;
@@ -417,51 +344,53 @@ namespace NWSELib.net
                 record.means = values;
                 record.covariance = new double[totaldimesion, totaldimesion];
                 for (int i = 0; i < totaldimesion; i++) //缺省协方差矩阵为单位阵
-                    record.covariance[i, i] = 1.0;
+                    record.covariance[i, i] = InferenceRecord.variance;
                 record.weight = 1.0;
                 record.acceptCount = 1;
                 //var nearestRecord = this.getMatchRecord(record.getMeanValues().condValues);
                 //if (nearestRecord.Item1 != null) record.evulation = nearestRecord.Item1.evulation;
                 this.records.Add(record);
+                this.checkRecord(record);
+                
                 activeValue = values.flatten().Item1;
-                base.activate(net, time, activeValue);
+                base.Activate(net, time, activeValue);
                
                 return activeValue;
             }
 
             //计算输入值的归属
             //Calculate which record the input value belongs to
-            List<double> probs = this.records.ConvertAll(r => r.prob(values)/r.prob(r.means));
-            //double sumprobs = probs.Sum();
-            //probs = probs.ConvertAll(p => p / sumprobs);
+            List<double> probs = this.records.ConvertAll(r => r.Prob(values)/r.Prob(r.means));
             int pindex = probs.argmax();
-            if(probs.Max()>=Session.GetConfiguration().learning.inference.accept_prob)
+            if(pindex!=-1 && probs.Max()>=Session.GetConfiguration().learning.inference.accept_prob)
             {
                 this.records[pindex].acceptCount += 1;
                 this.records[pindex].acceptRecords.Add(values);
                 if(this.records[pindex].acceptCount >= Session.GetConfiguration().learning.inference.accept_max_count)
                 {
-                    this.records[pindex].do_adjust(net);
+                    this.records[pindex].DoAdjust(net);
+                    this.checkRecord(this.records[pindex],true);
                 }
                 activeValue = this.records[pindex].means.flatten().Item1;
-                base.activate(net, time, activeValue);
+                base.Activate(net, time, activeValue);
                 return activeValue;
 
             }
             //判断是否需要加入到未归类样本中:如果节点中记录非常少，则尽量增加记录
-            if(this.records.Count<=10)
+            if(this.records.Count<=50)
             {
                 InferenceRecord record = new InferenceRecord(this);
                 record.means = values;
                 record.covariance = new double[totaldimesion, totaldimesion];
                 for (int i = 0; i < totaldimesion; i++) //缺省协方差矩阵为单位阵
-                    record.covariance[i, i] = 1.0;
+                    record.covariance[i, i] = InferenceRecord.variance;
                 record.acceptCount = 1;
                 //var nearestRecord = this.getMatchRecord(record.getMeanValues().condValues);
                 //if (nearestRecord.Item1 != null) record.evulation = nearestRecord.Item1.evulation;
                 this.records.Add(record);
+                this.checkRecord(record);
                 activeValue = values.flatten().Item1;
-                base.activate(net, time, activeValue);
+                base.Activate(net, time, activeValue);
 
                 adjust_weights();
                 return activeValue;
@@ -494,7 +423,7 @@ namespace NWSELib.net
             //未归类样本很少，暂不进行聚类
             if (unclassified_samples.Count <= 10)
             {
-                base.activate(net, time, null);
+                base.Activate(net, time, null);
                 return values;
             }
 
@@ -514,6 +443,7 @@ namespace NWSELib.net
                     //var nearestRecord = this.getMatchRecord(newRecord.getMeanValues().condValues);
                     //if (nearestRecord.Item1 != null) newRecord.evulation = nearestRecord.Item1.evulation;
                     this.records.Add(newRecord);
+                    this.checkRecord(newRecord);
                 }
                 newCount = clusters.Count;
             }
@@ -531,11 +461,11 @@ namespace NWSELib.net
                 +",count of record="+this.records.Count
                 +",accept counts =" + this.records.ConvertAll(r=>r.acceptCount.ToString()).Aggregate((x,y)=>x+","+y));
 
-            activeValue = this.records[this.records.ConvertAll(r => r.prob(values) / r.prob(r.means)).argmax()].means.flatten().Item1;
-            base.activate(net, time, activeValue);
+            activeValue = this.records[this.records.ConvertAll(r => r.Prob(values) / r.Prob(r.means)).argmax()].means.flatten().Item1;
+            base.Activate(net, time, activeValue);
             return activeValue;
 
-        }*/
+        }
         /// <summary>
         /// 对未归类样本进行聚类操作
         /// Cluster unclassified samples
@@ -647,63 +577,17 @@ namespace NWSELib.net
             r.covariance = Vector.covariance(flatten.ToArray());
             r.acceptCount = vs.Count;
             if(densitys != null || densitys.Count>0) r.density = densitys.Average();
-            r.initGaussian();
+            r.InitGaussian();
             return r;
 
         }
-        /// <summary>
-        /// 合并靠的太近的记录
-        /// Merge too close records
-        /// </summary>
-        protected int try_merge_records()
-        {
-            List<(InferenceRecord, InferenceRecord)> needMergeRecordPair = new List<(InferenceRecord, InferenceRecord)>();
-            for(int i=0;i<this.records.Count;i++)
-            {
-                bool merged = false;
-                for(int j=i+1;j<this.records.Count;j++)
-                {
-                    double d1 = this.records[i].prob(this.records[j].means) / this.records[i].prob(this.records[i].means);
-                    double d2 = this.records[j].prob(this.records[i].means) / this.records[j].prob(this.records[j].means);
-                    if (d1 >= Session.GetConfiguration().learning.inference.accept_prob || d2 >= Session.GetConfiguration().learning.inference.accept_prob)
-                    {
-                        needMergeRecordPair.Add((this.records[i], this.records[j]));
-                        merged = true;
-                        this.records.RemoveAt(j);
-                        break;
-                    }
-                }
-                if(merged)
-                {
-                    this.records.RemoveAt(i);i--;
-                }
-            }
-            if (needMergeRecordPair.Count <= 0) return 0;
-            for(int i=0;i< needMergeRecordPair.Count;i++)
-            {
-                InferenceRecord r1 = needMergeRecordPair[i].Item1;
-                InferenceRecord r2 = needMergeRecordPair[i].Item2;
-                List<List<Vector>> samples = new List<List<Vector>>();
-                for (int j = 0; j < r1.acceptCount; j++)
-                    samples.Add(r1.means);
-                samples.AddRange(r1.acceptRecords);
-                for (int j = 0; j < r2.acceptCount; j++)
-                    samples.Add(r2.means);
-                samples.AddRange(r2.acceptRecords);
-
-                InferenceRecord newRecord = this.create_newrecord_bysamples(samples);
-                newRecord.density = (r1.density + r2.density) / 2;
-                this.records.Add(newRecord);
-            }
-            return needMergeRecordPair.Count;
-        }
-       
+        
         
         
         /// <summary>
         /// 调整权重
         /// </summary>
-        public void adjust_weights()
+        private void adjust_weights()
         {
            //根据接收样本数量设定权重
             List<double> ws = this.records.ConvertAll(r => (double)r.acceptCount);
@@ -720,46 +604,161 @@ namespace NWSELib.net
             for (int i = 0; i < this.records.Count; i++)
                 this.records[i].weight = ws[i];*/
         }
+
+
+        #endregion
+
+        #region 有效性(可靠性)判定
+        
         /// <summary>
-        /// 计算可靠度
+        /// 可靠度
         /// </summary>
-        public double computeReability()
+        public override double Reability
         {
-            if (this.records.Count <= 0) return double.NaN;
-            double error = Session.GetConfiguration().realerror;
-
-            List<InferenceRecord> records = new List<InferenceRecord>(this.records);
-
-            double groupCount = 0,totalcount = records.Count;
-            while(records.Count>0)
+            get
             {
-                InferenceRecord record = records[0];
-                (List<Vector> condValues,List<Vector> varValues) = record.getMeanValues();
-                records.Remove(record);
-                groupCount += 1;
+                return 1.0 * this.validItems.Count / (this.validItems.Count + this.invalidItems.Count);
 
-                //寻找与record条件相同，但是后置变量不同的记录个数(这说明发生了矛盾)
-                int count = 0;
-                for (int j=0;j<records.Count;j++)
+            }
+        }
+        public const String ItemUnconfirmed = "unconfirmed";
+        public const String ItemValid = "valid";
+        public const String ItemInvalid = "invalid";
+        public abstract class Item
+        {
+            public abstract String Name { get; }
+        }
+        public class UnconfirmedItem : Item 
+        {
+            public override String Name { get => "unconfirmed"; }
+            public InferenceRecord record;
+            public int count;
+        }
+        public class ValidItem : Item
+        {
+            public override String Name { get => "valid"; }
+            public InferenceRecord record;
+            public int count;
+        }
+        public class InvalidItem : Item
+        {
+            public override String Name { get => "invalid"; }
+            public List<InferenceRecord> records = new List<InferenceRecord>();
+        }
+        protected List<UnconfirmedItem> unconfirmedItems = new List<UnconfirmedItem>();
+        protected List<ValidItem> validItems = new List<ValidItem>();
+        protected List<InvalidItem> invalidItems = new List<InvalidItem>();
+
+        public List<InferenceRecord> ValidRecords
+        {
+            get { return this.validItems.ConvertAll(item => item.record); }
+        }
+        public int ValidRecordCount
+        {
+            get => this.validItems.Count;
+        }
+
+
+        public List<InferenceRecord> UsedRecords
+        {
+            get
+            {
+                if (validItems.Count > 0) return validItems.ConvertAll(item => item.record);
+                return unconfirmedItems.ConvertAll(item => item.record);
+            }
+        }
+
+        private Item recordToItem(InferenceRecord record)
+        {
+            if (record == null) return null;
+            Item item = unconfirmedItems.FirstOrDefault(i => i.record == record);
+            if (item != null) return item;
+            item = validItems.FirstOrDefault(i => i.record == record);
+            if (item != null) return item;
+            return invalidItems.FirstOrDefault(i => i.records.Contains(record));
+            
+        }
+        private Item recordRemoveInItem(InferenceRecord record)
+        {
+            if (record == null) return null;
+            Item item = unconfirmedItems.FirstOrDefault(i => i.record == record);
+            if (item != null) { unconfirmedItems.Remove((UnconfirmedItem)item); return item; }
+            item = validItems.FirstOrDefault(i => i.record == record);
+            if (item != null) { validItems.Remove((ValidItem)item); return item; }
+            item = invalidItems.FirstOrDefault(i => i.records.Contains(record));
+            if (item != null) { invalidItems.Remove((InvalidItem)item); return item; }
+            return item;
+        }
+        private Item checkRecord(InferenceRecord record,bool removed=false,int validOccurCount=2)
+        {
+            if (record == null) return null;
+            double error = Session.GetConfiguration().realerror;
+            (List<Vector> condValues, List<Vector> varValues) = record.GetMeanValues();
+
+            if(removed)
+                recordRemoveInItem(record);
+            for (int i=0;i<unconfirmedItems.Count;i++)
+            {
+                var meanValues = unconfirmedItems[i].record.GetMeanValues();
+                if (!Vector.equals(condValues, meanValues.condValues, error))
+                    continue;
+                if (Vector.equals(varValues, meanValues.varValues, error))
                 {
-                    (List<Vector> cValues, List<Vector> vValues) = records[j].getMeanValues();
-                    if(Vector.equals(condValues, cValues,error) && 
-                       !Vector.equals(varValues,vValues,error))
+                    unconfirmedItems[i].count += 1;
+                    if (unconfirmedItems[i].count < validOccurCount)
                     {
-                        records.RemoveAt(j--);
-                        count += 1;
+                        this.GetGene().CheckGeneValidity(this.unconfirmedItems.Count,this.validItems.Count,this.invalidItems.Count);
+                        return unconfirmedItems[i];
                     }
                 }
-                //如果一个记录只有一个来源数据，又没有发生矛盾，不能用它做可靠性统计。
-                if (count == 0 && record.acceptCount == 1)
+                else
                 {
-                    groupCount -= 1;
-                    totalcount -= 1;
+                    InvalidItem invalidItem = new InvalidItem();
+                    invalidItem.records.Add(unconfirmedItems[i].record);
+                    invalidItem.records.Add(record);
+                    this.invalidItems.Add(invalidItem);
+                    this.unconfirmedItems.RemoveAt(i);
+                    return invalidItem;
                 }
+
             }
+            for (int i=0;i<validItems.Count;i++)
+            {
+                var meanValues = validItems[i].record.GetMeanValues();
+                if (!Vector.equals(condValues, meanValues.condValues, error))
+                    continue;
+                if(Vector.equals(varValues, meanValues.varValues, error))
+                {
+                    validItems[i].count += 1;
+                    this.GetGene().CheckGeneValidity(this.unconfirmedItems.Count, this.validItems.Count, this.invalidItems.Count);
+                    return validItems[i];
+                }
+
+                InvalidItem invalidItem = new InvalidItem();
+                invalidItem.records.Add(validItems[i].record);
+                invalidItem.records.Add(record);
+                this.invalidItems.Add(invalidItem);
+                this.validItems.RemoveAt(i);
+                return invalidItem;
+            }
+            for(int i=0;i<this.invalidItems.Count;i++)
+            {
+                var meanValues = invalidItems[i].records[0].GetMeanValues();
+                if (!Vector.equals(condValues, meanValues.condValues, error))
+                    continue;
+                invalidItems[i].records.Add(record);
+                this.GetGene().CheckGeneValidity(this.unconfirmedItems.Count, this.validItems.Count, this.invalidItems.Count);
+                return invalidItems[i];
+            }
+            UnconfirmedItem item = new UnconfirmedItem();
+            item.record = record;
+            item.count = 1;
+            this.unconfirmedItems.Add(item);
+            this.GetGene().CheckGeneValidity(this.unconfirmedItems.Count, this.validItems.Count, this.invalidItems.Count);
+            return item;
             
-            return this._reability = groupCount / totalcount;
         }
+        
         #endregion
 
 
@@ -771,7 +770,7 @@ namespace NWSELib.net
         /// <param name="condvalues">推理条件值</param>
         /// <param name="inferenceMethod">推理方法：samples,record</param>
         /// <returns></returns>
-        public (InferenceRecord record, List<Vector> postValues) forward_inference(List<Vector> condvalues,String inferenceMethod= "record")
+        public (InferenceRecord record, List<Vector> postValues) forward_inference(List<Vector> condvalues,String inferenceMethod= "recordsample")
         {
             if (inferenceMethod == "recordsample")
                 return this.forward_inference_ByRecordSample(condvalues);
@@ -784,20 +783,21 @@ namespace NWSELib.net
         public (InferenceRecord, List<Vector>) forward_inference_ByRecord(List<Vector> condvalues)
         {
             //(InferenceRecord record,double distance)= this.getNearestRecord(condvalues);
-            (InferenceRecord record, List<double> distances) = this.getMatchRecord(condvalues);
+            (InferenceRecord record, List<double> distances) = this.GetMatchRecord(condvalues);
             if (record == null) return (null, null);
-            return (record, record.getMeanValues().varValues);
+            return (record, record.GetMeanValues().varValues);
         }
 
         public (InferenceRecord, List<Vector>) forward_inference_ByRecordSample(List<Vector> condvalues)
         {
-            if (this.records.Count <= 0) return (null, null);
+            List<InferenceRecord> records = UsedRecords;
+            if (records.Count <= 0) return (null, null);
 
             (InferenceRecord record, double distance) = this.getNearestRecord(condvalues);
 
             if (record == null) return (null, null);
 
-            List<List<Vector>> s = record.sample(5);
+            List<List<Vector>> s = record.DoSamples(5);
 
             double dis = double.MaxValue;
             List<Vector> varValue = null;
@@ -815,13 +815,14 @@ namespace NWSELib.net
             }
 
             if (dis < distance) return (record, varValue);
-            else return (record, record.getMeanValues().varValues);
+            else return (record, record.GetMeanValues().varValues);
 
         }
 
         public (InferenceRecord, List<Vector>) forward_inference_BySample(List<Vector> condvalues)
         {
-            if (this.records.Count <= 0) return (null, null);
+            List<InferenceRecord> records = UsedRecords;
+            if (records.Count <= 0) return (null, null);
 
             List<List<Vector>> s = this.samples(5);
 
@@ -842,11 +843,9 @@ namespace NWSELib.net
             (InferenceRecord record, double distance) = this.getNearestRecord(condvalues);
 
             if (dis < distance) return (record, varValue);
-            else return (record, record.getMeanValues().varValues);
+            else return (record, record.GetMeanValues().varValues);
 
         }
-
-
 
         /// <summary>
         /// 在混合高斯模型上采样
@@ -855,7 +854,8 @@ namespace NWSELib.net
         /// <returns></returns>
         private List<List<Vector>> samples(int inferencesamples)
         {
-            this.records.ForEach(r => r.initGaussian());
+            List<InferenceRecord> records = UsedRecords;
+            records.ForEach(r => r.InitGaussian());
 
             double[] ws = this.records.ConvertAll(r => r.weight).ToArray();
 
@@ -864,7 +864,7 @@ namespace NWSELib.net
             for (int i = 0; i < inferencesamples; i++)
             {
                 int index = zt.Sample();
-                result.Add(this.records[index].sample(1)[0]);
+                result.Add(this.records[index].DoSamples(1)[0]);
             }
             
             return result;
@@ -891,9 +891,11 @@ namespace NWSELib.net
         {
             Dictionary<String, List<double>> r1 = new Dictionary<String, List<double>>();
             int total = 0;
-            foreach (InferenceRecord record in this.records)
+
+            List<InferenceRecord> records = UsedRecords;
+            foreach (InferenceRecord record in records)
             {
-                Vector v = record.getMeanValues().varValues[0];
+                Vector v = record.GetMeanValues().varValues[0];
                 String strv = v[0].ToString("F4");
                 if (!r1.ContainsKey(v[0].ToString("F4")))
                 {

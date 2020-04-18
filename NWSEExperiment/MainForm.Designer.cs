@@ -33,6 +33,8 @@
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
+            this.btnOpenMaze = new System.Windows.Forms.ToolStripButton();
+            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.toolStripLabel2 = new System.Windows.Forms.ToolStripLabel();
             this.btnERun = new System.Windows.Forms.ToolStripButton();
             this.btnEPause = new System.Windows.Forms.ToolStripButton();
@@ -71,6 +73,8 @@
             this.btnIndStruct = new System.Windows.Forms.ToolStripDropDownButton();
             this.btnIndStructLevel1 = new System.Windows.Forms.ToolStripMenuItem();
             this.btnIndStructLevel2 = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
+            this.btnEvaluation = new System.Windows.Forms.ToolStripButton();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.statusXY = new System.Windows.Forms.ToolStripStatusLabel();
             this.lblindcount = new System.Windows.Forms.ToolStripStatusLabel();
@@ -113,9 +117,6 @@
             this.label2 = new System.Windows.Forms.Label();
             this.txtGeneration = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
-            this.tabPage7 = new System.Windows.Forms.TabPage();
-            this.panel9 = new System.Windows.Forms.Panel();
-            this.txtMsg = new System.Windows.Forms.TextBox();
             this.tabPage8 = new System.Windows.Forms.TabPage();
             this.splitContainer4 = new System.Windows.Forms.SplitContainer();
             this.listBoxInference = new System.Windows.Forms.ListBox();
@@ -126,17 +127,17 @@
             this.pnlMaze = new System.Windows.Forms.Panel();
             this.pictureBoxMaze = new System.Windows.Forms.PictureBox();
             this.tabPage2 = new System.Windows.Forms.TabPage();
-            this.tabPage5 = new System.Windows.Forms.TabPage();
-            this.panel1 = new System.Windows.Forms.Panel();
-            this.dataGridView = new System.Windows.Forms.DataGridView();
-            this.ColumnGeneration = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.ColumnMessage = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.dgvMailstone = new System.Windows.Forms.DataGridView();
             this.ColumnInfGeneration = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ColumnInfType = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ColumnInfText = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ColumnInfReability = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ColumnInfNet = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.tabPage5 = new System.Windows.Forms.TabPage();
+            this.panel1 = new System.Windows.Forms.Panel();
+            this.dataGridView = new System.Windows.Forms.DataGridView();
+            this.ColumnGeneration = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.ColumnMessage = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.toolStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.tabControl1.SuspendLayout();
@@ -166,8 +167,6 @@
             this.panel6.SuspendLayout();
             this.panel8.SuspendLayout();
             this.panel7.SuspendLayout();
-            this.tabPage7.SuspendLayout();
-            this.panel9.SuspendLayout();
             this.tabPage8.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer4)).BeginInit();
             this.splitContainer4.Panel1.SuspendLayout();
@@ -177,15 +176,17 @@
             this.pnlMaze.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxMaze)).BeginInit();
             this.tabPage2.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dgvMailstone)).BeginInit();
             this.tabPage5.SuspendLayout();
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.dgvMailstone)).BeginInit();
             this.SuspendLayout();
             // 
             // toolStrip1
             // 
             this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.btnOpenMaze,
+            this.toolStripSeparator2,
             this.toolStripLabel2,
             this.btnERun,
             this.btnEPause,
@@ -200,12 +201,29 @@
             this.toolStripSeparator3,
             this.btnPolicyShow,
             this.btnoShowTrail,
-            this.btnIndStruct});
+            this.btnIndStruct,
+            this.toolStripSeparator4,
+            this.btnEvaluation});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
             this.toolStrip1.Size = new System.Drawing.Size(1140, 40);
             this.toolStrip1.TabIndex = 0;
             this.toolStrip1.Text = "toolStrip1";
+            // 
+            // btnOpenMaze
+            // 
+            this.btnOpenMaze.Image = ((System.Drawing.Image)(resources.GetObject("btnOpenMaze.Image")));
+            this.btnOpenMaze.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnOpenMaze.Name = "btnOpenMaze";
+            this.btnOpenMaze.Size = new System.Drawing.Size(80, 37);
+            this.btnOpenMaze.Text = "Open Maze";
+            this.btnOpenMaze.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
+            this.btnOpenMaze.Click += new System.EventHandler(this.btnOpenMaze_Click);
+            // 
+            // toolStripSeparator2
+            // 
+            this.toolStripSeparator2.Name = "toolStripSeparator2";
+            this.toolStripSeparator2.Size = new System.Drawing.Size(6, 40);
             // 
             // toolStripLabel2
             // 
@@ -533,7 +551,22 @@
             this.btnIndStructLevel2.Name = "btnIndStructLevel2";
             this.btnIndStructLevel2.Size = new System.Drawing.Size(112, 22);
             this.btnIndStructLevel2.Text = "Level2";
-            this.btnIndStructLevel2.Click += new System.EventHandler(this.btnIndStructLevel2_Click);
+            
+            // 
+            // toolStripSeparator4
+            // 
+            this.toolStripSeparator4.Name = "toolStripSeparator4";
+            this.toolStripSeparator4.Size = new System.Drawing.Size(6, 40);
+            // 
+            // btnEvaluation
+            // 
+            this.btnEvaluation.Image = ((System.Drawing.Image)(resources.GetObject("btnEvaluation.Image")));
+            this.btnEvaluation.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnEvaluation.Name = "btnEvaluation";
+            this.btnEvaluation.Size = new System.Drawing.Size(71, 37);
+            this.btnEvaluation.Text = "Evaluation";
+            this.btnEvaluation.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
+            this.btnEvaluation.Click += new System.EventHandler(this.btnEvaluation_Click);
             // 
             // statusStrip1
             // 
@@ -605,7 +638,6 @@
             this.tabControl2.Controls.Add(this.tabPage3);
             this.tabControl2.Controls.Add(this.tabPage4);
             this.tabControl2.Controls.Add(this.tabPage6);
-            this.tabControl2.Controls.Add(this.tabPage7);
             this.tabControl2.Controls.Add(this.tabPage8);
             this.tabControl2.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tabControl2.Location = new System.Drawing.Point(0, 0);
@@ -691,6 +723,7 @@
             // txtPolicy
             // 
             this.txtPolicy.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.txtPolicy.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.txtPolicy.Location = new System.Drawing.Point(0, 0);
             this.txtPolicy.Multiline = true;
             this.txtPolicy.Name = "txtPolicy";
@@ -968,35 +1001,6 @@
             this.label1.TabIndex = 10;
             this.label1.Text = "Generation:";
             // 
-            // tabPage7
-            // 
-            this.tabPage7.Controls.Add(this.panel9);
-            this.tabPage7.Location = new System.Drawing.Point(4, 22);
-            this.tabPage7.Name = "tabPage7";
-            this.tabPage7.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage7.Size = new System.Drawing.Size(282, 330);
-            this.tabPage7.TabIndex = 3;
-            this.tabPage7.Text = "Message";
-            this.tabPage7.UseVisualStyleBackColor = true;
-            // 
-            // panel9
-            // 
-            this.panel9.Controls.Add(this.txtMsg);
-            this.panel9.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panel9.Location = new System.Drawing.Point(3, 3);
-            this.panel9.Name = "panel9";
-            this.panel9.Size = new System.Drawing.Size(276, 324);
-            this.panel9.TabIndex = 0;
-            // 
-            // txtMsg
-            // 
-            this.txtMsg.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.txtMsg.Location = new System.Drawing.Point(0, 0);
-            this.txtMsg.Multiline = true;
-            this.txtMsg.Name = "txtMsg";
-            this.txtMsg.Size = new System.Drawing.Size(276, 324);
-            this.txtMsg.TabIndex = 0;
-            // 
             // tabPage8
             // 
             this.tabPage8.Controls.Add(this.splitContainer4);
@@ -1108,6 +1112,58 @@
             this.tabPage2.Text = "Mailstone";
             this.tabPage2.UseVisualStyleBackColor = true;
             // 
+            // dgvMailstone
+            // 
+            this.dgvMailstone.AllowUserToAddRows = false;
+            this.dgvMailstone.AllowUserToDeleteRows = false;
+            this.dgvMailstone.AllowUserToOrderColumns = true;
+            this.dgvMailstone.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dgvMailstone.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.ColumnInfGeneration,
+            this.ColumnInfType,
+            this.ColumnInfText,
+            this.ColumnInfReability,
+            this.ColumnInfNet});
+            this.dgvMailstone.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.dgvMailstone.Location = new System.Drawing.Point(3, 3);
+            this.dgvMailstone.Name = "dgvMailstone";
+            this.dgvMailstone.ReadOnly = true;
+            this.dgvMailstone.RowTemplate.Height = 23;
+            this.dgvMailstone.Size = new System.Drawing.Size(1126, 356);
+            this.dgvMailstone.TabIndex = 0;
+            this.dgvMailstone.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellContentClick);
+            // 
+            // ColumnInfGeneration
+            // 
+            this.ColumnInfGeneration.HeaderText = "Generation";
+            this.ColumnInfGeneration.Name = "ColumnInfGeneration";
+            this.ColumnInfGeneration.ReadOnly = true;
+            // 
+            // ColumnInfType
+            // 
+            this.ColumnInfType.HeaderText = "Invalid/Valid";
+            this.ColumnInfType.Name = "ColumnInfType";
+            this.ColumnInfType.ReadOnly = true;
+            // 
+            // ColumnInfText
+            // 
+            this.ColumnInfText.HeaderText = "Inference";
+            this.ColumnInfText.Name = "ColumnInfText";
+            this.ColumnInfText.ReadOnly = true;
+            this.ColumnInfText.Width = 500;
+            // 
+            // ColumnInfReability
+            // 
+            this.ColumnInfReability.HeaderText = "Reability";
+            this.ColumnInfReability.Name = "ColumnInfReability";
+            this.ColumnInfReability.ReadOnly = true;
+            // 
+            // ColumnInfNet
+            // 
+            this.ColumnInfNet.HeaderText = "Network Id";
+            this.ColumnInfNet.Name = "ColumnInfNet";
+            this.ColumnInfNet.ReadOnly = true;
+            // 
             // tabPage5
             // 
             this.tabPage5.Controls.Add(this.panel1);
@@ -1182,58 +1238,6 @@
             this.ColumnMessage.ReadOnly = true;
             this.ColumnMessage.Width = 1000;
             // 
-            // dgvMailstone
-            // 
-            this.dgvMailstone.AllowUserToAddRows = false;
-            this.dgvMailstone.AllowUserToDeleteRows = false;
-            this.dgvMailstone.AllowUserToOrderColumns = true;
-            this.dgvMailstone.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.dgvMailstone.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
-            this.ColumnInfGeneration,
-            this.ColumnInfType,
-            this.ColumnInfText,
-            this.ColumnInfReability,
-            this.ColumnInfNet});
-            this.dgvMailstone.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.dgvMailstone.Location = new System.Drawing.Point(3, 3);
-            this.dgvMailstone.Name = "dgvMailstone";
-            this.dgvMailstone.ReadOnly = true;
-            this.dgvMailstone.RowTemplate.Height = 23;
-            this.dgvMailstone.Size = new System.Drawing.Size(1126, 356);
-            this.dgvMailstone.TabIndex = 0;
-            this.dgvMailstone.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellContentClick);
-            // 
-            // ColumnInfGeneration
-            // 
-            this.ColumnInfGeneration.HeaderText = "Generation";
-            this.ColumnInfGeneration.Name = "ColumnInfGeneration";
-            this.ColumnInfGeneration.ReadOnly = true;
-            // 
-            // ColumnInfType
-            // 
-            this.ColumnInfType.HeaderText = "Invalid/Valid";
-            this.ColumnInfType.Name = "ColumnInfType";
-            this.ColumnInfType.ReadOnly = true;
-            // 
-            // ColumnInfText
-            // 
-            this.ColumnInfText.HeaderText = "Inference";
-            this.ColumnInfText.Name = "ColumnInfText";
-            this.ColumnInfText.ReadOnly = true;
-            this.ColumnInfText.Width = 500;
-            // 
-            // ColumnInfReability
-            // 
-            this.ColumnInfReability.HeaderText = "Reability";
-            this.ColumnInfReability.Name = "ColumnInfReability";
-            this.ColumnInfReability.ReadOnly = true;
-            // 
-            // ColumnInfNet
-            // 
-            this.ColumnInfNet.HeaderText = "Network Id";
-            this.ColumnInfNet.Name = "ColumnInfNet";
-            this.ColumnInfNet.ReadOnly = true;
-            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -1280,9 +1284,6 @@
             this.panel8.ResumeLayout(false);
             this.panel7.ResumeLayout(false);
             this.panel7.PerformLayout();
-            this.tabPage7.ResumeLayout(false);
-            this.panel9.ResumeLayout(false);
-            this.panel9.PerformLayout();
             this.tabPage8.ResumeLayout(false);
             this.splitContainer4.Panel1.ResumeLayout(false);
             this.splitContainer4.Panel2.ResumeLayout(false);
@@ -1292,10 +1293,10 @@
             this.pnlMaze.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxMaze)).EndInit();
             this.tabPage2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.dgvMailstone)).EndInit();
             this.tabPage5.ResumeLayout(false);
             this.panel1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.dgvMailstone)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1368,9 +1369,6 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.TextBox txtGeneration;
         private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.TabPage tabPage7;
-        private System.Windows.Forms.Panel panel9;
-        private System.Windows.Forms.TextBox txtMsg;
         private System.Windows.Forms.DataGridView dataGridView;
         private System.Windows.Forms.DataGridViewTextBoxColumn ColumnGeneration;
         private System.Windows.Forms.DataGridViewTextBoxColumn ColumnMessage;
@@ -1408,6 +1406,10 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn ColumnInfText;
         private System.Windows.Forms.DataGridViewTextBoxColumn ColumnInfReability;
         private System.Windows.Forms.DataGridViewTextBoxColumn ColumnInfNet;
+        private System.Windows.Forms.ToolStripButton btnOpenMaze;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator4;
+        private System.Windows.Forms.ToolStripButton btnEvaluation;
     }
 }
 

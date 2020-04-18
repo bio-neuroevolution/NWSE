@@ -25,16 +25,17 @@ namespace NWSELib.net
         #endregion
 
         #region 值管理
+        
         /// <summary>
         /// 设置当前值
         /// </summary>
         /// <param name="value"></param>
         /// <param name="time"></param>
         /// <returns></returns>
-        public override Object activate(Network net, int time, Object value = null)
+        public override Object Activate(Network net, int time, Object value = null)
         {
             //double rankedvalue = getRankedValue((double)value);
-            Object prevValue = base.activate(net, time, value);
+            Object prevValue = base.Activate(net, time, value);
             return prevValue;
         }
 
@@ -62,7 +63,7 @@ namespace NWSELib.net
             }
         }
 
-        public override String getValueText(Vector value = null)
+        public override String GetValueText(Vector value = null)
         {
             if (value == null) value = Value;
             if (value == null) return "";
@@ -116,25 +117,9 @@ namespace NWSELib.net
         }
         #endregion
 
-        #region 值距离
-        public double distance(double v,int time=-1)
-        {
-            double v2 = (time < 0 ? this.Value[0] : this.GetValue(time)[0]);
-            return distance(v,v2);
-        }
-        public double distance(double v1,double v2)
-        {
-            MeasureTools measure =
-                MeasureTools.GetMeasure(Gene.Cataory);
-            return measure.distance(v1, v2);
-        }
+        #region 值采样
 
-        public bool IsTolerateDistance(double distance)
-        {
-           return MeasureTools.GetMeasure(Gene.Cataory).tolerate >= distance;
-        }
 
-        
         public double[] GetSampleValues()
         {
             if (getGene().AbstractLevel <= 0) return null;

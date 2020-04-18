@@ -117,7 +117,7 @@ namespace NWSELib.net
         /// </summary>
         /// <param name="value">为空，则取当前最新值</param>
         /// <returns></returns>
-        public virtual String getValueText(Vector value=null) 
+        public virtual String GetValueText(Vector value=null) 
         { 
             throw new NotImplementedException(); 
         }
@@ -183,18 +183,19 @@ namespace NWSELib.net
         /// 可靠度
         /// </summary>
         public virtual double Reability { get => 0.0; }
-       
-        
+
+
         #endregion
 
         #region 激活与重置
+        
         /// <summary>
         /// 设置当前值
         /// </summary>
         /// <param name="value"></param>
         /// <param name="time"></param>
         /// <returns></returns>
-        public virtual Object activate(Network net, int time, Object value = null)
+        public virtual Object Activate(Network net, int time, Object value = null)
         {
             Object oldValue = putTimeAndValue(times, values, time, value);
 
@@ -234,7 +235,7 @@ namespace NWSELib.net
             vtimes.Clear();
             vvalues.Clear();
         }
-        public void think(Network net, int time, Vector value)
+        public virtual void think(Network net, int time, Vector value)
         {
             putTimeAndValue(vtimes, vvalues, time, value);
         }
@@ -292,6 +293,26 @@ namespace NWSELib.net
             
 
             return prev;
+        }
+        #endregion
+
+        #region 值距离
+
+        public double distance(double v, int time = -1)
+        {
+            double v2 = (time < 0 ? this.Value[0] : this.GetValue(time)[0]);
+            return distance(v, v2);
+        }
+        public double distance(double v1, double v2)
+        {
+            MeasureTools measure =
+                MeasureTools.GetMeasure(Gene.Cataory);
+            return measure.distance(v1, v2);
+        }
+
+        public bool IsTolerateDistance(double distance)
+        {
+            return MeasureTools.GetMeasure(Gene.Cataory).tolerate >= distance;
         }
         #endregion
     }

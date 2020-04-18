@@ -6,6 +6,8 @@
 
   <ItemGroup>
     <Compile Remove="net\Imagination.cs" />
+    <Compile Remove="net\policy\CollisionPolicy.cs" />
+    <Compile Remove="net\policy\EvaluationPolicy.cs" />
   </ItemGroup>
 
   <ItemGroup>

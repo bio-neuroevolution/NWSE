@@ -23,12 +23,7 @@ namespace NWSELib.evolution
             //  使得周围个体的下一代不会产生无效推理节点，并必然产生有效推理节点
             for (int i = 0; i < inds.Count; i++)
             {
-                List<Inference> invaildInference = inds[i].findNewInvaildInference();
-                List<InferenceGene> invaildInferenceGenes = invaildInference.ConvertAll(inf => inf.getGene());
-                Session.putInvalieInferenceGenes(invaildInferenceGenes.ToArray());
-                session.triggerEvent(Session.EVT_INVAILD_GENE, inds[i], invaildInference);
-                
-                List<NodeGene> vaildInference = inds[i].findNewVaildInferences();
+                List<NodeGene> vaildInference = inds[i].FindVaildInferences();
                 session.triggerEvent(Session.EVT_VAILD_GENE, inds[i], vaildInference);
                 
                 List<EvolutionTreeNode> nearest = EvolutionTreeNode.search(session.getEvolutionRootNode(), inds[i]).getNearestNode();

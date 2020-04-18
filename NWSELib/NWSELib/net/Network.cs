@@ -9,11 +9,13 @@ using NWSELib.common;
 using NWSELib.env;
 using NWSELib.genome;
 using NWSELib.net.policy;
+using NWSELib.net.handler;
 
 namespace NWSELib.net
 {
     /// <summary>
     /// 网络
+    /// 
     /// </summary>
     public class Network
     {
@@ -27,6 +29,11 @@ namespace NWSELib.net
         /// 所有节点
         /// </summary>
         private List<Node> nodes = new List<Node>();
+
+        /// <summary>
+        /// 策略单元
+        /// </summary>
+        public Policy policy;
         /// <summary>
         /// 邻接矩阵
         /// </summary>
@@ -39,27 +46,22 @@ namespace NWSELib.net
         /// 节点集
         /// </summary>
         public List<Node> Nodes { get => nodes; }
-        /// <summary>
-        /// Id
-        /// </summary>
-        /// <returns></returns>
-        public int getId() { return this.genome.id; } 
+        
         /// <summary>
         /// Id
         /// </summary>
         public int Id { get => this.genome.id; }
-        
+
         /// <summary>
         /// 策略单元
         /// </summary>
-        public CollisionPolicy policy;
+        public Policy Policy { get => this.policy; }
+        
+
         /// <summary>
-        /// 策略
+        /// 显示字符串
         /// </summary>
-        //public Imagination imagination;
-
-        public String policyName = "policy";
-
+        /// <returns></returns>
         public override string ToString()
         {
             return "net id="+Id.ToString()+",fitness="+
@@ -86,17 +88,7 @@ namespace NWSELib.net
             get => _envReceptors==null? _envReceptors= Receptors.FindAll(n => n.Gene.IsEnvSensor()).ConvertAll(n => (Receptor)n): _envReceptors;
         }
 
-        private List<MeasureTools> _measureTools; 
-
-        public List<MeasureTools> GestureMeasureTools
-        {
-            get
-            {
-                if(_measureTools == null)
-                    _measureTools = GesturesReceptors.ConvertAll(g => MeasureTools.GetMeasure(g.Cataory));
-                return _measureTools;
-            }
-        }
+        
 
         private List<Receptor> _gesturesReceptors;
         /// <summary>
@@ -113,7 +105,24 @@ namespace NWSELib.net
         ///</summary>
         public List<Receptor> ActionReceptors
         {
-            get => _actionReceptors==null? Receptors.FindAll(n => n.Gene.IsActionSensor()).ConvertAll(n=>(Receptor)n): _actionReceptors;
+            get => _actionReceptors == null? _actionReceptors = Receptors.FindAll(n => n.Gene.IsActionSensor()).ConvertAll(n=>(Receptor)n): _actionReceptors;
+        }
+
+        public Node RewardReceptor
+        {
+            get => Receptors.FirstOrDefault(x => x.Gene.Group.Contains("reward"));
+        }
+
+        private List<MeasureTools> _gestureMeasureTools;
+
+        public List<MeasureTools> GestureMeasureTools
+        {
+            get
+            {
+                if (_gestureMeasureTools == null)
+                    _gestureMeasureTools = GesturesReceptors.ConvertAll(g => MeasureTools.GetMeasure(g.Cataory));
+                return _gestureMeasureTools;
+            }
         }
 
 
@@ -167,60 +176,26 @@ namespace NWSELib.net
             return r;
         }
 
-        public Node getNode(int id)
-        {
-            return this.nodes.FirstOrDefault(n => n.Id == id);
-        }
-        public Node getNode(String name)
-        {
-            return this.nodes.FirstOrDefault(n => n.Name == name);
-        }
-
+        /// <summary>
+        /// 根据Id或者名称访问节点
+        /// </summary>
+        /// <param name="idorname"></param>
+        /// <returns></returns>
         public Node this[Object idorname]
         {
             get 
             {
-                if (idorname is int) return getNode((int)idorname);
-                else if(idorname is String)return getNode((String)idorname);
-                return null;
+                Node r = this.nodes.FirstOrDefault(n => n.Id.Equals(idorname));
+                if (r != null) return r;
+                return this.nodes.FirstOrDefault(n => n.Name.Equals(idorname));
             }
         }
-        public int getActionIdByName(String name)
-        {
-            Node n = this.Effectors.FirstOrDefault(e => e.Name == name || e.Name == name.Substring(1));
-            return n == null ? 0 : n.Id;
-        }
 
-        public Effector getEffectorByActionSensorId(int id)
-        {
-            String name = this.getNode(id).Name;
-            return (Effector)this.Effectors.FirstOrDefault(e => e.Name == name || e.Name == name.Substring(1));
-
-        }
-        public List<Node> getAcceptNodes()
-        {
-            List<Node> nodes = new List<Node>();
-            nodes.AddRange(this.Receptors);
-            nodes.AddRange(this.Handlers);
-            return nodes;
-        }
         #endregion
 
         #region 初始化
        
-        /// <summary>
-        /// 重置计算
-        /// </summary>
-        public void Reset()
-        {
-            this.nodes.ForEach(a => a.Reset());
-            this.nodes.ForEach(n => n.think_reset());
-        }
-
-        public void thinkReset()
-        {
-            this.nodes.ForEach(n => n.think_reset());
-        }
+        
 
 
         /// <summary>
@@ -235,14 +210,20 @@ namespace NWSELib.net
                 Receptor receptor = new Receptor(genome.receptorGenes[i],this);
                 this.nodes.Add(receptor);
             }
-            for (int i = 0; i < genome.handlerGenes.Count; i++)
+            var handlerDepths = genome.GetHanlerDepth();
+            for(int d = handlerDepths.Item1;d<=handlerDepths.Item2;d++)
             {
-                Handler handler = Handler.create(genome.handlerGenes[i],this);
-                this.nodes.Add(handler);
+                List<HandlerGene> handlerGenes = genome.handlerGenes.FindAll(g => g.Depth == d);
+                foreach(HandlerGene handlerGene in handlerGenes)
+                {
+                    Handler handler = Handler.create(handlerGene, this);
+                    this.nodes.Add(handler);
+                }
             }
-            for (int i = 0; i < genome.infrernceGenes.Count; i++)
+            
+            for (int i = 0; i < genome.inferenceGenes.Count; i++)
             {
-                Inference inference = new Inference(genome.infrernceGenes[i],this);
+                Inference inference = new Inference(genome.inferenceGenes[i],this);
                 this.nodes.Add(inference);
             }
             for (int i = 0; i < this.ActionReceptors.Count; i++)
@@ -262,24 +243,25 @@ namespace NWSELib.net
                     this.adjMatrix[k2, k1] = 1;
                 }
             }
-            for (int i = 0; i < genome.infrernceGenes.Count; i++)
+            for (int i = 0; i < genome.inferenceGenes.Count; i++)
             {
-                int k1 = idToIndex(genome.infrernceGenes[i].Id);
-                for (int j = 0; j < genome.infrernceGenes[i].getDimensions().Count; j++)
+                int k1 = idToIndex(genome.inferenceGenes[i].Id);
+                for (int j = 0; j < genome.inferenceGenes[i].Dimensions.Count; j++)
                 {
-                    int k2 = idToIndex(genome.infrernceGenes[i].getDimensions()[j].Item1);
+                    int k2 = idToIndex(genome.inferenceGenes[i].Dimensions[j]);
                     this.adjMatrix[k2, k1] = 1;
                 }
             }
 
             actionPlanChain = new ActionPlanChain(this);
             actionMemory = new ObservationHistory(this);
-            policy = new CollisionPolicy(this);
-            //imagination = new Imagination(this);
-
+            policy = new EmotionPolicy(this);
         }
 
-
+        public List<Vector> CreateDefaultActions()
+        {
+            return new double[] { 0.5 }.ToList().ConvertAll(d=>new Vector(d));
+        }
 
         #endregion
 
@@ -294,7 +276,32 @@ namespace NWSELib.net
         /// 行动计划链
         /// </summary>
         public ActionPlanChain actionPlanChain;
-        
+
+        /// <summary>
+        /// 重置计算
+        /// </summary>
+        public void Reset()
+        {
+            this.nodes.ForEach(a => a.Reset());
+            this.nodes.ForEach(n => n.think_reset());
+        }
+
+        public void ThinkReset()
+        {
+            this.nodes.ForEach(n => n.think_reset());
+        }
+
+        public void thinkHandles(int time)
+        {
+            List<Handler> handlers = this.Handlers;
+            if (handlers == null || handlers.Count <= 0) return;
+            while (!handlers.All(h => h.IsThinkCompleted(time)))
+            {
+                handlers.ForEach(h => h.think(this, time, null));
+            }
+
+        }
+
         #endregion
 
         #region 评价信息
@@ -321,26 +328,13 @@ namespace NWSELib.net
             }
         }
 
-        public (int,int) ComputeInferenceValidity()
+        
+        public List<NodeGene> FindVaildInferences(bool newOnly=true,int validUpperLimit=2)
         {
-            double lowlimit = Session.GetConfiguration().evaluation.gene_reability_range.Min;
-            List<Inference> invalidinf = this.Inferences.FindAll(n => !double.IsNaN(n.Reability) && n.Reability != 0 && n.Reability < lowlimit && Session.IndexOfInvalidInferenceGenes(n.getGene()) >= 0);
-            if(invalidinf!=null && invalidinf.Count>0)
-            {
-                invalidinf.ForEach(inf => inf.getGene().validity = -1);
-            }
-
-            double highlimit = Session.GetConfiguration().evaluation.gene_reability_range.Max;
-            List<NodeGene> validgenes = this.Inferences.FindAll(n => !double.IsNaN(n.Reability) && n.Reability > highlimit).ConvertAll(n => n.Gene);
-            if(validgenes != null && validgenes.Count>0)
-                validgenes.ForEach(g => g.validity = 1);
-
-
-            return (validgenes.Count, invalidinf.Count);
-        }
-        public List<NodeGene> findNewVaildInferences()
-        {
-            List<NodeGene> genes = this.Inferences.FindAll(inf => inf.getGene().validity == 1).ConvertAll(inf => inf.Gene).FindAll(g=>!this.genome.isVaildGene(g));
+            List<Inference> infs = this.Inferences.FindAll(inf => inf.ValidRecordCount>= validUpperLimit);
+            if (infs == null || infs.Count <= 0) return new List<NodeGene>();
+            List<NodeGene> genes = infs.ConvertAll(inf => inf.Gene);
+            if (newOnly)genes = genes.FindAll(g=>!this.genome.isVaildGene(g));
             if (genes == null || genes.Count <= 0) return genes;
 
             for (int i=0;i<genes.Count;i++)
@@ -359,54 +353,30 @@ namespace NWSELib.net
             return genes;
         }
 
-        public List<NodeGene> findVaildInferences()
+       
+        public List<Inference> FindInvaildInference(bool newOnly=true, int validUpperLimit = 2)
         {
-            List<NodeGene> genes = this.Inferences.FindAll(inf => inf.getGene().validity == 1).ConvertAll(inf => inf.Gene);
-            if (genes == null || genes.Count <= 0) return genes;
-
-            for (int i = 0; i < genes.Count; i++)
-            {
-                NodeGene gene = genes[i];
-                List<NodeGene> temp = gene.getUpstreamGenes();
-                if (temp == null || temp.Count <= 0) continue;
-                foreach (NodeGene t in temp)
-                {
-                    if (t is ReceptorGene) continue;
-                    else if (genes.Contains(t)) continue;
-                    genes.Add(t);
-                }
-            }
-
-            return genes;
+            List<Inference> infs = this.Inferences.FindAll(inf => inf.ValidRecordCount < validUpperLimit);
+            if (newOnly)
+                infs = infs.FindAll(inf => !Session.IsInvaildGene(inf.GetGene()));
+            return infs;
         }
-
-        public List<Inference> findNewInvaildInference()
-        {
-            return this.Inferences.FindAll(inf => inf.getGene().validity == -1)
-                                  .FindAll(inf => !Session.IsInvaildGene(inf.getGene()));
-        }
-        public List<Inference> findInvaildInference()
-        {
-            return this.Inferences.FindAll(inf => inf.getGene().validity == -1);
-        }
-
-        public (double,int,int) ComputeReability()
-        {
-            this.Inferences.ForEach(inf => inf.computeReability());
-            (int validcount,int invalidcount) = ComputeInferenceValidity();
-            return (this.Reability, validcount, invalidcount);
-        }
-
         #endregion
 
 
         #region 网络活动
+        public void PrepareTask(Session session)
+        {
+            Session.taskBeginHandler(this, session);
+            this.Receptors.ForEach(r => r.Reset());
+            this.Handlers.ForEach(h => h.Reset());
+        }
         /// <summary>
         /// 激活
         /// </summary>
         /// <param name="obs"></param>
         /// <returns></returns>
-        public List<double> activate(List<double> obs, int time,Session session,double reward)
+        public List<double> Activate(List<double> obs, int time,Session session,double reward)
         {
             //0. 缓存奖励  
             this.reward = reward;
@@ -416,38 +386,40 @@ namespace NWSELib.net
             //1.接收输入
             for (int i = 0; i < obs.Count; i++)
             {
-                this.Receptors[i].activate(this, time, obs[i]);
+                this.Receptors[i].Activate(this, time, obs[i]);
             }
 
             //2.处理感知
-            while (!this.Handlers.All(n => n.IsActivate(time)))
+            var handlerDepth = this.genome.GetHanlerDepth();
+            for(int d = handlerDepth.Item1;d<=handlerDepth.Item2;d++)
             {
-                this.Handlers.ForEach(n => n.activate(this, time, null));
+                List<Handler> handlers = this.Handlers.FindAll(h => h.Gene.Depth == d);
+                handlers.ForEach(n => n.Activate(this, time, null));
             }
-
+            
             
             //3. 记忆整理
             for (int i=0;i<this.Inferences.Count;i++)
             {
                 Inference inf = this.Inferences[i];
-                inf.activate(this, time);
+                inf.Activate(this, time);
             }
 
             //4. 对现有推理记录的准确性进行评估
-            for (int i = 0; i < this.Inferences.Count; i++)
+            /*for (int i = 0; i < this.Inferences.Count; i++)
             {
                 Inference inf = this.Inferences[i];
                 inf.Records.ForEach(r => r.adjustAccuracy(time));
                 inf.removeWrongRecords();
-            }
+            }*/
 
             //5. 行为决策   
             this.reward = reward;
             if (this.actionPlanChain.Last != null)
                 this.actionPlanChain.Last.reward = reward;
 
-            policyName = Session.GetConfiguration().evaluation.policy.name;
-            Policy.GetPolicy(this,policyName).execute(time,session);
+            String policyName = Session.GetConfiguration().evaluation.policy.name;
+            policy.Execute(time,session);
                   
             setEffectValue(time);
 
@@ -455,7 +427,7 @@ namespace NWSELib.net
             List<double> actions = this.Effectors.ConvertAll<double>(n => (double)n.Value);
             for(int i=0;i< this.ActionReceptors.Count;i++)
             {
-                this.ActionReceptors[i].activate(this, time, actions[i]);
+                this.ActionReceptors[i].Activate(this, time, actions[i]);
             }
            
             return actions;
@@ -468,7 +440,7 @@ namespace NWSELib.net
         {
             for (int i = 0; i < this.Effectors.Count; i++)
             {
-                this.Effectors[i].activate(this, time, this.actionPlanChain.Last.actions[i]);
+                this.Effectors[i].Activate(this, time, this.actionPlanChain.Last.actions[i]);
             }
         }
 
@@ -491,102 +463,231 @@ namespace NWSELib.net
         
         }
         /// <summary>
+        /// 推测姿态不变的情况下，从当前环境所导致的奖励
+        /// </summary>
+        /// <param name="gesture">初始姿态</param>
+        /// <param name="envirment">初始环境</param>
+        /// <param name="count">预测次数</param>
+        /// <returns></returns>
+        public double DoForcastReward(int time,Vector gesture,Vector env,int count=3,int rewardLowlimit=0)
+        {
+            List<double> actions = ActionPlan.MaintainAction;
+            List<Vector> observations = this.GetReceoptorValues();
+            observations = this.ReplaceObservationValue(observations, this.EnvReceptors.ConvertAll(r=>(Node)r), env.ToList().ConvertAll(e=>new Vector(e)));
+            observations = this.ReplaceObservationValue(observations, this.GesturesReceptors.ConvertAll(r => (Node)r), gesture.ToList().ConvertAll(e => new Vector(e)));
+            observations = this.ReplaceObservationValue(observations, this.ActionReceptors.ConvertAll(r => (Node)r),
+                actions.ConvertAll(a => new Vector(a)));
+
+            Node rewardNode = this.RewardReceptor;
+
+            //循环count次，每次预测是否会得到负奖励
+            int vtime = time + 1;
+            for (int i = 0; i < count; i++)
+            {
+                this.ThinkReset();
+                this.ThinkActivation(vtime, observations);
+
+                List<Node> nonactionReceptors = this.Receptors.FindAll(r=>!r.Gene.IsActionSensor()).ConvertAll(r=>(Node)r);
+                Dictionary<Node, Vector> handlerValueDict = new Dictionary<Node, Vector>();
+                foreach (Inference inf in this.Inferences)
+                {
+                    List<Vector> condValues = inf.ConditionNodes.ConvertAll(n => n.getThinkValues(vtime));
+                    List<Vector> varValues = inf.forward_inference(condValues, "record").Item2;
+                    if (varValues == null || varValues.Count<=0) continue;
+
+                    int rewardIndex = inf.VariableNodes.IndexOf(rewardNode);
+                    if(rewardIndex >= 0)
+                    {
+                        double rewardValue = varValues[rewardIndex][0];
+                        if (rewardValue < rewardLowlimit) return -1;
+                    }
+                    for(int j=0;j<inf.VariableNodes.Count;j++)
+                    {
+                        if (inf.VariableNodes[j] is Handler)
+                            handlerValueDict.Add(inf.VariableNodes[j], varValues[j]);
+                        else
+                            nonactionReceptors.Remove(inf.VariableNodes[j]);
+                    }
+                    
+                    observations = ReplaceObservationValue(observations, inf.VariableNodes, varValues);
+                }
+                //如果有感受器的值没有推测出来，则尝试通过Handler来推测
+                if(nonactionReceptors.Count>0)
+                {
+                    //倒着遍历所有handler
+                    int maxDepth = this.genome.getHandlerMaxDepth();
+                    for (int depth = maxDepth; depth>=1;depth--)
+                    {
+                        //取得第depth层的handler
+                        List<Node> handlers = this.genome.handlerGenes.FindAll(h => h.Depth == depth).ConvertAll(g => this[g.Id]);
+                        if (handlers == null || handlers.Count <= 0) continue;
+                        for(int k=0;k<handlers.Count;k++)
+                        {
+                            //这个handler没有计算出来值
+                            if (!handlerValueDict.ContainsKey(Handlers[k])) continue;
+                            if(handlers[k] is DiffHandler)
+                            {
+                                List<Node> inputs = handlers[k].getInputNodes(this);
+                                Node input1 = inputs[0];
+                                Node input2 = inputs[1];
+                                //输入1和2都有值
+                                if ((input1 is Handler && handlerValueDict.ContainsKey(input1)) || (input1 is Receptor && !nonactionReceptors.Contains(input1)) && (input2 is Handler && handlerValueDict.ContainsKey(input2)) || (input2 is Receptor && !nonactionReceptors.Contains(input2)))
+                                    continue;
+                                //输入1有值，输入2没有
+                                else if((input1 is Handler && handlerValueDict.ContainsKey(input1)) || (input1 is Receptor && !nonactionReceptors.Contains(input1)))
+                                {
+                                    double newValue = input1.getThinkValues(vtime)[0] - handlerValueDict[handlers[k]][0];
+                                    //如果是handler，将新值加入到handler值字典；否则替换观察值
+                                    if (input2 is Handler) handlerValueDict.Add(input2, new Vector(newValue));
+                                    else if (input2 is Receptor)
+                                    {
+                                        if (input2 == rewardNode && newValue < rewardLowlimit) return newValue;
+                                        observations = this.ReplaceObservationValue(observations, new Node[] { input2 }.ToList(), new Vector[] { new Vector(newValue) }.ToList());
+                                        nonactionReceptors.Remove(input2);
+                                    }
+                                }
+                                //输入2有值，输入1没有
+                                else if ((input2 is Handler && handlerValueDict.ContainsKey(input2)) || (input2 is Receptor && !nonactionReceptors.Contains(input2)))
+                                {
+                                    double newValue = input2.getThinkValues(vtime)[0] + handlerValueDict[handlers[k]][0];
+                                    //如果是handler，将新值加入到handler值字典；否则替换观察值
+                                    if (input1 is Handler) handlerValueDict.Add(input1, new Vector(newValue));
+                                    else if (input1 is Receptor)
+                                    {
+                                        if (input1 == rewardNode && newValue < rewardLowlimit) return newValue;
+                                        observations = this.ReplaceObservationValue(observations, new Node[] { input1 }.ToList(), new Vector[] { new Vector(newValue) }.ToList());
+                                        nonactionReceptors.Remove(input1);
+                                    }
+                                }
+                            }
+                            else if(handlers[k] is VariationHandler)
+                            {
+                                Node input = handlers[k].getInputNodes(this)[0];
+                                //handler的输入也是Handler，且已经有值，则不需要计算
+                                if (input is Handler && handlerValueDict.ContainsKey(input)) continue;
+                                //handler的输入是Receptor，且已经有值，则不需要计算
+                                if (input is Receptor && !nonactionReceptors.Contains(input)) continue;
+                                //计算新值=原有值+变动值
+                                double newValue = input.getThinkValues(vtime)[0] + handlerValueDict[handlers[k]][0];
+
+                                //如果是handler，将新值加入到handler值字典；否则替换观察值
+                                if (input is Handler) handlerValueDict.Add(input, new Vector(newValue));
+                                else if (input is Receptor)
+                                {
+                                    if (input == rewardNode && newValue < rewardLowlimit) return newValue;
+                                    observations = this.ReplaceObservationValue(observations, new Node[] { input }.ToList(), new Vector[] { new Vector(newValue) }.ToList());
+                                    nonactionReceptors.Remove(input);
+                                }
+
+                            }
+                        }
+                    }
+                }
+                observations = this.ReplaceMaintainAction(observations);
+                vtime += 1;
+            }
+            return 1;
+
+        }
+        /// <summary>
         /// 推理找到达到期望姿态的动作
         /// 
         /// </summary>
         /// <param name="expectGesture"></param>
         /// <returns></returns>
-        public List<double> doInference(Vector expectGesture)
+        public List<double> doInference(int time,Vector expectGesture,out Dictionary<Vector, Vector> actionToGesture)
         {
+            actionToGesture = new Dictionary<Vector, Vector>();
             List<List<double>> sampleActionSet = this.CreateTestActionSet(new int[]{ 16});
             List<Vector> gestures = new List<Vector>();
             for(int i=0;i<sampleActionSet.Count;i++)
             {
-                List<Vector> observation = this.GetReceoptorValues();
-                observation = this.ReplaceWithAction(observation, sampleActionSet[i]);
-
-                List<Vector> newObs = this.forward_inference(observation);
+                List<Vector> newObs = this.forward_inference(time,sampleActionSet[i]);
+                if (newObs == null) return null;
                 Vector gesture = this.GetReceptorGesture(newObs.flatten().Item1);
                 gestures.Add(gesture);
+                actionToGesture.Add(new Vector(sampleActionSet[i]), gesture.clone());
             }
 
             List<double> dis = gestures.ConvertAll(g => g.manhantan_distance(expectGesture));
             return sampleActionSet[dis.argmin()];
 
         }
-        public List<Vector> forward_inference(List<Vector> obs = null,String inferenceMethod= "recordsample")
+        /// <summary>
+        /// 给定动作，执行一步推理
+        /// </summary>
+        /// <param name="time"></param>
+        /// <param name="actions"></param>
+        /// <param name="reset"></param>
+        /// <param name="inferenceMethod"></param>
+        /// <returns></returns>
+        public List<Vector> forward_inference(int time,List<double> actions,bool reset=true,String inferenceMethod= "recordsample")
         {
-            if (obs == null)
-                obs = this.GetReceoptorValues();
+            //取得当前动作，用于修改后恢复
+            List<double> curActionValues = this.GetReceoptorSplit().action;
+            //如果调用者连续调用，则reset应为false
+            if(reset) this.ThinkReset();
+            //将动作感知替换成参数动作，结束后需要替换回来
+            this.ReplaceReceptorActionValues(time,actions);
 
-            //准备新的观察数据，初始值都是null
-            Vector[] newObs = new Vector[obs.Count];
-            //新的观察数据中的动作部分用原观察替换
             List<Receptor> receptors = this.Receptors;
-            int[] actionIndex = this.ActionReceptors.ConvertAll(ar => receptors.IndexOf(ar)).ToArray();
-            actionIndex.ToList().ForEach(i => newObs[i] = obs[i].clone());
-
+            List<Vector> observations = this.GetReceoptorValues();
+            
             //对每一个推理节点执行前向推理
-            foreach(Inference inf in this.Inferences)
+            foreach (Inference inf in this.Inferences)
             {
-                int[] condIndex = inf.getGene().getConditionIds()
-                                   .ConvertAll(id => (Receptor)this[id])
-                                   .ConvertAll(node => receptors.IndexOf(node))
-                                   .ToArray();
-                int[] varIndex = inf.getGene().getVariableIds()
-                                   .ConvertAll(id => (Receptor)this[id])
-                                   .ConvertAll(node => receptors.IndexOf(node))
-                                   .ToArray();
-                List <Vector> condValues = condIndex.ToList().ConvertAll(index=>obs[index]);
+                List<Vector> condValues = inf.ConditionNodes.ConvertAll(n => n.getThinkValues(time));
                 List<Vector> varValues = inf.forward_inference(condValues, inferenceMethod).Item2;
-                if (varValues == null) return null;
-                for(int i=0;i< varValues.Count;i++)
-                {
-                    if (varIndex[i] == -1) continue;
-                    newObs[varIndex[i]] = varValues[i].clone();
-                }
+                if (varValues == null) continue;
+
+                observations = ReplaceObservationValue(observations, inf.VariableNodes, varValues);
             }
+            observations = this.ReplaceMaintainAction(observations);
 
-            return newObs.All(v => v != null) ? newObs.ToList() : null;
+            this.ReplaceReceptorActionValues(time, curActionValues);
+            return observations;
 
         }
-        public List<InferenceRecord> GetMatchInfRecords(List<Vector> envValues,List<double> actions, int time)
+
+        public void ThinkActivation(int vtime, List<Vector>  observations)
         {
-            return GetMatchInfRecords(this.GetMergeReceptorValues(envValues, actions), time);
-        }
-        public List<InferenceRecord> GetMatchInfRecords(List<Vector> observations,int time)
-        {
-            this.thinkReset();
-            //初始化感知节点
             List<Receptor> receptors = this.Receptors;
             for (int i = 0; i < receptors.Count; i++)
+                receptors[i].think(this, vtime, observations[i]);
+
+            var handlerDepth = this.genome.GetHanlerDepth();
+            for(int d = handlerDepth.Item1;d <= handlerDepth.Item2;d++)
             {
-                receptors[i].think(this, time, observations[i]);
+                List<Handler> handlers = this.Handlers.FindAll(h => h.Gene.Depth == d);
+                handlers.ForEach(h => h.think(this, vtime, null));
             }
 
-            //激活处理节点
-            List<Handler> handlers = this.Handlers;
-            while (handlers != null && !handlers.All(n => n.IsThinkCompleted(time)))
+            foreach(Inference inf in this.Inferences)
             {
-                handlers.ForEach(n => n.think(this, time, null));
+                inf.think(this, vtime, null);
             }
-
-            
-
-            List<Inference> inferences = this.Inferences;
-            List<InferenceRecord> results = new List<InferenceRecord>();
-            foreach (Inference inte in inferences)
-            {
-                //得到条件值
-                List<Vector> condValues = inte.getGene().getConditionIds().ConvertAll(id => this[id]).ConvertAll(node => node.getThinkValues(time));
-                //条件值不全
-                if (condValues.Exists(v => v == null)) continue;
-                var match = inte.getMatchRecord(condValues);
-                if (match.Item1 == null) continue;
-                results.Add(match.Item1);
-            }
-            return results;
         }
+        public void ReplaceReceptorActionValues(int time, List<double> actions)
+        {
+            List<Receptor> receptors = this.ActionReceptors;
+            for (int i = 0; i < receptors.Count; i++)
+                receptors[i].Activate(this,time,new Vector(actions[i]));
+        }
+
+        public List<Vector> ReplaceObservationValue(List<Vector> observations, List<Node> nodes, List<Vector> values)
+        {
+            List<Receptor> receptors = this.Receptors;
+            for(int i=0;i<nodes.Count;i++)
+            {
+                if (!(nodes[i] is Receptor)) continue;
+                int index = receptors.IndexOf((Receptor)nodes[i]);
+                observations[index] = values[i].clone();
+            }
+            return observations;
+        }
+
+        
+        
         #endregion
 
         #region 观察空间管理
@@ -598,7 +699,7 @@ namespace NWSELib.net
             for(int i=0;i<receptors.Count;i++)
             {
                 if (i >= observation.Size) continue;
-                str.Append(receptors[i].Gene.Description + "=" + observation[i].ToString("F4") + sep);
+                str.Append(receptors[i].Gene.Name + "=" + observation[i].ToString("F4") + sep);
             }
             return str.ToString();
         }
@@ -787,18 +888,24 @@ namespace NWSELib.net
         }
         #endregion
         #region 保存和读取
-        public void save(String path,int generation)
+
+        public String GetFileName(String path)
+        {
+            return path + "\\" + this.Id.ToString() + "_" +
+            this.genome.generation.ToString() + "_" + this.Fitness.ToString("F5") + ".ind";
+        }
+        public void Save(String path,int generation)
         {
             String filename = path + "\\" + this.Id.ToString() + "_" +
             generation.ToString()+"_"+this.Fitness.ToString("F5") + ".ind";
 
             File.WriteAllText(filename, this.genome.ToString());
         }
-        public static Network load(String filename)
+        public static Network Load(String filename)
         {
             String text = File.ReadAllText(filename);
             if (text == null || text.Trim() == "") return null;
-            NWSEGenome genome = NWSEGenome.parse(text);
+            NWSEGenome genome = NWSEGenome.Parse(text);
             return new Network(genome);
         }
         #endregion

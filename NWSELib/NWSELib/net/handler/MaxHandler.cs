@@ -14,7 +14,7 @@ namespace NWSELib.net.handler
         {
             
         }
-        public override Object activate(Network net, int time, Object value = null)
+        public override Object Activate(Network net, int time, Object value = null)
         {
             List<Node> inputs = net.getInputNodes(this.Id);
             if (!inputs.All(n => n.IsActivate(time)))
@@ -22,8 +22,19 @@ namespace NWSELib.net.handler
             List<double> lengths = inputs.ConvertAll(input => input.GetValue(time).length());
             double v = lengths.Max();
 
-            base.activate(net, time, (double)v);
+            base.Activate(net, time, (double)v);
             return this.Value;
+        }
+
+        public override void think(Network net, int time, Vector value = null)
+        {
+            List<Node> inputs = net.getInputNodes(this.Id);
+            if (!inputs.All(n => n.IsThinkCompleted(time)))
+                return;
+            List<double> lengths = inputs.ConvertAll(input => input.getThinkValues(time).length());
+            double v = lengths.Max();
+
+            base.think(net, time, new Vector((double)v));
         }
     }
 }

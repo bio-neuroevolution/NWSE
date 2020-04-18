@@ -46,7 +46,14 @@ namespace NWSEExperiment.maze
 
         #endregion
 
-        
+        #region 最优轨迹点
+        [XmlIgnore]
+        public OptimaTraceFitness fitnessFunction;
+        public List<Polyline> OptimaTraces = new List<Polyline>();
+
+        #endregion
+
+
 
         #region Constructors
 
@@ -100,7 +107,7 @@ namespace NWSEExperiment.maze
             Console.WriteLine("# walls: " + k.walls.Count);
             k.rng = new Random(k.seed);
 
-            k.initOptimaTraces();
+            k.fitnessFunction = new OptimaTraceFitness(k.OptimaTraces, k.goal_point);
             return k;
         }
 
@@ -191,8 +198,7 @@ namespace NWSEExperiment.maze
         #region 机器人信息
         [XmlIgnore]
         private ConcurrentDictionary<int, RobotAgent> agents = new ConcurrentDictionary<int, RobotAgent>();
-        [XmlIgnore]
-        List<List<Point2D>> optimaTraces = new List<List<Point2D>>();
+
         public bool AgentVisible { get; set; }
 
         [XmlIgnore]
@@ -229,7 +235,7 @@ namespace NWSEExperiment.maze
 
             agent.reset(this.start_point);
             List<double> obs =agent.getObserve();
-            //obs.Add(0); //没有发生碰撞冲突
+            obs.Add(0); //没有发生碰撞冲突
             /*var poscode = MeasureTools.Position.poscodeCompute(this.AOIRectangle, agent.Location.X, agent.Location.Y);
             obs.Add(poscode.Item1);*/
 
@@ -248,7 +254,10 @@ namespace NWSEExperiment.maze
             bool noncollision = agent.doAction(actions.ToArray());
 
             List<double> obs = agent.getObserve();
-            //obs.Add(agent.HasCollided?1:0);
+
+            double reward = this.compute_reward(agent);
+            obs.Add(reward);
+            //obs.Add(agent.HasCollided?-50:0);
 
             /*var poscode = MeasureTools.Position.poscodeCompute(this.AOIRectangle,agent.Location.X,agent.Location.Y);
             obs.Add(poscode.Item1);*/
@@ -256,27 +265,31 @@ namespace NWSEExperiment.maze
             List<double> gesture = new List<double>();
             gesture.Add(agent.Heading/(2*Math.PI));
 
-
-            double reward = this.compute_reward(agent);
-
             bool end = agent.Location.manhattanDistance(this.goal_point) < Session.GetConfiguration().evaluation.end_distance;
             return (obs, gesture, actions,reward,end);
         }
 
+        public List<double> TaskBeginHandler(Network net, Session session)
+        {
+            RobotAgent agent = this.agents[net.Id];
+            agent.Heading = this.robot_heading;
+            agent.Location = new Point2D(start_point.X, start_point.Y);
+            agent.updateSensors();
+            return null;
+        }
         public Vector GetOptimaGestureHandler(Network net, int time)
         {
             RobotAgent agent = this.agents[net.Id];
             Radar radar = (Radar)(agent.GoalSensors[0]);
-            return new Vector(radar.getActivation());
-            
+            return new Vector(radar.getActivation()); 
         }
 
 
 
         public static List<double> createInstinctAction(Network net, int time)
         {
-            double v1 = net.getNode("g1").GetValue(time)[0];
-            double v2 = net.getNode("heading").GetValue(time)[0];
+            double v1 = net["g1"].GetValue(time)[0];
+            double v2 = net["heading"].GetValue(time)[0];
             double v = v1 - v2;
             if(v < -0.5) v = 1.0 + v;
             else if (v > 0.5) v = 1.0 - v;
@@ -329,26 +342,14 @@ namespace NWSEExperiment.maze
         #endregion
 
         #region 计算奖励
-
-        private void initOptimaTraces()
+        
+        public double compute_fitness(Network net, Session session)
         {
-            this.optimaTraces = new List<List<Point2D>>();
-            List<Point2D> t1 = new List<Point2D>();
-            t1.Add(new Point2D(this.start_point.X, this.start_point.Y));
-            t1.Add(new Point2D(469,738));
-            t1.Add(new Point2D(254, 738));
-            t1.Add(new Point2D(244, 1022));
-            t1.Add(new Point2D(this.goal_point.X,this.goal_point.Y+150));
-            optimaTraces.Add(t1);
-
-            List<Point2D> t2 = new List<Point2D>();
-            t2.Add(new Point2D(this.start_point.X, this.start_point.Y));
-            t2.Add(new Point2D(469, 738));
-            t2.Add(new Point2D(683, 738));
-            t2.Add(new Point2D(693, 1022));
-            t2.Add(new Point2D(this.goal_point.X, this.goal_point.Y+150));
-            optimaTraces.Add(t2);
+            RobotAgent agent = (RobotAgent)this.GetAgent(net.Id);
+            List<Point2D> traces = new List<Point2D>(agent.Traces);
+            return this.fitnessFunction.calculate(traces);
         }
+        /*
         public double compute_fitness(Network net,Session session)
         {
             RobotAgent robot = (RobotAgent)this.GetAgent(net.Id);
@@ -394,7 +395,7 @@ namespace NWSEExperiment.maze
             }
             return maxFitness + goal_reward;
         }
-
+        */
         
         public double compute_reward(Agent agent)
         {
@@ -460,11 +461,11 @@ namespace NWSEExperiment.maze
             //计算离Agent的前一个点最近的最优点
             int optima_index=-1,posindex=-1;
             double min = double.MaxValue ;
-            for(int i=0;i<optimaTraces.Count;i++)
+            for(int i=0;i< OptimaTraces.Count;i++)
             {
-                for(int j=0;j<optimaTraces[i].Count;j++)
+                for(int j=0;j< OptimaTraces[i].Points.Count;j++)
                 {
-                    double dis = EngineUtilities.euclideanDistance(agent.OldLocation, optimaTraces[i][j]);
+                    double dis = EngineUtilities.euclideanDistance(agent.OldLocation, OptimaTraces[i].Points[j]);
                     if (dis < min)
                     {
                         optima_index = i;
@@ -473,8 +474,8 @@ namespace NWSEExperiment.maze
                     }
                 }
             }
-            if (posindex >= optimaTraces[optima_index].Count - 1) return 1.0;
-            Point2D correctPoint = optimaTraces[optima_index][posindex + 1];
+            if (posindex >= OptimaTraces[optima_index].Points.Count - 1) return 1.0;
+            Point2D correctPoint = OptimaTraces[optima_index].Points[posindex + 1];
 
             //计算前一个点行动后的最理想距离（即前一个点向正确点直接走后与正确点的距离）
             Point2D p1 = ((RobotAgent)agent).compute_move_location(agent.OldLocation, correctPoint,1);

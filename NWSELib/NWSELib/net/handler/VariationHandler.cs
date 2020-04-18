@@ -15,7 +15,7 @@ namespace NWSELib.net.handler
         {
         }
 
-        public override Object activate(Network net, int time, Object value = null)
+        public override Object Activate(Network net, int time, Object value = null)
         {
             List<Node> inputs = net.getInputNodes(this.Id);
             if (!inputs.All(n => n.IsActivate(time)))
@@ -29,8 +29,26 @@ namespace NWSELib.net.handler
 
             MeasureTools tool = this.GetMeasureTools();
             double v = tool.difference(fv1[0],fv2[0]);
-            base.activate(net, time, v);
+            base.Activate(net, time, v);
             return v;
+
+        }
+
+        public override void think(Network net, int time, Vector value = null)
+        {
+            List<Node> inputs = net.getInputNodes(this.Id);
+            if (!inputs.All(n => n.IsThinkCompleted(time)))
+                return;
+
+            Node input1 = inputs[0];
+
+            Vector fv1 = input1.getThinkValues(time);
+            Vector fv2 = input1.getThinkValues(time - 1);
+            if (fv1 == null || fv2 == null) return;
+
+            MeasureTools tool = this.GetMeasureTools();
+            double v = tool.difference(fv1[0], fv2[0]);
+            base.think(net, time, v);
 
         }
     }

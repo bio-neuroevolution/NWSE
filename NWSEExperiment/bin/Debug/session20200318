@@ -1,0 +1,509 @@
+2020-03-18 22:41:57,929:generation=1,message=population init...
+2020-03-18 22:41:57,965:generation=1,message=net evaulation begin
+2020-03-18 22:42:18,785:Invalid gene:generation=1,gene=_a2=>d1,reability=0.3066,netid=1
+2020-03-18 22:42:18,787:Invalid gene:generation=1,gene=_a2=>d2,reability=0.2576,netid=1
+2020-03-18 22:42:18,789:Invalid gene:generation=1,gene=_a2=>d3,reability=0.2643,netid=1
+2020-03-18 22:42:18,791:Invalid gene:generation=1,gene=_a2=>d4,reability=0.2880,netid=1
+2020-03-18 22:42:18,792:Invalid gene:generation=1,gene=_a2=>d5,reability=0.3271,netid=1
+2020-03-18 22:42:18,794:Invalid gene:generation=1,gene=_a2=>d6,reability=0.3474,netid=1
+2020-03-18 22:42:18,796:Invalid gene:generation=1,gene=_a2=>heading,reability=0.2868,netid=1
+2020-03-18 22:42:18,798:generation=1,message=network id=1,fitness=2.9406,reability=0.2968,completed=False
+2020-03-18 22:42:18,854:generation=1,message=评估完成，最优个体：net id=1,fitness=2.9406,reability=0.2968
+2020-03-18 22:42:18,872:generation=2,message=population evoluting...
+2020-03-18 22:42:18,910:generation=2,message=A new handler gene is produced in 0:variation(d1)
+2020-03-18 22:42:18,912:generation=2,message=A inference gene is added in 0:_a2=>variation(d1)
+2020-03-18 22:42:18,929:generation=2,message=conditions of inference gene is added(0):_a2=>d3--->d2,_a2=>d3
+2020-03-18 22:42:18,933:generation=2,message=conditions of inference gene is modified(0):_a2=>d4--->d5=>d4
+2020-03-18 22:42:18,936:generation=2,message=conditions of inference gene is modified(0):_a2=>heading--->d3=>heading
+2020-03-18 22:42:18,947:generation=2,message=conditions of inference gene is modified(0):_a2=>d1--->d2=>d1
+2020-03-18 22:42:18,950:generation=2,message=conditions of inference gene is added(0):_a2=>d2--->d3,_a2=>d2
+2020-03-18 22:42:18,952:generation=2,message=conditions of inference gene is modified(0):_a2=>d3--->d4=>d3
+2020-03-18 22:42:18,954:generation=2,message=conditions of inference gene is modified(0):_a2=>d4--->d1=>d4
+2020-03-18 22:42:18,983:generation=2,message=net evaulation begin
+2020-03-18 22:42:42,367:Invalid gene:generation=2,gene=_a2=>variation(d1),reability=0.2662,netid=2
+2020-03-18 22:42:42,370:Invalid gene:generation=2,gene=d5=>d4,reability=0.3826,netid=2
+2020-03-18 22:42:42,371:Invalid gene:generation=2,gene=d3=>heading,reability=0.4539,netid=2
+2020-03-18 22:42:42,373:generation=2,message=network id=2,fitness=2.5079,reability=0.3969,completed=False
+2020-03-18 22:43:06,011:Invalid gene:generation=2,gene=d2=>d1,reability=0.5424,netid=3
+2020-03-18 22:43:06,013:Invalid gene:generation=2,gene=d4=>d3,reability=0.5167,netid=3
+2020-03-18 22:43:06,015:Invalid gene:generation=2,gene=d1=>d4,reability=0.5088,netid=3
+2020-03-18 22:43:06,019:generation=2,message=network id=3,fitness=3.6061,reability=0.6180,completed=False
+2020-03-18 22:43:06,051:generation=2,message=评估完成，最优个体：net id=3,fitness=3.6061,reability=0.6180
+2020-03-18 22:43:06,060:generation=3,message=population evoluting...
+2020-03-18 22:43:06,066:generation=3,message=A new handler gene is produced in 0:variation(d1)
+2020-03-18 22:43:06,071:generation=3,message=A inference gene is added in 0:_a2=>variation(d1)
+2020-03-18 22:43:06,076:generation=3,message=conditions of inference gene is modified(0):_a2=>d3--->d6=>d3
+2020-03-18 22:43:06,078:generation=3,message=conditions of inference gene is modified(0):_a2=>d4--->variation(d1)=>d4
+2020-03-18 22:43:06,085:generation=3,message=conditions of inference gene is added(0):_a2=>d6--->d5,_a2=>d6
+2020-03-18 22:43:06,088:generation=3,message=conditions of inference gene is modified(0):_a2=>heading--->variation(d1)=>heading
+2020-03-18 22:43:06,093:generation=3,message=A new handler gene is produced in 0:direction(d1,d6)
+2020-03-18 22:43:06,096:generation=3,message=A inference gene is added in 0:_a2=>direction(d1,d6)
+2020-03-18 22:43:06,099:generation=3,message=conditions of inference gene is modified(0):_a2=>d6--->d6=>d6
+2020-03-18 22:43:06,101:generation=3,message=conditions of inference gene is added(0):d3=>heading--->d1,d3=>heading
+2020-03-18 22:43:06,104:generation=3,message=conditions of inference gene is added(0):_a2=>d6--->d5,_a2=>d6
+2020-03-18 22:43:06,106:generation=3,message=conditions of inference gene is modified(0):_a2=>heading--->d6=>heading
+2020-03-18 22:43:06,108:generation=3,message=conditions of inference gene is modified(0):d4=>d3--->heading=>d3
+2020-03-18 22:43:06,112:generation=3,message=conditions of inference gene is modified(0):d1=>d4--->d6=>d4
+2020-03-18 22:43:06,114:generation=3,message=conditions of inference gene is added(0):_a2=>heading--->d5,_a2=>heading
+2020-03-18 22:43:06,117:generation=3,message=conditions of inference gene is modified(0):d2=>d1--->d6=>d1
+2020-03-18 22:43:06,148:generation=3,message=net evaulation begin
+2020-03-18 22:43:27,943:Invalid gene:generation=3,gene=d6=>d3,reability=0.4565,netid=4
+2020-03-18 22:43:27,947:Invalid gene:generation=3,gene=variation(d1)=>d4,reability=0.3650,netid=4
+2020-03-18 22:43:27,949:Invalid gene:generation=3,gene=variation(d1)=>heading,reability=0.3741,netid=4
+2020-03-18 22:43:27,950:generation=3,message=network id=4,fitness=1.9357,reability=0.3848,completed=False
+2020-03-18 22:43:50,709:Invalid gene:generation=3,gene=d6=>d6,reability=0.5143,netid=5
+2020-03-18 22:43:50,716:generation=3,message=network id=5,fitness=2.6580,reability=0.4915,completed=False
+2020-03-18 22:44:15,463:Invalid gene:generation=3,gene=d6=>heading,reability=0.3742,netid=6
+2020-03-18 22:44:15,465:Invalid gene:generation=3,gene=heading=>d3,reability=0.3931,netid=6
+2020-03-18 22:44:15,466:Invalid gene:generation=3,gene=d6=>d4,reability=0.4238,netid=6
+2020-03-18 22:44:15,468:generation=3,message=network id=6,fitness=1.9658,reability=0.4817,completed=False
+2020-03-18 22:44:41,392:Invalid gene:generation=3,gene=d6=>d1,reability=0.4538,netid=7
+2020-03-18 22:44:41,395:generation=3,message=network id=7,fitness=1.9798,reability=0.5028,completed=False
+2020-03-18 22:44:41,418:generation=3,message=评估完成，最优个体：net id=3,fitness=3.6061,reability=0.6180
+2020-03-18 22:44:41,429:generation=4,message=population evoluting...
+2020-03-18 22:44:41,433:generation=4,message=A new handler gene is produced in 0:variation(heading)
+2020-03-18 22:44:41,434:generation=4,message=A inference gene is added in 0:_a2=>variation(heading)
+2020-03-18 22:44:41,436:generation=4,message=conditions of inference gene is modified(0):_a2=>d1--->variation(heading)=>d1
+2020-03-18 22:44:41,437:generation=4,message=conditions of inference gene is modified(0):_a2=>d3--->d5=>d3
+2020-03-18 22:44:41,439:generation=4,message=conditions of inference gene is modified(0):_a2=>d4--->heading=>d4
+2020-03-18 22:44:41,440:generation=4,message=conditions of inference gene is modified(0):_a2=>d6--->d4=>d6
+2020-03-18 22:44:41,442:generation=4,message=conditions of inference gene is added(0):_a2=>heading--->d2,_a2=>heading
+2020-03-18 22:44:41,445:generation=4,message=A new handler gene is produced in 0:direction(d2,d3)
+2020-03-18 22:44:41,446:generation=4,message=A inference gene is added in 0:_a2=>direction(d2,d3)
+2020-03-18 22:44:41,447:generation=4,message=conditions of inference gene is added(0):_a2=>d3--->_a2,direction(d2,d3)=>d3
+2020-03-18 22:44:41,450:generation=4,message=A new handler gene is produced in 0:direction(d2)
+2020-03-18 22:44:41,451:generation=4,message=A inference gene is added in 0:_a2=>direction(d2)
+2020-03-18 22:44:41,458:generation=4,message=conditions of inference gene is added(0):_a2=>d1--->d2,_a2=>d1
+2020-03-18 22:44:41,461:generation=4,message=conditions of inference gene is added(0):_a2=>d2--->d3,_a2=>d2
+2020-03-18 22:44:41,464:generation=4,message=conditions of inference gene is modified(0):_a2=>d5--->d1=>d5
+2020-03-18 22:44:41,466:generation=4,message=conditions of inference gene is modified(0):_a2=>variation(d1)--->d5=>variation(d1)
+2020-03-18 22:44:41,472:generation=4,message=conditions of inference gene is added(0):d5=>d4--->d5,heading=>d4
+2020-03-18 22:44:41,475:generation=4,message=conditions of inference gene is added(0):d3=>heading--->d1,d3=>heading
+2020-03-18 22:44:41,478:generation=4,message=A new handler gene is produced in 0:diff(d1,d3)
+2020-03-18 22:44:41,479:generation=4,message=A inference gene is added in 0:_a2=>diff(d1,d3)
+2020-03-18 22:44:41,480:generation=4,message=conditions of inference gene is modified(0):_a2=>d5--->d5=>d5
+2020-03-18 22:44:41,482:generation=4,message=conditions of inference gene is modified(0):_a2=>d6--->d2=>d6
+2020-03-18 22:44:41,484:generation=4,message=conditions of inference gene is added(0):d1=>d4--->d1,d2=>d4
+2020-03-18 22:44:41,488:generation=4,message=conditions of inference gene is added(0):_a2=>d5--->heading,_a2=>d5
+2020-03-18 22:44:41,492:generation=4,message=conditions of inference gene is modified(0):_a2=>d6--->d1=>d6
+2020-03-18 22:44:41,493:generation=4,message=conditions of inference gene is modified(0):_a2=>heading--->d4=>heading
+2020-03-18 22:44:41,495:generation=4,message=conditions of inference gene is modified(0):d2=>d1--->d5=>d1
+2020-03-18 22:44:41,497:generation=4,message=conditions of inference gene is added(0):d1=>d4--->d1,d5=>d4
+2020-03-18 22:44:41,498:generation=4,message=A new handler gene is produced in 0:variation(d3)
+2020-03-18 22:44:41,501:generation=4,message=A inference gene is added in 0:_a2=>variation(d3)
+2020-03-18 22:44:41,504:generation=4,message=conditions of inference gene is added(0):_a2=>d2--->d4,_a2=>d2
+2020-03-18 22:44:41,505:generation=4,message=conditions of inference gene is modified(0):_a2=>d5--->variation(d3)=>d5
+2020-03-18 22:44:41,506:generation=4,message=conditions of inference gene is added(0):variation(d1)=>d4--->d5,variation(d1)=>d4
+2020-03-18 22:44:41,509:generation=4,message=A new handler gene is produced in 0:direction(d2,d3)
+2020-03-18 22:44:41,512:generation=4,message=A inference gene is added in 0:_a2=>direction(d2,d3)
+2020-03-18 22:44:41,513:generation=4,message=conditions of inference gene is modified(0):_a2=>d2--->direction(d1,d6)=>d2
+2020-03-18 22:44:41,514:generation=4,message=conditions of inference gene is modified(0):_a2=>variation(d1)--->direction(d2,d3)=>variation(d1)
+2020-03-18 22:44:41,517:generation=4,message=conditions of inference gene is added(0):d6=>d6--->d6,variation(d1)=>d6
+2020-03-18 22:44:41,519:generation=4,message=conditions of inference gene is modified(0):d5=>d4--->d4=>d4
+2020-03-18 22:44:41,524:generation=4,message=conditions of inference gene is added(0):_a2=>d5--->d6,_a2=>d5
+2020-03-18 22:44:41,525:generation=4,message=conditions of inference gene is modified(0):d6=>heading--->heading=>heading
+2020-03-18 22:44:41,527:generation=4,message=conditions of inference gene is modified(0):heading=>d3--->d5=>d3
+2020-03-18 22:44:41,528:generation=4,message=A new handler gene is produced in 0:variation(d1)
+2020-03-18 22:44:41,530:generation=4,message=A inference gene is added in 0:_a2=>variation(d1)
+2020-03-18 22:44:41,532:generation=4,message=conditions of inference gene is modified(0):_a2=>d6--->d5=>d6
+2020-03-18 22:44:41,533:generation=4,message=conditions of inference gene is added(0):d4=>d3--->d4,variation(d1)=>d3
+2020-03-18 22:44:41,567:generation=4,message=net evaulation begin
+2020-03-18 22:45:17,640:Invalid gene:generation=4,gene=variation(heading)=>d1,reability=0.5529,netid=8
+2020-03-18 22:45:17,642:Invalid gene:generation=4,gene=d5=>d3,reability=0.5417,netid=8
+2020-03-18 22:45:17,644:Invalid gene:generation=4,gene=heading=>d4,reability=0.5657,netid=8
+2020-03-18 22:45:17,645:Invalid gene:generation=4,gene=d4=>d6,reability=0.4512,netid=8
+2020-03-18 22:45:17,647:generation=4,message=network id=8,fitness=2.5633,reability=0.5912,completed=False
+2020-03-18 22:45:47,948:generation=4,message=network id=9,fitness=2.5452,reability=0.5725,completed=False
+2020-03-18 22:46:24,880:Invalid gene:generation=4,gene=_a2=>direction(d2),reability=0.6744,netid=10
+2020-03-18 22:46:24,884:Invalid gene:generation=4,gene=d1=>d5,reability=0.3835,netid=10
+2020-03-18 22:46:24,885:Invalid gene:generation=4,gene=d5=>variation(d1),reability=0.3766,netid=10
+2020-03-18 22:46:24,887:generation=4,message=network id=10,fitness=1.9799,reability=0.6691,completed=False
+2020-03-18 22:46:57,912:Invalid gene:generation=4,gene=_a2=>diff(d1,d3),reability=0.2414,netid=11
+2020-03-18 22:46:57,915:Invalid gene:generation=4,gene=d5=>d5,reability=0.4959,netid=11
+2020-03-18 22:46:57,917:Invalid gene:generation=4,gene=d2=>d6,reability=0.4700,netid=11
+2020-03-18 22:46:57,919:generation=4,message=network id=11,fitness=7.6748,reability=0.5025,completed=False
+2020-03-18 22:47:31,879:Invalid gene:generation=4,gene=d1=>d6,reability=0.4462,netid=12
+2020-03-18 22:47:31,882:Invalid gene:generation=4,gene=d4=>heading,reability=0.3375,netid=12
+2020-03-18 22:47:31,883:Invalid gene:generation=4,gene=d5=>d1,reability=0.3767,netid=12
+2020-03-18 22:47:31,884:generation=4,message=network id=12,fitness=1.9874,reability=0.5707,completed=False
+2020-03-18 22:48:11,279:Invalid gene:generation=4,gene=_a2=>variation(d3),reability=0.2993,netid=13
+2020-03-18 22:48:11,281:Invalid gene:generation=4,gene=variation(d3)=>d5,reability=0.4266,netid=13
+2020-03-18 22:48:11,284:generation=4,message=network id=13,fitness=2.6313,reability=0.4923,completed=False
+2020-03-18 22:48:50,090:Invalid gene:generation=4,gene=direction(d1,d6)=>d2,reability=0.0721,netid=14
+2020-03-18 22:48:50,091:Invalid gene:generation=4,gene=direction(d2,d3)=>variation(d1),reability=0.0603,netid=14
+2020-03-18 22:48:50,093:generation=4,message=network id=14,fitness=1.9704,reability=0.5273,completed=False
+2020-03-18 22:49:25,787:Invalid gene:generation=4,gene=d1,d3=>heading,reability=0.6416,netid=15
+2020-03-18 22:49:25,790:Invalid gene:generation=4,gene=d4=>d4,reability=0.4741,netid=15
+2020-03-18 22:49:25,792:generation=4,message=network id=15,fitness=6.8068,reability=0.5313,completed=False
+2020-03-18 22:50:03,812:Invalid gene:generation=4,gene=d5,_a2=>d6,reability=0.6667,netid=16
+2020-03-18 22:50:03,813:Invalid gene:generation=4,gene=heading=>heading,reability=0.5385,netid=16
+2020-03-18 22:50:03,814:generation=4,message=network id=16,fitness=2.5937,reability=0.5560,completed=False
+2020-03-18 22:50:50,817:Invalid gene:generation=4,gene=d5,_a2=>heading,reability=0.6821,netid=17
+2020-03-18 22:50:50,820:Invalid gene:generation=4,gene=d5=>d6,reability=0.5185,netid=17
+2020-03-18 22:50:50,821:generation=4,message=network id=17,fitness=5.7850,reability=0.5272,completed=False
+2020-03-18 22:50:50,867:generation=4,message=评估完成，最优个体：net id=11,fitness=7.6748,reability=0.5025
+2020-03-18 22:50:50,888:generation=5,message=population evoluting...
+2020-03-18 22:50:50,897:Valid gene:generation=5,gene=_a2=>variation(heading),reability=1.0000,netid=8
+2020-03-18 22:50:50,902:generation=5,message=conditions of inference gene is added(0):_a2=>d2--->d2,_a2=>d2
+2020-03-18 22:50:50,906:generation=5,message=A new handler gene is produced in 0:diff(d1,d2)
+2020-03-18 22:50:50,909:generation=5,message=A inference gene is added in 0:_a2=>diff(d1,d2)
+2020-03-18 22:50:50,910:generation=5,message=conditions of inference gene is modified(0):_a2=>d5--->d3=>d5
+2020-03-18 22:50:50,912:generation=5,message=conditions of inference gene is modified(0):d5=>d4--->diff(d1,d2)=>d4
+2020-03-18 22:50:50,913:generation=5,message=conditions of inference gene is added(0):d3=>heading--->d3,d5=>heading
+2020-03-18 22:50:50,916:generation=5,message=conditions of inference gene is added(0):_a2=>heading--->d4,_a2=>heading
+2020-03-18 22:50:50,917:generation=5,message=conditions of inference gene is modified(0):d2=>d1--->d3=>d1
+2020-03-18 22:50:50,918:generation=5,message=A new handler gene is produced in 0:variation(d3)
+2020-03-18 22:50:50,920:generation=5,message=A inference gene is added in 0:_a2=>variation(d3)
+2020-03-18 22:50:50,927:generation=5,message=conditions of inference gene is added(0):_a2=>d6--->d2,_a2=>d6
+2020-03-18 22:50:50,929:generation=5,message=conditions of inference gene is added(0):_a2=>heading--->d2,_a2=>heading
+2020-03-18 22:50:50,932:generation=5,message=conditions of inference gene is modified(0):d2=>d1--->d3=>d1
+2020-03-18 22:50:50,935:generation=5,message=conditions of inference gene is added(0):d1=>d4--->d1,d5=>d4
+2020-03-18 22:50:50,937:generation=5,message=conditions of inference gene is added(0):d6=>d3--->d2,d6=>d3
+2020-03-18 22:50:50,939:generation=5,message=conditions of inference gene is added(0):variation(d1)=>heading--->d5,variation(d1)=>heading
+2020-03-18 22:50:50,941:generation=5,message=A new handler gene is produced in 0:diff(d2,d4)
+2020-03-18 22:50:50,943:generation=5,message=A inference gene is added in 0:_a2=>diff(d2,d4)
+2020-03-18 22:50:50,945:generation=5,message=conditions of inference gene is added(0):_a2=>d2--->_a2,variation(d1)=>d2
+2020-03-18 22:50:50,946:generation=5,message=conditions of inference gene is added(0):d5=>d4--->d2,d5=>d4
+2020-03-18 22:50:50,948:generation=5,message=conditions of inference gene is added(0):d6=>d6--->d3,d6=>d6
+2020-03-18 22:50:50,950:generation=5,message=conditions of inference gene is modified(0):_a2=>d5--->d2=>d5
+2020-03-18 22:50:50,953:generation=5,message=conditions of inference gene is added(0):d2=>d1--->d2,d5=>d1
+2020-03-18 22:50:50,955:generation=5,message=conditions of inference gene is added(0):d6=>heading--->d5,d6=>heading
+2020-03-18 22:50:50,957:generation=5,message=conditions of inference gene is modified(0):heading=>d3--->d2=>d3
+2020-03-18 22:50:50,958:generation=5,message=conditions of inference gene is modified(0):d6=>d4--->d3=>d4
+2020-03-18 22:50:50,961:generation=5,message=A new handler gene is produced in 0:variation(heading)
+2020-03-18 22:50:50,962:generation=5,message=A inference gene is added in 0:_a2=>variation(heading)
+2020-03-18 22:50:50,964:generation=5,message=conditions of inference gene is modified(0):_a2=>d5--->d2=>d5
+2020-03-18 22:50:50,966:generation=5,message=conditions of inference gene is modified(0):d6=>d1--->heading=>d1
+2020-03-18 22:50:50,968:generation=5,message=conditions of inference gene is modified(0):_a2=>d5--->d4=>d5
+2020-03-18 22:50:50,969:generation=5,message=conditions of inference gene is added(0):variation(heading)=>d1--->heading,variation(heading)=>d1
+2020-03-18 22:50:50,972:generation=5,message=conditions of inference gene is modified(0):d5=>d3--->variation(heading)=>d3
+2020-03-18 22:50:50,975:generation=5,message=conditions of inference gene is modified(0):heading=>d4--->variation(heading)=>d4
+2020-03-18 22:50:50,976:generation=5,message=conditions of inference gene is modified(0):_a2=>d2--->d6=>d2
+2020-03-18 22:50:50,978:generation=5,message=A new handler gene is produced in 0:diff(d1,d2)
+2020-03-18 22:50:50,980:generation=5,message=A inference gene is added in 0:_a2=>diff(d1,d2)
+2020-03-18 22:50:50,982:generation=5,message=conditions of inference gene is modified(0):_a2=>d6--->direction(d2)=>d6
+2020-03-18 22:50:50,983:generation=5,message=conditions of inference gene is modified(0):_a2=>direction(d2)--->d1=>direction(d2)
+2020-03-18 22:50:50,986:generation=5,message=conditions of inference gene is added(0):d2=>d1--->d2,diff(d1,d3)=>d1
+2020-03-18 22:50:50,988:generation=5,message=conditions of inference gene is added(0):d4=>d3--->d3,d4=>d3
+2020-03-18 22:50:50,992:generation=5,message=conditions of inference gene is modified(0):d5=>d5--->diff(d1,d3)=>d5
+2020-03-18 22:50:50,993:generation=5,message=conditions of inference gene is added(0):d2=>d6--->d2,_a2=>d6
+2020-03-18 22:50:50,995:generation=5,message=A new handler gene is produced in 0:diff(d2,d3)
+2020-03-18 22:50:50,997:generation=5,message=A inference gene is added in 0:_a2=>diff(d2,d3)
+2020-03-18 22:50:51,001:generation=5,message=conditions of inference gene is added(0):_a2=>heading--->d2,_a2=>heading
+2020-03-18 22:50:51,004:generation=5,message=conditions of inference gene is added(0):d4=>d3--->d4,d5=>d3
+2020-03-18 22:50:51,005:generation=5,message=conditions of inference gene is modified(0):_a2=>diff(d1,d3)--->diff(d2,d3)=>diff(d1,d3)
+2020-03-18 22:50:51,007:generation=5,message=conditions of inference gene is modified(0):d5=>d5--->heading=>d5
+2020-03-18 22:50:51,009:generation=5,message=conditions of inference gene is added(0):d2=>d6--->d2,d6=>d6
+2020-03-18 22:50:51,011:generation=5,message=conditions of inference gene is added(0):d2=>d1--->d2,d3=>d1
+2020-03-18 22:50:51,012:generation=5,message=conditions of inference gene is modified(0):_a2=>diff(d1,d3)--->d2=>diff(d1,d3)
+2020-03-18 22:50:51,015:generation=5,message=conditions of inference gene is added(0):d5=>d5--->d4,d5=>d5
+2020-03-18 22:50:51,019:generation=5,message=conditions of inference gene is added(0):d2=>d6--->d2,d6=>d6
+2020-03-18 22:50:51,022:generation=5,message=conditions of inference gene is added(0):_a2=>heading--->heading,_a2=>heading
+2020-03-18 22:50:51,024:generation=5,message=A new handler gene is produced in 0:direction(d2)
+2020-03-18 22:50:51,026:generation=5,message=A inference gene is added in 0:_a2=>direction(d2)
+2020-03-18 22:50:51,027:generation=5,message=conditions of inference gene is added(0):d1=>d6--->d1,direction(d2)=>d6
+2020-03-18 22:50:51,036:generation=5,message=A new handler gene is produced in 0:direction(heading)
+2020-03-18 22:50:51,040:generation=5,message=A inference gene is added in 0:_a2=>direction(heading)
+2020-03-18 22:50:51,043:generation=5,message=conditions of inference gene is modified(0):_a2=>d1--->heading=>d1
+2020-03-18 22:50:51,046:generation=5,message=conditions of inference gene is added(0):d6=>d3--->d4,d6=>d3
+2020-03-18 22:50:51,047:generation=5,message=conditions of inference gene is added(0):variation(d1)=>heading--->variation(d1),variation(d3)=>heading
+2020-03-18 22:50:51,051:generation=5,message=conditions of inference gene is modified(0):_a2=>variation(d3)--->d6=>variation(d3)
+2020-03-18 22:50:51,053:generation=5,message=conditions of inference gene is added(0):variation(d3)=>d5--->heading,variation(d3)=>d5
+2020-03-18 22:50:51,055:generation=5,message=A new handler gene is produced in 0:variation(heading)
+2020-03-18 22:50:51,056:generation=5,message=A inference gene is added in 0:_a2=>variation(heading)
+2020-03-18 22:50:51,058:generation=5,message=conditions of inference gene is added(0):_a2=>d1--->d4,_a2=>d1
+2020-03-18 22:50:51,059:generation=5,message=conditions of inference gene is modified(0):_a2=>d5--->d4=>d5
+2020-03-18 22:50:51,060:generation=5,message=conditions of inference gene is added(0):d4=>d4--->d4,heading=>d4
+2020-03-18 22:50:51,064:generation=5,message=A new handler gene is produced in 0:diff(d3,d5)
+2020-03-18 22:50:51,066:generation=5,message=A inference gene is added in 0:_a2=>diff(d3,d5)
+2020-03-18 22:50:51,068:generation=5,message=conditions of inference gene is modified(0):_a2=>d1--->d3=>d1
+2020-03-18 22:50:51,070:generation=5,message=conditions of inference gene is added(0):_a2=>d2--->_a2,variation(d1)=>d2
+2020-03-18 22:50:51,071:generation=5,message=conditions of inference gene is added(0):_a2=>variation(d1)--->d3,_a2=>variation(d1)
+2020-03-18 22:50:51,073:generation=5,message=conditions of inference gene is added(0):d4=>d4--->d4,variation(d1)=>d4
+2020-03-18 22:50:51,075:generation=5,message=A new handler gene is produced in 0:diff(d3,d4)
+2020-03-18 22:50:51,078:generation=5,message=A inference gene is added in 0:_a2=>diff(d3,d4)
+2020-03-18 22:50:51,081:generation=5,message=conditions of inference gene is added(0):_a2=>d1--->d6,_a2=>d1
+2020-03-18 22:50:51,082:generation=5,message=conditions of inference gene is modified(0):_a2=>d2--->diff(d3,d4)=>d2
+2020-03-18 22:50:51,084:generation=5,message=conditions of inference gene is modified(0):d6=>d6--->diff(d3,d4)=>d6
+2020-03-18 22:50:51,085:generation=5,message=conditions of inference gene is modified(0):d4=>d4--->direction(d1,d6)=>d4
+2020-03-18 22:50:51,087:generation=5,message=conditions of inference gene is added(0):d2=>d1--->d2,d6=>d1
+2020-03-18 22:50:51,089:generation=5,message=conditions of inference gene is modified(0):d6=>d4--->d3=>d4
+2020-03-18 22:50:51,090:generation=5,message=conditions of inference gene is modified(0):heading=>heading--->d1=>heading
+2020-03-18 22:50:51,092:generation=5,message=conditions of inference gene is added(0):d5,_a2=>heading--->d4,d5,_a2=>heading
+2020-03-18 22:50:51,093:generation=5,message=conditions of inference gene is modified(0):d6=>d1--->d1=>d1
+2020-03-18 22:50:51,094:generation=5,message=conditions of inference gene is modified(0):d5=>d6--->variation(d1)=>d6
+2020-03-18 22:50:51,096:generation=5,message=A new handler gene is produced in 0:variation(heading)
+2020-03-18 22:50:51,097:generation=5,message=A inference gene is added in 0:_a2=>variation(heading)
+2020-03-18 22:50:51,100:generation=5,message=conditions of inference gene is modified(0):d1=>d4--->d3=>d4
+2020-03-18 22:50:51,101:generation=5,message=conditions of inference gene is added(0):d5=>d6--->d5,heading=>d6
+2020-03-18 22:50:51,103:generation=5,message=conditions of inference gene is added(0):d5,_a2=>heading--->d1,d5,_a2=>heading
+2020-03-18 22:50:51,104:generation=5,message=conditions of inference gene is modified(0):d5=>d6--->heading=>d6
+2020-03-18 22:50:51,173:generation=5,message=net evaulation begin
+2020-03-18 22:51:33,135:generation=5,message=network id=18,fitness=5.8243,reability=0.4212,completed=False
+2020-03-18 22:52:18,720:Invalid gene:generation=5,gene=_a2=>diff(d1,d2),reability=0.2303,netid=19
+2020-03-18 22:52:18,722:Invalid gene:generation=5,gene=d3=>d5,reability=0.3944,netid=19
+2020-03-18 22:52:18,723:Invalid gene:generation=5,gene=diff(d1,d2)=>d4,reability=0.5000,netid=19
+2020-03-18 22:52:18,726:generation=5,message=network id=19,fitness=2.6545,reability=0.4594,completed=False
+2020-03-18 22:53:10,320:Invalid gene:generation=5,gene=d3=>d1,reability=0.4059,netid=20
+2020-03-18 22:53:10,323:generation=5,message=network id=20,fitness=1.9919,reability=0.5249,completed=False
+2020-03-18 22:54:06,978:generation=5,message=network id=21,fitness=5.7215,reability=0.6195,completed=False
+2020-03-18 22:54:59,482:generation=5,message=network id=22,fitness=2.4949,reability=0.4781,completed=False
+2020-03-18 22:55:55,924:Invalid gene:generation=5,gene=_a2=>diff(d2,d4),reability=0.2264,netid=23
+2020-03-18 22:55:55,927:generation=5,message=network id=23,fitness=2.6857,reability=0.6116,completed=False
+2020-03-18 22:56:54,497:Invalid gene:generation=5,gene=d2=>d5,reability=0.4565,netid=24
+2020-03-18 22:56:54,500:Invalid gene:generation=5,gene=d2=>d3,reability=0.4462,netid=24
+2020-03-18 22:56:54,503:Invalid gene:generation=5,gene=d3=>d4,reability=0.4628,netid=24
+2020-03-18 22:56:54,509:generation=5,message=network id=24,fitness=1.9783,reability=0.6433,completed=False
+2020-03-18 22:57:55,157:Invalid gene:generation=5,gene=heading=>d1,reability=0.4414,netid=25
+2020-03-18 22:57:55,175:generation=5,message=network id=25,fitness=5.7839,reability=0.6155,completed=False
+2020-03-18 22:58:54,259:Invalid gene:generation=5,gene=d4=>d5,reability=0.4342,netid=26
+2020-03-18 22:58:54,261:Invalid gene:generation=5,gene=variation(heading)=>d3,reability=0.2376,netid=26
+2020-03-18 22:58:54,262:Invalid gene:generation=5,gene=variation(heading)=>d4,reability=0.2857,netid=26
+2020-03-18 22:58:54,264:generation=5,message=network id=26,fitness=2.7677,reability=0.5724,completed=False
+2020-03-18 22:59:49,290:Invalid gene:generation=5,gene=_a2,direction(d2,d3)=>d3,reability=0.6118,netid=27
+2020-03-18 22:59:49,292:Invalid gene:generation=5,gene=d6=>d2,reability=0.4865,netid=27
+2020-03-18 22:59:49,294:generation=5,message=network id=27,fitness=2.5001,reability=0.5162,completed=False
+2020-03-18 23:00:56,580:Invalid gene:generation=5,gene=direction(d2)=>d6,reability=0.0789,netid=28
+2020-03-18 23:00:56,583:Invalid gene:generation=5,gene=d1=>direction(d2),reability=0.6344,netid=28
+2020-03-18 23:00:56,585:generation=5,message=network id=28,fitness=2.6541,reability=0.6093,completed=False
+2020-03-18 23:02:10,346:generation=5,message=network id=29,fitness=1.9876,reability=0.7563,completed=False
+2020-03-18 23:03:26,527:Invalid gene:generation=5,gene=_a2=>diff(d2,d3),reability=0.4472,netid=30
+2020-03-18 23:03:26,530:Invalid gene:generation=5,gene=diff(d2,d3)=>diff(d1,d3),reability=0.5729,netid=30
+2020-03-18 23:03:26,535:Invalid gene:generation=5,gene=heading=>d5,reability=0.5521,netid=30
+2020-03-18 23:03:26,538:generation=5,message=network id=30,fitness=4.8352,reability=0.6671,completed=False
+2020-03-18 23:04:32,757:Invalid gene:generation=5,gene=d2=>diff(d1,d3),reability=0.5660,netid=31
+2020-03-18 23:04:32,760:generation=5,message=network id=31,fitness=2.5019,reability=0.8322,completed=False
+2020-03-18 23:05:38,008:Invalid gene:generation=5,gene=d1,d2=>d4,reability=0.6597,netid=32
+2020-03-18 23:05:38,011:generation=5,message=network id=32,fitness=8.7205,reability=0.5470,completed=False
+2020-03-18 23:06:47,253:Invalid gene:generation=5,gene=d1,direction(d2)=>d6,reability=0.6338,netid=33
+2020-03-18 23:06:47,255:generation=5,message=network id=33,fitness=1.9847,reability=0.5986,completed=False
+2020-03-18 23:08:06,375:Invalid gene:generation=5,gene=d6=>variation(d3),reability=0.3165,netid=34
+2020-03-18 23:08:06,378:generation=5,message=network id=34,fitness=1.9191,reability=0.6806,completed=False
+2020-03-18 23:09:19,028:generation=5,message=network id=35,fitness=2.6201,reability=0.5049,completed=False
+2020-03-18 23:10:37,515:Invalid gene:generation=5,gene=_a2=>direction(d1,d6),reability=0.6889,netid=36
+2020-03-18 23:10:37,517:generation=5,message=network id=36,fitness=1.9322,reability=0.6534,completed=False
+2020-03-18 23:11:53,724:Invalid gene:generation=5,gene=_a2=>diff(d3,d5),reability=0.2143,netid=37
+2020-03-18 23:11:53,725:generation=5,message=network id=37,fitness=1.9549,reability=0.4517,completed=False
+2020-03-18 23:13:16,241:generation=5,message=network id=38,fitness=1.9607,reability=0.6528,completed=False
+2020-03-18 23:14:36,922:Invalid gene:generation=5,gene=_a2=>diff(d3,d4),reability=0.2258,netid=39
+2020-03-18 23:14:36,923:Invalid gene:generation=5,gene=diff(d3,d4)=>d2,reability=0.5355,netid=39
+2020-03-18 23:14:36,924:Invalid gene:generation=5,gene=diff(d3,d4)=>d6,reability=0.4626,netid=39
+2020-03-18 23:14:36,927:Invalid gene:generation=5,gene=direction(d1,d6)=>d4,reability=0.0631,netid=39
+2020-03-18 23:14:36,928:generation=5,message=network id=39,fitness=2.4883,reability=0.4888,completed=False
+2020-03-18 23:15:56,930:Invalid gene:generation=5,gene=d1=>heading,reability=0.3168,netid=40
+2020-03-18 23:15:56,934:generation=5,message=network id=40,fitness=1.9770,reability=0.5908,completed=False
+2020-03-18 23:17:22,670:Invalid gene:generation=5,gene=d1=>d1,reability=0.5538,netid=41
+2020-03-18 23:17:22,672:Invalid gene:generation=5,gene=variation(d1)=>d6,reability=0.6104,netid=41
+2020-03-18 23:17:22,674:generation=5,message=network id=41,fitness=2.5196,reability=0.6530,completed=False
+2020-03-18 23:18:56,527:generation=5,message=network id=42,fitness=2.8608,reability=0.6601,completed=False
+2020-03-18 23:20:23,728:Invalid gene:generation=5,gene=heading=>d6,reability=0.5693,netid=43
+2020-03-18 23:20:23,729:generation=5,message=network id=43,fitness=8.7362,reability=0.5769,completed=False
+2020-03-18 23:20:23,809:generation=5,message=评估完成，最优个体：net id=43,fitness=8.7362,reability=0.5769
+2020-03-18 23:20:23,878:generation=6,message=population evoluting...
+2020-03-18 23:20:23,881:Valid gene:generation=6,gene=_a2=>variation(heading),reability=1.0000,netid=8
+2020-03-18 23:20:23,889:Valid gene:generation=6,gene=_a2=>variation(heading),reability=1.0000,netid=25
+2020-03-18 23:20:23,891:Valid gene:generation=6,gene=_a2=>variation(heading),reability=1.0000,netid=26
+2020-03-18 23:20:23,895:Valid gene:generation=6,gene=d2,diff(d1,d3)=>d1,reability=1.0000,netid=29
+2020-03-18 23:20:23,899:Valid gene:generation=6,gene=d3,_a2=>d2,reability=0.9804,netid=31
+2020-03-18 23:20:23,902:Valid gene:generation=6,gene=_a2=>variation(heading),reability=1.0000,netid=36
+2020-03-18 23:20:23,905:Valid gene:generation=6,gene=_a2=>variation(heading),reability=1.0000,netid=42
+2020-03-18 23:20:23,912:generation=6,message=prevcount=43,count=28,reability_lowlimit=0.5249
+2020-03-18 23:20:23,914:generation=6,message=conditions of inference gene is added(0):_a2=>d5--->d3,_a2=>d5
+2020-03-18 23:20:23,917:generation=6,message=conditions of inference gene is added(0):_a2=>d6--->d3,_a2=>d6
+2020-03-18 23:20:23,919:generation=6,message=conditions of inference gene is added(0):_a2=>d5--->d6,_a2=>d5
+2020-03-18 23:20:23,922:generation=6,message=conditions of inference gene is added(0):d5,_a2=>heading--->d2,d5,_a2=>heading
+2020-03-18 23:20:23,924:generation=6,message=conditions of inference gene is modified(0):d5=>d6--->d3=>d6
+2020-03-18 23:20:23,928:generation=6,message=A new handler gene is produced in 0:variation(d2)
+2020-03-18 23:20:23,930:generation=6,message=A inference gene is added in 0:_a2=>variation(d2)
+2020-03-18 23:20:23,931:generation=6,message=conditions of inference gene is added(0):d1=>d4--->d1,d5=>d4
+2020-03-18 23:20:23,932:generation=6,message=conditions of inference gene is modified(0):d6=>d1--->variation(d2)=>d1
+2020-03-18 23:20:23,934:generation=6,message=conditions of inference gene is added(0):d5=>d6--->d1,d5=>d6
+2020-03-18 23:20:23,936:generation=6,message=A new handler gene is produced in 0:direction(d1,d3)
+2020-03-18 23:20:23,938:generation=6,message=A inference gene is added in 0:_a2=>direction(d1,d3)
+2020-03-18 23:20:23,940:generation=6,message=conditions of inference gene is modified(0):d1=>d4--->direction(d1,d3)=>d4
+2020-03-18 23:20:23,943:generation=6,message=conditions of inference gene is added(0):d5=>d6--->d4,d5=>d6
+2020-03-18 23:20:23,948:generation=6,message=conditions of inference gene is added(0):_a2=>d1--->d2,_a2=>d1
+2020-03-18 23:20:23,950:generation=6,message=conditions of inference gene is modified(0):d5=>d4--->d2=>d4
+2020-03-18 23:20:23,952:generation=6,message=conditions of inference gene is modified(0):direction(d1,d6)=>d2--->d2=>d2
+2020-03-18 23:20:23,954:generation=6,message=conditions of inference gene is added(0):d4=>d4--->d4,variation(d1)=>d4
+2020-03-18 23:20:23,962:generation=6,message=A new handler gene is produced in 0:variation(heading)
+2020-03-18 23:20:23,965:generation=6,message=A inference gene is added in 0:_a2=>variation(heading)
+2020-03-18 23:20:23,969:generation=6,message=conditions of inference gene is added(0):_a2=>d5--->d4,_a2=>d5
+2020-03-18 23:20:23,973:generation=6,message=conditions of inference gene is added(0):d1,d3=>heading--->d1,d3,variation(heading)=>heading
+2020-03-18 23:20:23,975:generation=6,message=conditions of inference gene is added(0):d4=>d4--->d2,d4=>d4
+2020-03-18 23:20:23,980:generation=6,message=conditions of inference gene is added(0):_a2=>d5--->d2,_a2=>d5
+2020-03-18 23:20:23,983:generation=6,message=conditions of inference gene is added(0):d6=>d6--->d6,direction(d1,d6)=>d6
+2020-03-18 23:20:23,984:generation=6,message=A new handler gene is produced in 0:variation(d1)
+2020-03-18 23:20:23,986:generation=6,message=A inference gene is added in 0:_a2=>variation(d1)
+2020-03-18 23:20:23,990:generation=6,message=conditions of inference gene is added(0):d2=>d1--->d2,d6=>d1
+2020-03-18 23:20:23,992:generation=6,message=conditions of inference gene is added(0):d4=>d3--->d4,heading=>d3
+2020-03-18 23:20:23,995:generation=6,message=conditions of inference gene is modified(0):d1,d2=>d4--->d1,d6=>d4
+2020-03-18 23:20:23,997:generation=6,message=conditions of inference gene is modified(0):_a2=>diff(d1,d3)--->diff(d1,d3)=>diff(d1,d3)
+2020-03-18 23:20:24,006:generation=6,message=conditions of inference gene is added(0):d5=>d5--->d1,d5=>d5
+2020-03-18 23:20:24,008:generation=6,message=conditions of inference gene is added(0):d2=>d6--->d2,d5=>d6
+2020-03-18 23:20:24,009:generation=6,message=conditions of inference gene is modified(0):d2=>d1--->diff(d1,d3)=>d1
+2020-03-18 23:20:24,012:generation=6,message=conditions of inference gene is added(0):d1,d2=>d4--->d1,d2,_a2=>d4
+2020-03-18 23:20:24,014:generation=6,message=conditions of inference gene is modified(0):d2=>d1--->diff(d1,d3)=>d1
+2020-03-18 23:20:24,015:generation=6,message=conditions of inference gene is added(0):d4=>d3--->d4,d6=>d3
+2020-03-18 23:20:24,019:generation=6,message=conditions of inference gene is added(0):d4=>d3--->d1,d4=>d3
+2020-03-18 23:20:24,022:generation=6,message=conditions of inference gene is modified(0):_a2=>diff(d1,d3)--->heading=>diff(d1,d3)
+2020-03-18 23:20:24,023:generation=6,message=A new handler gene is produced in 0:diff(d2,d3)
+2020-03-18 23:20:24,025:generation=6,message=A inference gene is added in 0:_a2=>diff(d2,d3)
+2020-03-18 23:20:24,027:generation=6,message=conditions of inference gene is added(0):d5,_a2=>d6--->d5,_a2,diff(d2,d3)=>d6
+2020-03-18 23:20:24,028:generation=6,message=conditions of inference gene is modified(0):d6=>d4--->diff(d2,d3)=>d4
+2020-03-18 23:20:24,033:generation=6,message=conditions of inference gene is added(0):heading=>heading--->heading,diff(d2,d3)=>heading
+2020-03-18 23:20:24,036:generation=6,message=conditions of inference gene is modified(0):d4=>d6--->d3=>d6
+2020-03-18 23:20:24,039:generation=6,message=conditions of inference gene is modified(0):_a2=>d2--->d1=>d2
+2020-03-18 23:20:24,040:generation=6,message=conditions of inference gene is modified(0):_a2=>d5--->direction(d2,d3)=>d5
+2020-03-18 23:20:24,046:generation=6,message=conditions of inference gene is added(0):_a2=>heading--->d6,_a2=>heading
+2020-03-18 23:20:24,048:generation=6,message=conditions of inference gene is added(0):heading=>d6--->heading,variation(d1)=>d6
+2020-03-18 23:20:24,051:generation=6,message=conditions of inference gene is modified(0):_a2=>d5--->d6=>d5
+2020-03-18 23:20:24,052:generation=6,message=conditions of inference gene is added(0):d6=>d1--->d5,d6=>d1
+2020-03-18 23:20:24,054:generation=6,message=conditions of inference gene is added(0):heading=>d6--->d5,heading=>d6
+2020-03-18 23:20:24,057:generation=6,message=conditions of inference gene is added(0):_a2=>d5--->d2,_a2=>d5
+2020-03-18 23:20:24,059:generation=6,message=A new handler gene is produced in 0:variation(heading)
+2020-03-18 23:20:24,060:generation=6,message=A inference gene is added in 0:_a2=>variation(heading)
+2020-03-18 23:20:24,062:generation=6,message=conditions of inference gene is modified(0):_a2=>d5--->d6=>d5
+2020-03-18 23:20:24,063:generation=6,message=conditions of inference gene is added(0):d6=>d1--->d6,variation(d1)=>d1
+2020-03-18 23:20:24,068:generation=6,message=conditions of inference gene is modified(0):heading=>d6--->d3=>d6
+2020-03-18 23:20:24,070:generation=6,message=A new handler gene is produced in 0:variation(heading)
+2020-03-18 23:20:24,073:generation=6,message=A inference gene is added in 0:_a2=>variation(heading)
+2020-03-18 23:20:24,075:generation=6,message=conditions of inference gene is added(0):_a2=>d5--->d1,_a2=>d5
+2020-03-18 23:20:24,076:generation=6,message=conditions of inference gene is added(0):d1=>d4--->d1,_a2=>d4
+2020-03-18 23:20:24,079:generation=6,message=conditions of inference gene is added(0):d6=>d1--->d6,_a2=>d1
+2020-03-18 23:20:24,081:generation=6,message=A new handler gene is produced in 0:variation(heading)
+2020-03-18 23:20:24,084:generation=6,message=A inference gene is added in 0:_a2=>variation(heading)
+2020-03-18 23:20:24,085:generation=6,message=conditions of inference gene is modified(0):d5,_a2=>d6--->d5,d5=>d6
+2020-03-18 23:20:24,088:generation=6,message=conditions of inference gene is added(0):d1=>heading--->d1,variation(heading)=>heading
+2020-03-18 23:20:24,090:generation=6,message=conditions of inference gene is modified(0):_a2=>d2--->d5=>d2
+2020-03-18 23:20:24,092:generation=6,message=conditions of inference gene is added(0):_a2=>d5--->d4,_a2=>d5
+2020-03-18 23:20:24,093:generation=6,message=conditions of inference gene is modified(0):variation(heading)=>d1--->d4=>d1
+2020-03-18 23:20:24,096:generation=6,message=conditions of inference gene is added(0):heading=>d4--->d5,heading=>d4
+2020-03-18 23:20:24,097:generation=6,message=A new handler gene is produced in 0:variation(d6)
+2020-03-18 23:20:24,100:generation=6,message=A inference gene is added in 0:_a2=>variation(d6)
+2020-03-18 23:20:24,103:generation=6,message=conditions of inference gene is modified(0):d4=>heading--->direction(d2)=>heading
+2020-03-18 23:20:24,104:generation=6,message=conditions of inference gene is modified(0):d5=>d1--->d4=>d1
+2020-03-18 23:20:24,106:generation=6,message=A new handler gene is produced in 0:diff(d1,d6)
+2020-03-18 23:20:24,107:generation=6,message=A inference gene is added in 0:_a2=>diff(d1,d6)
+2020-03-18 23:20:24,109:generation=6,message=conditions of inference gene is modified(0):d1=>d5--->d6=>d5
+2020-03-18 23:20:24,112:generation=6,message=conditions of inference gene is modified(0):d5=>variation(d1)--->diff(d1,d6)=>variation(d1)
+2020-03-18 23:20:24,114:generation=6,message=conditions of inference gene is added(0):d1=>direction(d2)--->d1,d2=>direction(d2)
+2020-03-18 23:20:24,116:generation=6,message=A new handler gene is produced in 0:direction(d5,variation(d1))
+2020-03-18 23:20:24,117:generation=6,message=A inference gene is added in 0:_a2=>direction(d5,variation(d1))
+2020-03-18 23:20:24,119:generation=6,message=conditions of inference gene is added(0):_a2=>diff(d2,d4)--->d5,_a2=>diff(d2,d4)
+2020-03-18 23:20:24,121:generation=6,message=A new handler gene is produced in 0:diff(d2,d4)
+2020-03-18 23:20:24,122:generation=6,message=A inference gene is added in 0:_a2=>diff(d2,d4)
+2020-03-18 23:20:24,124:generation=6,message=conditions of inference gene is added(0):_a2=>d6--->_a2,variation(heading)=>d6
+2020-03-18 23:20:24,127:generation=6,message=conditions of inference gene is added(0):d4=>d3--->d1,d4=>d3
+2020-03-18 23:20:24,129:generation=6,message=conditions of inference gene is modified(0):d1=>d4--->diff(d2,d4)=>d4
+2020-03-18 23:20:24,131:generation=6,message=A new handler gene is produced in 0:direction(d1,d4)
+2020-03-18 23:20:24,131:generation=6,message=A inference gene is added in 0:_a2=>direction(d1,d4)
+2020-03-18 23:20:24,134:generation=6,message=conditions of inference gene is modified(0):d4=>d3--->d3=>d3
+2020-03-18 23:20:24,135:generation=6,message=conditions of inference gene is added(0):heading=>d1--->d6,heading=>d1
+2020-03-18 23:20:24,136:generation=6,message=A new handler gene is produced in 0:diff(heading,variation(heading))
+2020-03-18 23:20:24,138:generation=6,message=A inference gene is added in 0:_a2=>diff(heading,variation(heading))
+2020-03-18 23:20:24,140:generation=6,message=conditions of inference gene is added(0):d4=>d3--->d4,d5=>d3
+2020-03-18 23:20:24,144:generation=6,message=conditions of inference gene is added(0):d1=>d4--->d1,heading=>d4
+2020-03-18 23:20:24,146:generation=6,message=A new handler gene is produced in 0:variation(d2)
+2020-03-18 23:20:24,149:generation=6,message=A inference gene is added in 0:_a2=>variation(d2)
+2020-03-18 23:20:24,151:generation=6,message=conditions of inference gene is added(0):_a2=>d5--->_a2,variation(d2)=>d5
+2020-03-18 23:20:24,153:generation=6,message=conditions of inference gene is added(0):_a2=>heading--->d4,_a2=>heading
+2020-03-18 23:20:24,154:generation=6,message=conditions of inference gene is added(0):d4=>d3--->d4,heading=>d3
+2020-03-18 23:20:24,156:generation=6,message=conditions of inference gene is added(0):d1=>d4--->d1,d4=>d4
+2020-03-18 23:20:24,158:generation=6,message=conditions of inference gene is added(0):_a2=>d5--->d5,_a2=>d5
+2020-03-18 23:20:24,160:generation=6,message=conditions of inference gene is modified(0):_a2=>d6--->d3=>d6
+2020-03-18 23:20:24,161:generation=6,message=conditions of inference gene is added(0):d4=>d3--->d4,d5=>d3
+2020-03-18 23:20:24,166:generation=6,message=conditions of inference gene is added(0):_a2=>d5--->_a2,variation(d3)=>d5
+2020-03-18 23:20:24,168:generation=6,message=conditions of inference gene is added(0):d4=>d3--->d4,_a2=>d3
+2020-03-18 23:20:24,171:generation=6,message=A new handler gene is produced in 0:direction(d1,d3)
+2020-03-18 23:20:24,177:generation=6,message=A inference gene is added in 0:_a2=>direction(d1,d3)
+2020-03-18 23:20:24,181:generation=6,message=conditions of inference gene is added(0):_a2=>d5--->d3,_a2=>d5
+2020-03-18 23:20:24,183:generation=6,message=A new handler gene is produced in 0:direction(d2,d3)
+2020-03-18 23:20:24,185:generation=6,message=A inference gene is added in 0:_a2=>direction(d2,d3)
+2020-03-18 23:20:24,187:generation=6,message=conditions of inference gene is added(0):_a2=>d5--->heading,_a2=>d5
+2020-03-18 23:20:24,190:generation=6,message=conditions of inference gene is added(0):d3=>d4--->d3,d5=>d4
+2020-03-18 23:20:24,191:generation=6,message=A new handler gene is produced in 0:variation(heading)
+2020-03-18 23:20:24,194:generation=6,message=A inference gene is added in 0:_a2=>variation(heading)
+2020-03-18 23:20:24,196:generation=6,message=conditions of inference gene is added(0):_a2=>d5--->d4,_a2=>d5
+2020-03-18 23:20:24,198:generation=6,message=A new handler gene is produced in 0:diff(d1,d2)
+2020-03-18 23:20:24,200:generation=6,message=A inference gene is added in 0:_a2=>diff(d1,d2)
+2020-03-18 23:20:24,202:generation=6,message=conditions of inference gene is modified(0):_a2=>d2--->diff(d1,d2)=>d2
+2020-03-18 23:20:24,204:generation=6,message=conditions of inference gene is modified(0):_a2=>variation(d1)--->heading=>variation(d1)
+2020-03-18 23:20:24,206:generation=6,message=conditions of inference gene is added(0):_a2=>direction(d1,d6)--->d2,_a2=>direction(d1,d6)
+2020-03-18 23:20:24,211:generation=6,message=conditions of inference gene is added(0):d6=>d6--->d6,heading=>d6
+2020-03-18 23:20:24,217:generation=6,message=conditions of inference gene is added(0):d6=>d1--->d1,d6=>d1
+2020-03-18 23:20:24,219:generation=6,message=A new handler gene is produced in 0:direction(heading)
+2020-03-18 23:20:24,224:generation=6,message=A inference gene is added in 0:_a2=>direction(heading)
+2020-03-18 23:20:24,225:generation=6,message=conditions of inference gene is added(0):d2=>d1--->d2,diff(d2,d3)=>d1
+2020-03-18 23:20:24,227:generation=6,message=conditions of inference gene is modified(0):_a2=>diff(d2,d3)--->d5=>diff(d2,d3)
+2020-03-18 23:20:24,229:generation=6,message=conditions of inference gene is modified(0):heading=>d5--->direction(heading)=>d5
+2020-03-18 23:20:24,231:generation=6,message=A new handler gene is produced in 0:direction(d5)
+2020-03-18 23:20:24,233:generation=6,message=A inference gene is added in 0:_a2=>direction(d5)
+2020-03-18 23:20:24,235:generation=6,message=conditions of inference gene is added(0):d2=>d1--->d2,diff(d1,d3)=>d1
+2020-03-18 23:20:24,237:generation=6,message=conditions of inference gene is modified(0):_a2=>diff(d2,d3)--->d3=>diff(d2,d3)
+2020-03-18 23:20:24,239:generation=6,message=conditions of inference gene is added(0):diff(d2,d3)=>diff(d1,d3)--->diff(d2,d3),direction(d5)=>diff(d1,d3)
+2020-03-18 23:20:24,241:generation=6,message=conditions of inference gene is modified(0):heading=>d5--->direction(d5)=>d5
+2020-03-18 23:20:24,243:generation=6,message=A new handler gene is produced in 0:variation(heading)
+2020-03-18 23:20:24,245:generation=6,message=A inference gene is added in 0:_a2=>variation(heading)
+2020-03-18 23:20:24,248:generation=6,message=conditions of inference gene is added(0):_a2=>d6--->_a2,direction(d2)=>d6
+2020-03-18 23:20:24,249:generation=6,message=conditions of inference gene is added(0):d1=>d5--->d1,heading=>d5
+2020-03-18 23:20:24,252:generation=6,message=conditions of inference gene is modified(0):d5=>variation(d1)--->d4=>variation(d1)
+2020-03-18 23:20:24,255:generation=6,message=A new handler gene is produced in 0:variation(d5)
+2020-03-18 23:20:24,256:generation=6,message=A inference gene is added in 0:_a2=>variation(d5)
+2020-03-18 23:20:24,258:generation=6,message=conditions of inference gene is modified(0):d6=>variation(d3)--->d5=>variation(d3)
+2020-03-18 23:20:24,260:generation=6,message=A new handler gene is produced in 0:direction(heading)
+2020-03-18 23:20:24,261:generation=6,message=A inference gene is added in 0:_a2=>direction(heading)
+2020-03-18 23:20:24,263:generation=6,message=conditions of inference gene is modified(0):_a2=>diff(d1,d3)--->diff(d1,d3)=>diff(d1,d3)
+2020-03-18 23:20:24,266:generation=6,message=A new handler gene is produced in 0:variation(heading)
+2020-03-18 23:20:24,267:generation=6,message=A inference gene is added in 0:_a2=>variation(heading)
+2020-03-18 23:20:24,270:generation=6,message=conditions of inference gene is added(0):d4=>d3--->d3,d4=>d3
+2020-03-18 23:20:24,362:generation=6,message=net evaulation begin
+2020-03-18 23:21:45,921:generation=6,message=network id=44,fitness=5.7287,reability=0.7216,completed=False
+2020-03-18 23:23:26,947:Invalid gene:generation=6,gene=d3=>d6,reability=0.3770,netid=45
+2020-03-18 23:23:26,952:generation=6,message=network id=45,fitness=4.5838,reability=0.6152,completed=False
+2020-03-18 23:25:04,131:Invalid gene:generation=6,gene=_a2=>variation(d2),reability=0.4655,netid=46
+2020-03-18 23:25:04,133:Invalid gene:generation=6,gene=variation(d2)=>d1,reability=0.5758,netid=46
+2020-03-18 23:25:04,136:generation=6,message=network id=46,fitness=1.9372,reability=0.7311,completed=False
+2020-03-18 23:26:40,182:Invalid gene:generation=6,gene=direction(d1,d3)=>d4,reability=0.0440,netid=47
+2020-03-18 23:26:40,184:generation=6,message=network id=47,fitness=1.9801,reability=0.5825,completed=False
+2020-03-18 23:28:14,099:Invalid gene:generation=6,gene=d2=>d4,reability=0.4507,netid=48
+2020-03-18 23:28:14,100:Invalid gene:generation=6,gene=d2=>d2,reability=0.4793,netid=48
+2020-03-18 23:28:14,102:generation=6,message=network id=48,fitness=1.9464,reability=0.6101,completed=False
+2020-03-18 23:29:47,031:generation=6,message=network id=49,fitness=2.6613,reability=0.5481,completed=False
+2020-03-18 23:31:27,665:generation=6,message=network id=50,fitness=1.9683,reability=0.6573,completed=False
+2020-03-18 23:33:02,655:Invalid gene:generation=6,gene=d6,direction(d1,d6)=>d6,reability=0.6165,netid=51
+2020-03-18 23:33:02,657:generation=6,message=network id=51,fitness=1.9816,reability=0.5819,completed=False
+2020-03-18 23:33:50,490:generation=6,message=network id=52,fitness=18.7701,reability=0.7126,completed=True
+2020-03-18 23:34:43,130:Invalid gene:generation=6,gene=diff(d1,d3)=>diff(d1,d3),reability=0.6237,netid=53
+2020-03-18 23:34:43,135:generation=6,message=network id=53,fitness=18.7169,reability=0.7525,completed=True
+2020-03-18 23:35:35,883:Invalid gene:generation=6,gene=diff(d1,d3)=>d1,reability=0.6556,netid=54
+2020-03-18 23:35:35,893:generation=6,message=network id=54,fitness=18.6922,reability=0.6913,completed=True
+2020-03-18 23:36:33,565:generation=6,message=network id=55,fitness=18.7377,reability=0.6790,completed=True
+2020-03-18 23:37:30,589:Invalid gene:generation=6,gene=heading=>diff(d1,d3),reability=0.4845,netid=56
+2020-03-18 23:37:30,591:generation=6,message=network id=56,fitness=18.7529,reability=0.6986,completed=True
+2020-03-18 23:39:15,404:Invalid gene:generation=6,gene=diff(d2,d3)=>d4,reability=0.4792,netid=57
+2020-03-18 23:39:15,406:generation=6,message=network id=57,fitness=1.9885,reability=0.6681,completed=False
+2020-03-18 23:40:57,573:generation=6,message=network id=58,fitness=2.5242,reability=0.5556,completed=False
+2020-03-18 23:42:39,504:generation=6,message=network id=59,fitness=7.3785,reability=0.6085,completed=False
+2020-03-18 23:44:20,983:Invalid gene:generation=6,gene=d1=>d2,reability=0.6279,netid=60
+2020-03-18 23:44:20,988:Invalid gene:generation=6,gene=direction(d2,d3)=>d5,reability=0.0909,netid=60
+2020-03-18 23:44:20,992:generation=6,message=network id=60,fitness=1.9692,reability=0.6526,completed=False
+2020-03-18 23:46:11,378:Invalid gene:generation=6,gene=d4,variation(d1)=>d3,reability=0.6875,netid=61
+2020-03-18 23:46:11,381:generation=6,message=network id=61,fitness=4.7907,reability=0.6199,completed=False
+2020-03-18 23:48:19,458:Invalid gene:generation=6,gene=d6=>d5,reability=0.3952,netid=62
+2020-03-18 23:48:19,460:generation=6,message=network id=62,fitness=2.5900,reability=0.6498,completed=False
+2020-03-18 23:50:11,610:generation=6,message=network id=63,fitness=8.7586,reability=0.6078,completed=False
+2020-03-18 23:52:06,496:generation=6,message=network id=64,fitness=8.7301,reability=0.6512,completed=False
+2020-03-18 23:54:10,088:Invalid gene:generation=6,gene=d1,_a2=>d5,reability=0.6923,netid=65
+2020-03-18 23:54:10,090:generation=6,message=network id=65,fitness=4.8410,reability=0.7735,completed=False
+2020-03-18 23:56:08,970:Invalid gene:generation=6,gene=d6,_a2=>d5,reability=0.6706,netid=66
+2020-03-18 23:56:08,971:Invalid gene:generation=6,gene=d5,d5=>d6,reability=0.4034,netid=66
+2020-03-18 23:56:08,972:Invalid gene:generation=6,gene=d1,variation(heading)=>heading,reability=0.6879,netid=66
+2020-03-18 23:56:08,975:generation=6,message=network id=66,fitness=2.5921,reability=0.6520,completed=False
+2020-03-18 23:58:00,571:Invalid gene:generation=6,gene=d5=>d2,reability=0.5490,netid=67
+2020-03-18 23:58:00,573:Invalid gene:generation=6,gene=d4=>d1,reability=0.5417,netid=67
+2020-03-18 23:58:00,575:generation=6,message=network id=67,fitness=2.5436,reability=0.7516,completed=False
+2020-03-18 23:59:57,928:Invalid gene:generation=6,gene=heading,_a2=>d5,reability=0.5767,netid=68
+2020-03-18 23:59:57,930:Invalid gene:generation=6,gene=_a2=>variation(d6),reability=0.4173,netid=68
+2020-03-18 23:59:57,932:Invalid gene:generation=6,gene=direction(d2)=>heading,reability=0.0864,netid=68
+2020-03-18 23:59:57,934:generation=6,message=network id=68,fitness=2.8333,reability=0.5441,completed=False

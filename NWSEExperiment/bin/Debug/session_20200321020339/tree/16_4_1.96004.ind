@@ -1,0 +1,22 @@
+16
+4
+ReceptorGene:d1;info:id=1,name=d1,desc=left,generation=1,cataory=distance,group=env.distance,validity=0;param:abstractLevel=0
+ReceptorGene:d2;info:id=2,name=d2,desc=left front,generation=1,cataory=distance,group=env.distance,validity=0;param:abstractLevel=0
+ReceptorGene:d3;info:id=3,name=d3,desc=front,generation=1,cataory=distance,group=env.distance,validity=0;param:abstractLevel=0
+ReceptorGene:d4;info:id=4,name=d4,desc=right front,generation=1,cataory=distance,group=env.distance,validity=0;param:abstractLevel=0
+ReceptorGene:d5;info:id=5,name=d5,desc=right,generation=1,cataory=distance,group=env.distance,validity=0;param:abstractLevel=0
+ReceptorGene:d6;info:id=6,name=d6,desc=rear,generation=1,cataory=distance,group=env.distance,validity=0;param:abstractLevel=0
+ReceptorGene:heading;info:id=7,name=heading,desc=heading,generation=1,cataory=heading,group=body.heading,validity=0;param:abstractLevel=0
+ReceptorGene:_a2;info:id=8,name=_a2,desc=action,generation=1,cataory=rotate,group=action,validity=0;param:abstractLevel=0
+HandlerGene:diff(d1,d2);info:id=34,name=,desc=,generation=3,cataory=distance,group=env.distance,validity=0;function=diff;inputs=1,2;param=
+HandlerGene:variation(d1);info:id=75,name=,desc=,generation=4,cataory=distance,group=env.distance,validity=0;function=variation;inputs=1;param=
+InferenceGene:_a2=>d6;dimensions:8=>6;info:id=14,name=,desc=,generation=1,cataory=,group=,validity=-1;param:
+InferenceGene:d3,d5=>d2;dimensions:3,5=>2;info:id=38,name=,desc=,generation=1,cataory=,group=,validity=-1;param:
+InferenceGene:d1,d3=>d5;dimensions:1,3=>5;info:id=39,name=,desc=,generation=1,cataory=,group=,validity=-1;param:
+InferenceGene:_a2=>variation(d1);dimensions:8=>75;info:id=76,name=,desc=,generation=4,cataory=distance,group=,validity=-1;param:
+InferenceGene:d4,diff(d1,d2)=>d1;dimensions:4,34=>1;info:id=77,name=,desc=,generation=1,cataory=,group=,validity=-1;param:
+InferenceGene:d1,d5=>d4;dimensions:1,5=>4;info:id=78,name=,desc=,generation=1,cataory=,group=,validity=-1;param:
+InferenceGene:d2=>diff(d1,d2);dimensions:2=>34;info:id=79,name=,desc=,generation=3,cataory=distance,group=,validity=-1;param:
+InferenceGene:heading=>d3;dimensions:7=>3;info:id=52,name=,desc=,generation=1,cataory=,group=,validity=0;param:
+InferenceGene:d4,d5,_a2=>heading;dimensions:4,5,8=>7;info:id=80,name=,desc=,generation=1,cataory=,group=,validity=-1;param:
+handlerSelectionProb=0.350,0.350,0.300,0.000,0.000,0.000,0.000,0.000,0.000,0.000

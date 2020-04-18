@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NWSELib.common;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -48,11 +49,6 @@ namespace NWSELib.genome
         public int validity;
 
         /// <summary>
-        /// 随机数生成器
-        /// </summary>
-        public static Random rng = new Random();
-
-        /// <summary>
         /// id值
         /// </summary>
         public int Id { get => id; set => id = value; }
@@ -100,11 +96,18 @@ namespace NWSELib.genome
         /// 当前节点数据的总维度
         /// </summary>
         public virtual int Dimension { get => Dimensions.Sum()<=0?1: Dimensions.Sum(); }
+
+        
+        #endregion
+
+        #region 输入
         /// <summary>
         /// 取得输入基因
         /// </summary>
         /// <returns></returns>
-        public abstract List<NodeGene> getInputGenes();
+        public abstract List<NodeGene> GetInputGenes();
+
+
         /// <summary>
         /// 取得输入基因树上的所有基因
         /// </summary>
@@ -117,45 +120,29 @@ namespace NWSELib.genome
         {
             if (upstreams == null) upstreams = new List<NodeGene>();
             if (gene == null) return upstreams;
-            if(!upstreams.Contains(gene))
-                upstreams.Add(gene);
-
-            List<NodeGene> inputs = gene.getInputGenes();
+            
+            List<NodeGene> inputs = gene.GetInputGenes();
             if (inputs == null || inputs.Count <= 0) return upstreams;
 
-            foreach(NodeGene g in inputs)
+            foreach (NodeGene g in inputs)
+            {
+                upstreams.Add(g);
+            }
+            foreach (NodeGene g in inputs)
             {
                 upstreams = getUpstreamGenes(g,upstreams);
             }
             return upstreams;
         }
 
-        private List<ReceptorGene> _cachedLeafGenes = null;
         /// <summary>
         /// 取得基因树上的叶子基因
         /// </summary>
         /// <returns></returns>
         public virtual List<ReceptorGene> getLeafGenes()
         {
-            if (_cachedLeafGenes != null) return _cachedLeafGenes;
-            List<ReceptorGene> r = new List<ReceptorGene>();
-            if (this is ReceptorGene)
-            {
-                r.Add((ReceptorGene)this);return r;
-            }
-            return _cachedLeafGenes = this.getLeafGenes(this, r);
-        }
-        private List<ReceptorGene> getLeafGenes(NodeGene g,List<ReceptorGene> r)
-        {
-            if (g == null) return r;
-            if (g is ReceptorGene) { r.Add((ReceptorGene)g);return r; }
-            List<NodeGene> inputs = this.getInputGenes();
-            if (inputs == null || inputs.Count <= 0) return r;
-            for(int i=0;i<inputs.Count;i++)
-            {
-                r = getLeafGenes(inputs[i], r);
-            }
-            return r;
+            List<NodeGene> upstreams = this.getUpstreamGenes();
+            return upstreams.FindAll(g => g is ReceptorGene).ConvertAll(g => (ReceptorGene)g);
         }
         #endregion
 
@@ -185,53 +172,7 @@ namespace NWSELib.genome
         {
             return this is ReceptorGene && this.Group.StartsWith("body");
         }
-        /// <summary>
-        /// 是否根环境相关
-        /// </summary>
-        /// <returns></returns>
-        public bool hasEnvDenpend()
-        {
-            return hasEnvDenpend(this);
-        }
-        /// <summary>
-        /// 递归判断是否根环境相关，即其子节点树中有一个是环境感知
-        /// </summary>
-        /// <param name="gene"></param>
-        /// <returns></returns>
-        private bool hasEnvDenpend(NodeGene gene)
-        {
-            
-            List<NodeGene> inputs = this.owner.getInputs(gene);
-            if (inputs == null || inputs.Count <= 0)
-            {
-                return (gene.group.StartsWith("env"));
-            }
-            foreach(NodeGene g in inputs)
-            {
-                if (hasEnvDenpend(g)) return true;
-            }
-            return false;
-        }
 
-        
-        
-        #endregion
-
-
-        #region 统计信息       
-        /// <summary>
-        /// 使用次数
-        /// </summary>
-        protected int usedCount;
-        /// <summary>
-        /// 使用次数
-        /// </summary>
-        public int UsedCount
-        {
-            get => usedCount; set => usedCount = value;
-        }
-        
-        
         #endregion
 
         #region 初始化
@@ -255,9 +196,10 @@ namespace NWSELib.genome
             this.cataory = gene.cataory;
             this.generation = gene.generation;
             this.group = gene.group;
-            this.usedCount = gene.usedCount;
             this.owner = gene.owner;
             this.depth = gene.depth;
+            this.validity = gene.validity;
+            
             
             return (T)this;
 
@@ -351,6 +293,24 @@ namespace NWSELib.genome
             else if (this.id < other.id) return -1;
             return 0;
         }
+        
         #endregion
+
+        #region 有效性检查
+        public int CheckGeneValidity(int unconfirmedCount,int validCount,int invalidCount,int validOccurCount = 2)
+        {
+            if(validCount <= validOccurCount)
+            {
+                if (unconfirmedCount <= 0) return this.validity = -1;
+                else return this.validity = 0;
+
+            }
+            else
+            {
+                return this.validity = validCount;
+            }
+        }
+        #endregion
+
     }
 }

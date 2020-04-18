@@ -35,7 +35,7 @@ namespace NWSELib.genome
         /// 取得输入基因
         /// </summary>
         /// <returns></returns>
-        public override List<NodeGene> getInputGenes()
+        public override List<NodeGene> GetInputGenes()
         {
             return null;
         }

@@ -2,6 +2,7 @@
 using NWSELib.common;
 using NWSELib.env;
 using NWSELib.net;
+using NWSELib.net.policy;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -759,55 +760,77 @@ namespace NWSEExperiment.maze
             }
         }
 
-        Font eva_font = new Font(FontFamily.GenericSerif, 9);
+        Font eva_font = new Font(FontFamily.GenericSerif, 8);
         Brush eva_brush = new SolidBrush(Color.Black);
+        Brush eva_obj_brush = new SolidBrush(Color.Red);
         public void drawEvaulation(Graphics g, CoordinateFrame frame)
         {
-            if (this.net.actionPlanChain.Length == 0) return;
-            if (this.net.policyName == "policy" && this.net.actionPlanChain.Length > 1) return;
+            PolicyState state = this.net.policy.policyState;
+            if (state == null || state.actionToGesture == null || state.actionToGesture.Count <= 0) return;
 
-            List<(List<double>, double)> records = null;
-            String fmt = "";
-            if (this.net.policyName == "policy")
-            {
-                records = this.net.actionPlanChain.Root.actionEvaulationRecords;
-                fmt = "F0";
-            } 
-            else
-            {
-                records = this.net.actionPlanChain.Last.actionEvaulationRecords;
-                fmt = "F3";
-            }
-             
-
-            if (records == null || records.Count <= 0) return;
-            //records = records.FindAll(r => !double.IsNaN(r.Item2));
-            //if (records == null || records.Count <= 0) return;
-
-            List<double> evas = records.ConvertAll(e => e.Item2);
-            double min = evas.Min();
-            double max = evas.Max();
-            evas = evas.ConvertAll(e => double.IsNaN(e)?e:(e - min) / (max - min+0.00001));
-            List<int> length = evas.ConvertAll(e => double.IsNaN(e)?100:(int)(e / 200 + 100));
+            List<(double head, bool objective,String text)> posi = new List<(double head, bool objective,string text)>();
             
-            for(int i=0;i< records.Count;i++)
+            foreach (KeyValuePair<Vector, Vector> keyValue in state.actionToGesture)
             {
-                (List<double>, double) r = records[i];
-                double action = r.Item1[0];
-                double futureHeading  = Heading + (action - 0.5) * Max_Rotate_Action * 2;
-                if (futureHeading < 0) futureHeading += 2 * Math.PI;
-                
-                double dx = Math.Cos(futureHeading) * length[i];
-                double dy = Math.Sin(futureHeading) * length[i];
+                String action = keyValue.Key[0].ToString("F2");
+                double heading = keyValue.Value[0];
 
-                Point2D p2 = new Point2D(this.Location.X+dx,this.Location.Y+dy);
+                int posiindex = -1;
+                double minposdis = double.MaxValue;
+                for (int i = 0; i < posi.Count; i++)
+                {
+                    double d1 = MeasureTools.Heading.distance(posi[i].head, heading);
+                    
+                    if (d1 < minposdis)
+                    {
+                        posiindex = i; minposdis = d1;
+                    }
+                    
+                }
+
+
+                if (posiindex == -1 || minposdis > 0.001)
+                    posi.Add((heading, false, action));
+                else
+                {
+                    posi[posiindex] = (posi[posiindex].head, posi[posiindex].objective, posi[posiindex].text + "," + action);
+
+                }
+            }
+
+            int objectiveIndex = -1;
+            double minobjectivedis = double.MaxValue;
+            for (int i=0;i<posi.Count;i++)
+            {
+                double d2 = state.objectiveGesture == null ? -1 : MeasureTools.Heading.distance(posi[i].head, state.objectiveGesture[0]);
+                if (d2 != -1 && d2 < minobjectivedis)
+                {
+                    objectiveIndex = i; minobjectivedis = d2;
+                }
+            }
+            if (state.objectiveGesture != null && objectiveIndex >= 0)
+                posi[objectiveIndex] = (posi[objectiveIndex].head, true, posi[objectiveIndex].text);
+
+
+
+            for (int i=0;i<posi.Count;i++)
+            {
+                double h = posi[i].head * Max_Rotate_Action * 2;
+                double dx = Math.Cos(h) * 80;
+                double dy = Math.Sin(h) * 80;
+
+                Point2D p = new Point2D(this.Location.X + dx, this.Location.Y + dy);
 
                 Point2D l1 = frame.convertToDisplay(this.Location);
-                Point2D l2 = frame.convertToDisplay(p2);
+                Point2D l2 = frame.convertToDisplay(p);
                 g.DrawLine(dash_pen, (float)l1.X, (float)l1.Y, (float)l2.X, (float)l2.Y);
-                //g.DrawLine(System.Drawing.Pens.Red, (float)l1.X, (float)l1.Y, (float)l2.X, (float)l2.Y);
-                g.DrawString(double.IsNaN(records[i].Item2)?"Nan":records[i].Item2.ToString(fmt), eva_font, eva_brush, (float)l2.X, (float)l2.Y);
+                if(!posi[i].objective)
+                    g.DrawString(posi[i].text, eva_font, eva_brush, (float)l2.X, (float)l2.Y);
+                else
+                    g.DrawString(posi[i].text, eva_font, eva_obj_brush, (float)l2.X, (float)l2.Y);
             }
+
+            
         }
         #endregion
     }
