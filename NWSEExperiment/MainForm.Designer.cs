@@ -121,9 +121,6 @@
             this.splitContainer4 = new System.Windows.Forms.SplitContainer();
             this.listBoxInference = new System.Windows.Forms.ListBox();
             this.dgvInfRecord = new System.Windows.Forms.DataGridView();
-            this.Text = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Column1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Column2 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.pnlMaze = new System.Windows.Forms.Panel();
             this.pictureBoxMaze = new System.Windows.Forms.PictureBox();
             this.tabPage2 = new System.Windows.Forms.TabPage();
@@ -138,6 +135,9 @@
             this.dataGridView = new System.Windows.Forms.DataGridView();
             this.ColumnGeneration = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ColumnMessage = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Text = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Column1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Column2 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.toolStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.tabControl1.SuspendLayout();
@@ -551,7 +551,6 @@
             this.btnIndStructLevel2.Name = "btnIndStructLevel2";
             this.btnIndStructLevel2.Size = new System.Drawing.Size(112, 22);
             this.btnIndStructLevel2.Text = "Level2";
-            
             // 
             // toolStripSeparator4
             // 
@@ -1061,24 +1060,6 @@
             this.dgvInfRecord.TabIndex = 0;
             this.dgvInfRecord.DoubleClick += new System.EventHandler(this.dgvInfRecord_DoubleClick);
             // 
-            // Text
-            // 
-            this.Text.HeaderText = "Text";
-            this.Text.Name = "Text";
-            this.Text.ReadOnly = true;
-            // 
-            // Column1
-            // 
-            this.Column1.HeaderText = "E";
-            this.Column1.Name = "Column1";
-            this.Column1.ReadOnly = true;
-            // 
-            // Column2
-            // 
-            this.Column2.HeaderText = "C";
-            this.Column2.Name = "Column2";
-            this.Column2.ReadOnly = true;
-            // 
             // pnlMaze
             // 
             this.pnlMaze.Controls.Add(this.pictureBoxMaze);
@@ -1237,6 +1218,27 @@
             this.ColumnMessage.Name = "ColumnMessage";
             this.ColumnMessage.ReadOnly = true;
             this.ColumnMessage.Width = 1000;
+            // 
+            // Text
+            // 
+            this.Text.HeaderText = "Text";
+            this.Text.Name = "Text";
+            this.Text.ReadOnly = true;
+            this.Text.Width = 200;
+            // 
+            // Column1
+            // 
+            this.Column1.HeaderText = "Accept";
+            this.Column1.Name = "Column1";
+            this.Column1.ReadOnly = true;
+            this.Column1.Width = 50;
+            // 
+            // Column2
+            // 
+            this.Column2.HeaderText = "Used";
+            this.Column2.Name = "Column2";
+            this.Column2.ReadOnly = true;
+            this.Column2.Width = 50;
             // 
             // MainForm
             // 
@@ -1397,9 +1399,6 @@
         private System.Windows.Forms.SplitContainer splitContainer4;
         private System.Windows.Forms.ListBox listBoxInference;
         private System.Windows.Forms.DataGridView dgvInfRecord;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Text;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Column1;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Column2;
         private System.Windows.Forms.DataGridView dgvMailstone;
         private System.Windows.Forms.DataGridViewTextBoxColumn ColumnInfGeneration;
         private System.Windows.Forms.DataGridViewTextBoxColumn ColumnInfType;
@@ -1410,6 +1409,9 @@
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator4;
         private System.Windows.Forms.ToolStripButton btnEvaluation;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Text;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Column1;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Column2;
     }
 }
 

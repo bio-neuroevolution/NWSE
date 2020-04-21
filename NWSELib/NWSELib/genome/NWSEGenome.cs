@@ -533,7 +533,7 @@ namespace NWSELib.genome
                 variables.Add(newHandleGene.Id);
                 List<ReceptorGene> actionSensorGenes = genome.getActionSensorGenes();
                 for (int i = 0; i < actionSensorGenes.Count; i++)
-                    inf.conditions.Add(actionSensorGenes[i].Id);
+                    conditions.Add(actionSensorGenes[i].Id);
 
                 inf = new InferenceGene(genome,timediff,conditions,variables);
                 inf.Cataory = newHandleGene.Cataory;

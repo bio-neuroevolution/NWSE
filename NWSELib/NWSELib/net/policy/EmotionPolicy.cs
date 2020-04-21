@@ -297,8 +297,8 @@ namespace NWSELib.net.policy
             }
 
             double forcastReward = net.DoForcastReward(time, obs.gesture, env,3,0);
-            policyState.AddEnviormentEvaluation(0, env, forcastReward);
-            return 0;
+            policyState.AddEnviormentEvaluation(1, env, forcastReward);
+            return forcastReward;
 
             
         }

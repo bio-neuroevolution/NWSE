@@ -112,7 +112,7 @@ namespace NWSELib.genome
                 conditions = new List<int>();
                 variables = new List<int>();
                 conditions.Add(did);
-                conditions.Add(genome["heading"].Id);
+               // conditions.Add(genome["heading"].Id);
                 conditions.Add(genome["_a2"].Id);
                 variables.Add(did);
                 inferenceGene = new InferenceGene(genome,1,conditions,variables);
@@ -120,6 +120,13 @@ namespace NWSELib.genome
                 inferenceGene.Id = Session.idGenerator.getGeneId(inferenceGene);
                 genome.inferenceGenes.Add(inferenceGene);
             }
+
+            inferenceGene = new InferenceGene(genome, 1,
+                new int[] { genome["d3"].Id, genome["_a2"].Id }.ToList(),
+                new int[] { genome["b"].Id }.ToList());
+            inferenceGene.Generation = session.Generation;
+            inferenceGene.Id = Session.idGenerator.getGeneId(inferenceGene);
+            genome.inferenceGenes.Add(inferenceGene);
 
             //生成推理节点:4
             /*ids = new int[] { genome["g1"].Id, genome["gd"].Id};

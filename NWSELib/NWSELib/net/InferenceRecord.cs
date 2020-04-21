@@ -327,6 +327,8 @@ namespace NWSELib.net
                 values.Add(this.acceptRecords[i]);
             List<Vector> flatten = values.ConvertAll(v => v.flatten()).ConvertAll(p => p.Item1);
             Vector flatten_mean = flatten.average();
+
+            this.means = flatten_mean.split(this.means.flatten().Item2);
             this.covariance = Vector.covariance(flatten.ToArray());
 
             this.gaussian = null;

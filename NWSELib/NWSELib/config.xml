@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <configuration realerror="0.008">
   <mensurations>
-    <mensuration name="distance" caption="distance" tolerate="0.01" unit="meter" levels="3" levelNames="较近,中等,较远" range="[0.0-1.0]" typeName="NWSELib.DistanceMeasure" dimension="1" ></mensuration>
+    <mensuration name="distance" caption="distance" tolerate="0.1" unit="meter" levels="3" levelNames="较近,中等,较远" range="[0.0-1.0]" typeName="NWSELib.DistanceMeasure" dimension="1" ></mensuration>
     <mensuration name="direction" caption="direction" tolerate="0.1" unit="degree" levels="8" levelNames="东,东南,南,西南,西,西北,北,东北" range="[0.0-1.0]" typeName="NWSELib.DirectionMeasure" dimension="1" ></mensuration>
     <mensuration name="heading" caption="heading" tolerate="0.05" unit="degree" levels="8" levelNames="东,东南,南,西南,西,西北,北,东北" range="[0.0-1.0]" typeName="NWSELib.HeadingMeasure" dimension="1" ></mensuration>
     <mensuration name="rotate" caption="rotate" tolerate="0.15" unit="degree" levels="8" levelNames="-180度,-135度,-90度,-45度,0度,45度,90度,135度,180度" range="[0.0-1.0]" typeName="NWSELib.RotateMeasure" dimension="1" ></mensuration>

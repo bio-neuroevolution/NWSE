@@ -473,20 +473,19 @@ namespace NWSELib.net
         {
             List<double> actions = ActionPlan.MaintainAction;
             List<Vector> observations = this.GetReceoptorValues();
-            observations = this.ReplaceObservationValue(observations, this.EnvReceptors.ConvertAll(r=>(Node)r), env.ToList().ConvertAll(e=>new Vector(e)));
+            /*observations = this.ReplaceObservationValue(observations, this.EnvReceptors.ConvertAll(r=>(Node)r), env.ToList().ConvertAll(e=>new Vector(e)));
             observations = this.ReplaceObservationValue(observations, this.GesturesReceptors.ConvertAll(r => (Node)r), gesture.ToList().ConvertAll(e => new Vector(e)));
             observations = this.ReplaceObservationValue(observations, this.ActionReceptors.ConvertAll(r => (Node)r),
-                actions.ConvertAll(a => new Vector(a)));
+                actions.ConvertAll(a => new Vector(a)));*/
+            ActionReceptors.ForEach(r => r.Activate(this, time, 0.5));
 
             Node rewardNode = this.RewardReceptor;
+            this.ThinkReset();
 
             //循环count次，每次预测是否会得到负奖励
-            int vtime = time + 1;
+            int vtime = time;
             for (int i = 0; i < count; i++)
             {
-                this.ThinkReset();
-                this.ThinkActivation(vtime, observations);
-
                 List<Node> nonactionReceptors = this.Receptors.FindAll(r=>!r.Gene.IsActionSensor()).ConvertAll(r=>(Node)r);
                 Dictionary<Node, Vector> handlerValueDict = new Dictionary<Node, Vector>();
                 foreach (Inference inf in this.Inferences)
@@ -499,7 +498,11 @@ namespace NWSELib.net
                     if(rewardIndex >= 0)
                     {
                         double rewardValue = varValues[rewardIndex][0];
-                        if (rewardValue < rewardLowlimit) return -1;
+                        if (rewardValue < rewardLowlimit)
+                        {
+                            this.ThinkReset();
+                            return -1;
+                        }
                     }
                     for(int j=0;j<inf.VariableNodes.Count;j++)
                     {
@@ -585,7 +588,10 @@ namespace NWSELib.net
                 }
                 observations = this.ReplaceMaintainAction(observations);
                 vtime += 1;
+                this.ThinkActivation(vtime, observations);
             }
+
+            this.ThinkReset();
             return 1;
 
         }
@@ -863,8 +869,9 @@ namespace NWSELib.net
         /// <returns></returns>
         public List<double> CreateRandomActions(String randomType="uniform")
         {
-            return this.Receptors.FindAll(r => r.getGene().IsActionSensor())
-                .ConvertAll(r => r.randomValue(randomType));
+            return new double[] { rng.NextDouble() * 0.5 + 0.25 }.ToList();
+            //return this.Receptors.FindAll(r => r.getGene().IsActionSensor())
+            //    .ConvertAll(r => r.randomValue(randomType));
         }
 
         #endregion

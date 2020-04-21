@@ -50,9 +50,6 @@ namespace NWSELib.net
 
         #endregion
 
-        
-        
-
         #region 初始化
         public readonly List<Node> _conditionNodes;
         public readonly List<Node> _variablesNodes;
@@ -111,8 +108,7 @@ namespace NWSELib.net
         {
             return (InferenceGene)gene;
         }
-        
-        
+
         #endregion
 
         #region 值管理
@@ -176,7 +172,7 @@ namespace NWSELib.net
         public InferenceRecord GetEqualsRecord(List<Vector> values)
         {
             Vector v1 = values.flatten().Item1;
-            List<InferenceRecord> records = UsedRecords;
+            List<InferenceRecord> records = this.records;
             foreach (InferenceRecord r in records)
             {
                 Vector v2 = r.means.flatten().Item1;
@@ -200,6 +196,7 @@ namespace NWSELib.net
                     r = temp;
                 }
             }
+            r.Item1.usedCount += 1;
             return r;
         }
         public List<(InferenceRecord,List<double>)> GetMatchRecords(List<Vector> condvalues)
@@ -232,15 +229,14 @@ namespace NWSELib.net
                     mindis = dis;
                     record = r;
                 }
-
             }
+            record.usedCount += 1;
             return (record, mindis);
         }
 
         public List<double> DistanceFromCondition(List<Vector> condValue1, List<Vector> condValue2)
         {
             return  net.GetReceptorDistance(this.LeafReceptors, condValue1.flatten().Item1, condValue2.flatten().Item1);
-           
         }
 
         public (List<Vector> CondValue, List<Vector> VarValue) SplitValues2(List<Vector> values)
@@ -254,55 +250,51 @@ namespace NWSELib.net
             varValues.AddRange(values.GetRange(condcount, varcount));
             return (condValues, varValues);
         }
-
-
         #endregion
 
         #region 激活和自适应调整
         /*
-        public override Object activate(Network net, int time, Object value = null)
+        public override Object Activate(Network net, int time, Object value = null)
         {
             //所有的输入节点都已经被激活
             //Wether all input nodes have already been activated
-            List<(int, int)> conds = ((InferenceGene)this.Gene).getConditions();
-            List<(Node, int)> condNodes = conds.ConvertAll(c => (net.getNode(c.Item1), c.Item2));
-            if (!condNodes.All(n => n.Item1.IsActivate(time - n.Item2)))
+            List<int> conds = ((InferenceGene)this.Gene).conditions;
+            List<Node> condNodes = conds.ConvertAll(c => net[c]);
+            if (!condNodes.All(n => n.IsActivate(time - this.GetGene().timediff)))
                 return null;
 
-            List<(int, int)> vars = this.getGene().getVariables();
-            List<(Node, int)> varNodes = vars.ConvertAll(v => (net.getNode(v.Item1), v.Item2));
-            if (!varNodes.All(n => n.Item1.IsActivate(time - n.Item2)))
+            List<int> vars = this.GetGene().variables;
+            List<Node> varNodes = vars.ConvertAll(v => (net[v]));
+            if (!varNodes.All(n => n.IsActivate(time)))
                 return null;
 
-            
-            //确保推理基因的各维度的顺序正确（前置条件在前，后置变量在后，且前置条件id按从小到大排列）
-            //Make sure that the dimensions of the inference gene are in the correct order
-            ((InferenceGene)this.Gene).sort_dimension();
+
+
 
             //取得值
-            List<Vector> values = this.getInputValues(time);
+            List<Node> inputs = net.getInputNodes(this.Id);
+            List<Vector> values = this.GetInputValues(time);
             if (values == null)
             {
-                base.activate(net, time, null);
+                base.Activate(net, time, null);
                 return null;
             }
-            var temp = values.flatten();
-            Vector activeValue = temp.Item1;
-            int totaldimesion = temp.Item1.Size;
 
-            InferenceRecord record = this.getEqualsRecord(values);
+            int d = values.flatten().Item1.Size;
+            InferenceRecord record = this.GetEqualsRecord(values);
             if (record == null)
             {
                 record = new InferenceRecord(this);
                 record.means = values.ConvertAll(v=>v.clone());
-                record.covariance = new double[totaldimesion, totaldimesion];
-                for (int i = 0; i < totaldimesion; i++) //缺省协方差矩阵为单位阵
-                    record.covariance[i, i] = 1.0;
+                record.covariance = new double[d, d];
+                for (int i = 0; i < d; i++) //缺省协方差矩阵为单位阵
+                    record.covariance[i, i] = InferenceRecord.variance;
                 this.records.Add(record);
             }
             record.acceptCount += 1;
-            base.activate(net, time, activeValue);
-            return activeValue;
+            this.checkRecord(record);
+            base.Activate(net, time, values.flatten().Item1);
+            return values;
         }*/
 
         
@@ -320,8 +312,6 @@ namespace NWSELib.net
                 return null;
             if (!VariableNodes.All(n => n.IsActivate(time)))
                 return null;
-
-
 
             //根据基因定义的顺序，将输入值组成List<Vector>
             //Put the input values into the List according to the order of the input dimensions
@@ -374,7 +364,6 @@ namespace NWSELib.net
                 activeValue = this.records[pindex].means.flatten().Item1;
                 base.Activate(net, time, activeValue);
                 return activeValue;
-
             }
             //判断是否需要加入到未归类样本中:如果节点中记录非常少，则尽量增加记录
             if(this.records.Count<=50)
@@ -564,7 +553,7 @@ namespace NWSELib.net
         /// </summary>
         /// <param name="vs"></param>
         /// <returns></returns>
-        public InferenceRecord create_newrecord_bysamples(List<List<Vector>> vs,List<double> densitys=null)
+        private InferenceRecord create_newrecord_bysamples(List<List<Vector>> vs,List<double> densitys=null)
         {
             InferenceRecord r = new InferenceRecord(this);
             r.acceptCount = vs.Count;
@@ -621,37 +610,21 @@ namespace NWSELib.net
 
             }
         }
-        public const String ItemUnconfirmed = "unconfirmed";
-        public const String ItemValid = "valid";
-        public const String ItemInvalid = "invalid";
-        public abstract class Item
+
+        public const String Unconfirmed = "unconfirmed";
+        public const String Valid = "valid";
+        public const String Invalid = "invalid";
+        public class InvalidItem
         {
-            public abstract String Name { get; }
-        }
-        public class UnconfirmedItem : Item 
-        {
-            public override String Name { get => "unconfirmed"; }
-            public InferenceRecord record;
-            public int count;
-        }
-        public class ValidItem : Item
-        {
-            public override String Name { get => "valid"; }
-            public InferenceRecord record;
-            public int count;
-        }
-        public class InvalidItem : Item
-        {
-            public override String Name { get => "invalid"; }
             public List<InferenceRecord> records = new List<InferenceRecord>();
         }
-        protected List<UnconfirmedItem> unconfirmedItems = new List<UnconfirmedItem>();
-        protected List<ValidItem> validItems = new List<ValidItem>();
+        protected List<InferenceRecord> unconfirmedItems = new List<InferenceRecord>();
+        protected List<InferenceRecord> validItems = new List<InferenceRecord>();
         protected List<InvalidItem> invalidItems = new List<InvalidItem>();
 
         public List<InferenceRecord> ValidRecords
         {
-            get { return this.validItems.ConvertAll(item => item.record); }
+            get { return this.validItems; }
         }
         public int ValidRecordCount
         {
@@ -663,83 +636,93 @@ namespace NWSELib.net
         {
             get
             {
-                if (validItems.Count > 0) return validItems.ConvertAll(item => item.record);
-                return unconfirmedItems.ConvertAll(item => item.record);
+                if (validItems.Count > 0) return validItems;
+                return unconfirmedItems;
             }
         }
 
-        private Item recordToItem(InferenceRecord record)
+        private bool removeInvalidItem(InferenceRecord record)
         {
-            if (record == null) return null;
-            Item item = unconfirmedItems.FirstOrDefault(i => i.record == record);
-            if (item != null) return item;
-            item = validItems.FirstOrDefault(i => i.record == record);
-            if (item != null) return item;
-            return invalidItems.FirstOrDefault(i => i.records.Contains(record));
-            
+            for(int i=0;i<this.invalidItems.Count;i++)
+            {
+                if (this.invalidItems[i].records.Contains(record))
+                {
+                    this.invalidItems[i].records.Remove(record);
+                    if(this.invalidItems[i].records.Count<=0)
+                    {
+                        this.invalidItems.RemoveAt(i);
+                    }
+                    return true;
+                }
+                
+            }
+            return false;
         }
-        private Item recordRemoveInItem(InferenceRecord record)
+        private String checkRecord(InferenceRecord record,bool removed=false,int validOccurCount=2)
         {
-            if (record == null) return null;
-            Item item = unconfirmedItems.FirstOrDefault(i => i.record == record);
-            if (item != null) { unconfirmedItems.Remove((UnconfirmedItem)item); return item; }
-            item = validItems.FirstOrDefault(i => i.record == record);
-            if (item != null) { validItems.Remove((ValidItem)item); return item; }
-            item = invalidItems.FirstOrDefault(i => i.records.Contains(record));
-            if (item != null) { invalidItems.Remove((InvalidItem)item); return item; }
-            return item;
-        }
-        private Item checkRecord(InferenceRecord record,bool removed=false,int validOccurCount=2)
-        {
-            if (record == null) return null;
+            if (record == null) return "";
+            if (record.acceptCount >= validOccurCount)
+            {
+                if (unconfirmedItems.Contains(record)) unconfirmedItems.Remove(record);
+                else this.removeInvalidItem(record);
+                if (!this.validItems.Contains(record))
+                    this.validItems.Add(record);
+                return Valid;
+            }
+
             double error = Session.GetConfiguration().realerror;
             (List<Vector> condValues, List<Vector> varValues) = record.GetMeanValues();
 
-            if(removed)
-                recordRemoveInItem(record);
             for (int i=0;i<unconfirmedItems.Count;i++)
             {
-                var meanValues = unconfirmedItems[i].record.GetMeanValues();
+                var meanValues = unconfirmedItems[i].GetMeanValues();
                 if (!Vector.equals(condValues, meanValues.condValues, error))
                     continue;
                 if (Vector.equals(varValues, meanValues.varValues, error))
                 {
-                    unconfirmedItems[i].count += 1;
-                    if (unconfirmedItems[i].count < validOccurCount)
+                    unconfirmedItems[i].acceptCount += 1;
+                    if (unconfirmedItems[i].acceptCount < validOccurCount)
                     {
                         this.GetGene().CheckGeneValidity(this.unconfirmedItems.Count,this.validItems.Count,this.invalidItems.Count);
-                        return unconfirmedItems[i];
+                        return Unconfirmed;
+                    }
+                    else
+                    {
+                        validItems.Add(unconfirmedItems[i]);
+                        this.GetGene().CheckGeneValidity(this.unconfirmedItems.Count, this.validItems.Count, this.invalidItems.Count);
+                        this.unconfirmedItems.RemoveAt(i);
+                        return Valid;
                     }
                 }
                 else
                 {
                     InvalidItem invalidItem = new InvalidItem();
-                    invalidItem.records.Add(unconfirmedItems[i].record);
+                    invalidItem.records.Add(unconfirmedItems[i]);
                     invalidItem.records.Add(record);
                     this.invalidItems.Add(invalidItem);
                     this.unconfirmedItems.RemoveAt(i);
-                    return invalidItem;
+                    return Invalid;
                 }
 
             }
             for (int i=0;i<validItems.Count;i++)
             {
-                var meanValues = validItems[i].record.GetMeanValues();
+                var meanValues = validItems[i].GetMeanValues();
                 if (!Vector.equals(condValues, meanValues.condValues, error))
                     continue;
                 if(Vector.equals(varValues, meanValues.varValues, error))
                 {
-                    validItems[i].count += 1;
+                    validItems[i].acceptCount += 1;
                     this.GetGene().CheckGeneValidity(this.unconfirmedItems.Count, this.validItems.Count, this.invalidItems.Count);
-                    return validItems[i];
+                    return Valid;
                 }
 
                 InvalidItem invalidItem = new InvalidItem();
-                invalidItem.records.Add(validItems[i].record);
+                invalidItem.records.Add(validItems[i]);
                 invalidItem.records.Add(record);
                 this.invalidItems.Add(invalidItem);
                 this.validItems.RemoveAt(i);
-                return invalidItem;
+                return Invalid;
             }
             for(int i=0;i<this.invalidItems.Count;i++)
             {
@@ -748,15 +731,12 @@ namespace NWSELib.net
                     continue;
                 invalidItems[i].records.Add(record);
                 this.GetGene().CheckGeneValidity(this.unconfirmedItems.Count, this.validItems.Count, this.invalidItems.Count);
-                return invalidItems[i];
+                return Invalid;
             }
-            UnconfirmedItem item = new UnconfirmedItem();
-            item.record = record;
-            item.count = 1;
-            this.unconfirmedItems.Add(item);
-            this.GetGene().CheckGeneValidity(this.unconfirmedItems.Count, this.validItems.Count, this.invalidItems.Count);
-            return item;
             
+            this.unconfirmedItems.Add(record);
+            this.GetGene().CheckGeneValidity(this.unconfirmedItems.Count, this.validItems.Count, this.invalidItems.Count);
+            return Unconfirmed;
         }
         
         #endregion

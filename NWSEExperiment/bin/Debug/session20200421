@@ -1,0 +1,76 @@
+2020-04-21 19:35:01,683:generation=1,message=population init...
+2020-04-21 19:35:01,716:generation=1,message=net evaulation begin
+2020-04-21 20:50:20,773:generation=1,message=population init...
+2020-04-21 20:50:20,808:generation=1,message=net evaulation begin
+2020-04-21 20:51:14,525:generation=1,message=network id=1,fitness=1.9348,reability=0.6135,completed=False
+2020-04-21 20:51:14,559:generation=1,message=评估完成，最优个体：net id=1,fitness=1.9348,reability=0.6135
+2020-04-21 20:51:14,577:generation=2,message=population evoluting...
+2020-04-21 20:51:14,583:Valid gene:generation=2,gene=_a2[t-1]=>d1,d2,d3,d4,d5,d6,b,heading[t],reability=0.6135,netid=1
+2020-04-21 20:51:14,587:Valid gene:generation=2,gene=_a2[t-1]=>d1,d2,d3,d4,d5,d6,b,heading[t],reability=0.6135,netid=1
+2020-04-21 20:51:14,588:Valid gene:generation=2,gene=_a2[t-1]=>d1,d2,d3,d4,d5,d6,b,heading[t],reability=0.6135,netid=1
+2020-04-21 20:51:14,590:Valid gene:generation=2,gene=_a2[t-1]=>d1,d2,d3,d4,d5,d6,b,heading[t],reability=0.6135,netid=1
+2020-04-21 20:51:14,591:Valid gene:generation=2,gene=_a2[t-1]=>d1,d2,d3,d4,d5,d6,b,heading[t],reability=0.6135,netid=1
+2020-04-21 20:51:14,592:Valid gene:generation=2,gene=_a2[t-1]=>d1,d2,d3,d4,d5,d6,b,heading[t],reability=0.6135,netid=1
+2020-04-21 20:51:14,595:Valid gene:generation=2,gene=_a2[t-1]=>d1,d2,d3,d4,d5,d6,b,heading[t],reability=0.6135,netid=1
+2020-04-21 20:51:14,597:Valid gene:generation=2,gene=_a2[t-1]=>d1,d2,d3,d4,d5,d6,b,heading[t],reability=0.6135,netid=1
+2020-04-21 20:51:14,631:generation=2,message=A new handler gene is produced in 0:variation(heading)
+2020-04-21 20:54:32,113:generation=1,message=population init...
+2020-04-21 20:54:32,148:generation=1,message=net evaulation begin
+2020-04-21 20:55:26,271:generation=1,message=network id=1,fitness=1.9327,reability=0.6139,completed=False
+2020-04-21 20:55:26,290:generation=1,message=评估完成，最优个体：net id=1,fitness=1.9327,reability=0.6139
+2020-04-21 20:55:26,309:generation=2,message=population evoluting...
+2020-04-21 20:55:26,314:Valid gene:generation=2,gene=_a2[t-1]=>d1,d2,d3,d4,d5,d6,b,heading[t],reability=0.6139,netid=1
+2020-04-21 20:55:26,318:Valid gene:generation=2,gene=_a2[t-1]=>d1,d2,d3,d4,d5,d6,b,heading[t],reability=0.6139,netid=1
+2020-04-21 20:55:26,320:Valid gene:generation=2,gene=_a2[t-1]=>d1,d2,d3,d4,d5,d6,b,heading[t],reability=0.6139,netid=1
+2020-04-21 20:55:26,322:Valid gene:generation=2,gene=_a2[t-1]=>d1,d2,d3,d4,d5,d6,b,heading[t],reability=0.6139,netid=1
+2020-04-21 20:55:26,323:Valid gene:generation=2,gene=_a2[t-1]=>d1,d2,d3,d4,d5,d6,b,heading[t],reability=0.6139,netid=1
+2020-04-21 20:55:26,324:Valid gene:generation=2,gene=_a2[t-1]=>d1,d2,d3,d4,d5,d6,b,heading[t],reability=0.6139,netid=1
+2020-04-21 20:55:26,326:Valid gene:generation=2,gene=_a2[t-1]=>d1,d2,d3,d4,d5,d6,b,heading[t],reability=0.6139,netid=1
+2020-04-21 20:55:26,328:Valid gene:generation=2,gene=_a2[t-1]=>d1,d2,d3,d4,d5,d6,b,heading[t],reability=0.6139,netid=1
+2020-04-21 20:55:26,360:generation=2,message=A new handler gene is produced in 0:variation(d3)
+2020-04-21 20:55:26,363:generation=2,message=A inference gene is added in 0:_a2[t-1]=>variation(d3)[t]
+2020-04-21 20:55:26,369:generation=2,message=A new handler gene is produced in 0:variation(b)
+2020-04-21 20:55:26,372:generation=2,message=A inference gene is added in 0:_a2[t-1]=>variation(b)[t]
+2020-04-21 20:55:26,377:generation=2,message=conditions of inference gene is added(0):_a2[t-1]=>variation(b)[t]--->b,_a2[t-1]=>variation(b)[t]
+2020-04-21 20:55:26,388:generation=2,message=net evaulation begin
+2020-04-21 20:56:19,571:generation=2,message=network id=3,fitness=1.9710,reability=0.6469,completed=False
+2020-04-21 20:57:14,995:generation=2,message=network id=4,fitness=1.9499,reability=0.6655,completed=False
+2020-04-21 20:57:15,016:generation=2,message=评估完成，最优个体：net id=3,fitness=1.9710,reability=0.6469
+2020-04-21 20:57:15,028:generation=3,message=population evoluting...
+2020-04-21 20:57:15,031:Valid gene:generation=3,gene=_a2[t-1]=>d1,d2,d3,d4,d5,d6,b,heading[t],reability=0.6139,netid=1
+2020-04-21 20:57:15,034:Valid gene:generation=3,gene=_a2[t-1]=>d1,d2,d3,d4,d5,d6,b,heading[t],reability=0.6139,netid=1
+2020-04-21 20:57:15,036:Valid gene:generation=3,gene=_a2[t-1]=>d1,d2,d3,d4,d5,d6,b,heading[t],reability=0.6139,netid=1
+2020-04-21 20:57:15,038:Valid gene:generation=3,gene=_a2[t-1]=>d1,d2,d3,d4,d5,d6,b,heading[t],reability=0.6139,netid=1
+2020-04-21 20:57:15,041:Valid gene:generation=3,gene=_a2[t-1]=>d1,d2,d3,d4,d5,d6,b,heading[t],reability=0.6139,netid=1
+2020-04-21 20:57:15,042:Valid gene:generation=3,gene=_a2[t-1]=>d1,d2,d3,d4,d5,d6,b,heading[t],reability=0.6139,netid=1
+2020-04-21 20:57:15,044:Valid gene:generation=3,gene=_a2[t-1]=>d1,d2,d3,d4,d5,d6,b,heading[t],reability=0.6139,netid=1
+2020-04-21 20:57:15,045:Valid gene:generation=3,gene=_a2[t-1]=>d1,d2,d3,d4,d5,d6,b,heading[t],reability=0.6139,netid=1
+2020-04-21 20:57:15,050:Valid gene:generation=3,gene=_a2[t-1]=>d1,d2,d3,d4,d5,d6,b,heading[t],reability=0.6276,netid=3
+2020-04-21 20:57:15,051:Valid gene:generation=3,gene=_a2[t-1]=>d1,d2,d3,d4,d5,d6,b,heading[t],reability=0.6276,netid=3
+2020-04-21 20:57:15,053:Valid gene:generation=3,gene=_a2[t-1]=>d1,d2,d3,d4,d5,d6,b,heading[t],reability=0.6276,netid=3
+2020-04-21 20:57:15,054:Valid gene:generation=3,gene=_a2[t-1]=>d1,d2,d3,d4,d5,d6,b,heading[t],reability=0.6276,netid=3
+2020-04-21 20:57:15,057:Valid gene:generation=3,gene=_a2[t-1]=>d1,d2,d3,d4,d5,d6,b,heading[t],reability=0.6276,netid=3
+2020-04-21 20:57:15,059:Valid gene:generation=3,gene=_a2[t-1]=>d1,d2,d3,d4,d5,d6,b,heading[t],reability=0.6276,netid=3
+2020-04-21 20:57:15,061:Valid gene:generation=3,gene=_a2[t-1]=>d1,d2,d3,d4,d5,d6,b,heading[t],reability=0.6276,netid=3
+2020-04-21 20:57:15,063:Valid gene:generation=3,gene=_a2[t-1]=>d1,d2,d3,d4,d5,d6,b,heading[t],reability=0.6276,netid=3
+2020-04-21 20:57:15,065:Valid gene:generation=3,gene=_a2[t-1]=>variation(d3)[t],reability=0.8015,netid=3
+2020-04-21 20:57:15,068:Valid gene:generation=3,gene=_a2[t-1]=>d1,d2,d3,d4,d5,d6,b,heading[t],reability=0.6412,netid=4
+2020-04-21 20:57:15,069:Valid gene:generation=3,gene=_a2[t-1]=>d1,d2,d3,d4,d5,d6,b,heading[t],reability=0.6412,netid=4
+2020-04-21 20:57:15,071:Valid gene:generation=3,gene=_a2[t-1]=>d1,d2,d3,d4,d5,d6,b,heading[t],reability=0.6412,netid=4
+2020-04-21 20:57:15,074:Valid gene:generation=3,gene=_a2[t-1]=>d1,d2,d3,d4,d5,d6,b,heading[t],reability=0.6412,netid=4
+2020-04-21 20:57:15,076:Valid gene:generation=3,gene=_a2[t-1]=>d1,d2,d3,d4,d5,d6,b,heading[t],reability=0.6412,netid=4
+2020-04-21 20:57:15,078:Valid gene:generation=3,gene=_a2[t-1]=>d1,d2,d3,d4,d5,d6,b,heading[t],reability=0.6412,netid=4
+2020-04-21 20:57:15,078:Valid gene:generation=3,gene=_a2[t-1]=>d1,d2,d3,d4,d5,d6,b,heading[t],reability=0.6412,netid=4
+2020-04-21 20:57:15,081:Valid gene:generation=3,gene=_a2[t-1]=>d1,d2,d3,d4,d5,d6,b,heading[t],reability=0.6412,netid=4
+2020-04-21 20:57:15,084:Valid gene:generation=3,gene=b,_a2[t-1]=>variation(b)[t],reability=0.8594,netid=4
+2020-04-21 20:57:15,087:generation=3,message=A new handler gene is produced in 0:diff(d1,d2)
+2020-04-21 20:57:15,091:generation=3,message=A inference gene is added in 0:_a2[t-1]=>diff(d1,d2)[t]
+2020-04-21 20:57:15,096:generation=3,message=A new handler gene is produced in 0:variation(heading)
+2020-04-21 20:57:15,102:generation=3,message=A inference gene is added in 0:_a2[t-1]=>variation(heading)[t]
+2020-04-21 20:57:15,106:generation=3,message=conditions of inference gene is modified(0):_a2[t-1]=>variation(heading)[t]--->variation(heading)[t-1]=>variation(heading)[t]
+2020-04-21 20:57:15,109:generation=3,message=A new handler gene is produced in 0:diff(d2,d4)
+2020-04-21 20:57:15,114:generation=3,message=A inference gene is added in 0:_a2[t-1]=>diff(d2,d4)[t]
+2020-04-21 20:57:15,118:generation=3,message=conditions of inference gene is modified(0):_a2[t-1]=>diff(d2,d4)[t]--->d5[t-1]=>diff(d2,d4)[t]
+2020-04-21 20:57:15,132:generation=3,message=net evaulation begin
+2020-04-21 20:58:15,766:generation=3,message=network id=6,fitness=3.6482,reability=0.7075,completed=False
+2020-04-21 20:59:07,167:generation=3,message=network id=7,fitness=2.6328,reability=0.5614,completed=False
