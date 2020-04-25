@@ -585,7 +585,12 @@ namespace NWSELib
 
         public override double distance(double a1, double a2)
         {
-            return Math.Abs(a1 - a2);
+            if (a1 <= -50) a1 = -0.1;
+            if (a2 <= -50) a2 = -0.1;
+            double a = Math.Abs(a1 - a2);
+            if (a < -1.01) return -1;
+            else if (a > 1.01) return 1;
+            else return a;
         }
         
 

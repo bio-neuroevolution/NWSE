@@ -457,8 +457,38 @@ namespace NWSELib.genome
         {
             return this.validInferenceGenes.Exists(n => n.Id == gene.Id);
         }
-        
-        
+        /// <summary>
+        /// 交叉
+        /// </summary>
+        /// <param name="g1"></param>
+        /// <param name="g2"></param>
+        /// <returns></returns>
+        public static NWSEGenome crossover(NWSEGenome g1,NWSEGenome g2, Session session)
+        {
+            NWSEGenome genome = g1.clone();
+            genome.generation = session.Generation;
+
+            List<InferenceGene> infGenes = new List<InferenceGene>(g2.inferenceGenes);
+            int count = 0;
+            for(int i=0;i<8;i++)
+            {
+                int index = rng.Next(0, infGenes.Count);
+                InferenceGene g2InfGene = infGenes[index].clone<InferenceGene>();
+                InferenceGene g1InfGene = (InferenceGene)genome[g2InfGene.Id];
+                if (g1InfGene == null) continue;
+                int d = genome.inferenceGenes.IndexOf(g1InfGene);
+                genome.inferenceGenes[d] = g2InfGene;
+                count += 1;
+                if (count >= 3) break;
+            }
+
+            genome.computeNodeDepth();
+            genome.id = Session.idGenerator.getGenomeId();
+            return genome;
+
+
+
+        }
         
         /// <summary>
         /// 变异
@@ -468,7 +498,7 @@ namespace NWSELib.genome
         public NWSEGenome mutate(Session session)
         {
             NWSEGenome genome = this.clone();
-            genome.generation = this.generation + 1;
+            genome.generation = session.Generation;
 
             //若有效基因库不空，生成有效基因
             List<NodeGene> vaildGenes = genome.validInferenceGenes;
@@ -485,7 +515,7 @@ namespace NWSELib.genome
             List<NodeGene> inputGenes = null;
             HandlerGene newHandleGene = null;
             int maxcount = 8;
-            if (rng.NextDouble()<0.5)
+            if (rng.NextDouble()< Session.config.evolution.mutate.newHandleGeneProb)
             {
                 int num = 0;
                 while (++num <= maxcount)
@@ -543,15 +573,16 @@ namespace NWSELib.genome
                 session.triggerEvent(Session.EVT_LOG, "A inference gene is added in " + genome.id.ToString() + ":" + inf.Text);
             }
 
-            //选择需要变异的推理节点
-            List<InferenceGene> infGenes = genome.inferenceGenes.FindAll(g => g.validity < 0);
+            //选择需要变异的推理节点(按照可靠度排序，可靠度越小变异概率越大)
+            List<InferenceGene> infGenes = genome.inferenceGenes.FindAll(g => g.reability <= 0.5);
             if (infGenes == null || infGenes.Count <= 0)
-                infGenes = genome.inferenceGenes.FindAll(g => g.validity <= 0);
+                infGenes = genome.inferenceGenes.FindAll(g => g.reability <= 0.98);
             //没有需要变异的推理节点
             inputGenes = genome.GetAllInputGenes(null);
             int mutateinfcount = 0;
-            double infMutateProb = 0.5, infMutateAddProb = 0.4;
-            double infMutateRemoveProb = 0.2;
+            double infMutateProb = Session.config.evolution.mutate.infMutateProb;
+            double infMutateAddProb = Session.config.evolution.mutate.infMutateAddProb;
+            double infMutateRemoveProb = Session.config.evolution.mutate.infMutateRemoveProb;
             for (int i = 0; i < infGenes.Count; i++)
             {
                 if (rng.NextDouble() >= infMutateProb) continue;
@@ -566,9 +597,11 @@ namespace NWSELib.genome
                 maxcount = 5;
                 while (++num <= maxcount)
                 {
+                
                     //删除
-                    if(condIds.Count>1 && (condIds.Count == inputGenes.Count || rng.NextDouble()<= infMutateRemoveProb))
+                    if(condIds.Count>2 && (condIds.Count == inputGenes.Count || rng.NextDouble()<= infMutateRemoveProb))
                     {
+                        condIds = inf.conditions.FindAll(c => !genome[c].IsActionSensor());
                         int index = rng.Next(0, condIds.Count);
                         inf.conditions.RemoveAt(index);
                         if (Session.IsInvaildGene(inf))
@@ -576,7 +609,6 @@ namespace NWSELib.genome
                             inf = infGenes[i].clone<InferenceGene>(); inf.owner = genome; continue;
                         }
                         inf.Id = Session.idGenerator.getGeneId(inf);
-                        inf.validity = 0;
                         genome.replaceGene(oldinfid, inf);
                         mutateinfcount += 1;
                         session.triggerEvent(Session.EVT_LOG, "conditions of inference gene is removed(" + genome.id.ToString() + "):" + prevText+"--->"+inf.Text);
@@ -594,7 +626,6 @@ namespace NWSELib.genome
                             inf = infGenes[i].clone<InferenceGene>(); inf.owner = genome; continue;
                         }
                         inf.Id = Session.idGenerator.getGeneId(inf);
-                        inf.validity = 0;
                         genome.replaceGene(oldinfid, inf);
                         mutateinfcount += 1;
                         session.triggerEvent(Session.EVT_LOG, "conditions of inference gene is added(" + genome.id.ToString() + "):" + prevText + "--->" + inf.Text);
@@ -602,6 +633,8 @@ namespace NWSELib.genome
                     }
                     else  //修改
                     {
+                        condIds = inf.conditions.FindAll(c => !genome[c].IsActionSensor());
+                        if (condIds.Count <=0) continue;
                         int index1 = rng.Next(0, condIds.Count);
                         List<NodeGene> temp = inputGenes.FindAll(g => !condIds.Contains(g.Id) || g.Id != condIds[index1]);
                         int index2 = rng.Next(0, temp.Count);
@@ -612,7 +645,6 @@ namespace NWSELib.genome
                             inf = infGenes[i].clone<InferenceGene>(); inf.owner = genome; continue;
                         }
                         inf.Id = Session.idGenerator.getGeneId(inf);
-                        inf.validity = 0;
                         genome.replaceGene(oldinfid, inf);
                         mutateinfcount += 1;
                         session.triggerEvent(Session.EVT_LOG, "conditions of inference gene is modified(" + genome.id.ToString() + "):" + prevText + "--->" + inf.Text);

@@ -663,6 +663,7 @@ namespace NWSEExperiment
             listBoxInference.Items.Clear();
             foreach(Inference inf in infs)
             {
+                inf.CheckReability();
                 int index = listBoxInference.Items.Add(inf.Id.ToString()+":"+inf.Summary());
             }
 

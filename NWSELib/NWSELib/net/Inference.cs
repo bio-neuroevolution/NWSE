@@ -606,7 +606,9 @@ namespace NWSELib.net
         {
             get
             {
-                return 1.0 * this.validItems.Count / (this.validItems.Count + this.invalidItems.Count);
+                return this.Gene.reability;
+               // return this.Gene.reability = 1.0 * this.validItems.Count / this.records.Count;
+                //return this.Gene.reability = 1.0 * this.validItems.Count / (this.validItems.Count + this.invalidItems.Count);
 
             }
         }
@@ -614,17 +616,14 @@ namespace NWSELib.net
         public const String Unconfirmed = "unconfirmed";
         public const String Valid = "valid";
         public const String Invalid = "invalid";
-        public class InvalidItem
-        {
-            public List<InferenceRecord> records = new List<InferenceRecord>();
-        }
+
         protected List<InferenceRecord> unconfirmedItems = new List<InferenceRecord>();
         protected List<InferenceRecord> validItems = new List<InferenceRecord>();
-        protected List<InvalidItem> invalidItems = new List<InvalidItem>();
+        protected List<InferenceRecord> invalidItems = new List<InferenceRecord>();
 
         public List<InferenceRecord> ValidRecords
         {
-            get { return this.validItems; }
+            get { return this.records; }
         }
         public int ValidRecordCount
         {
@@ -636,106 +635,158 @@ namespace NWSELib.net
         {
             get
             {
-                if (validItems.Count > 0) return validItems;
-                return unconfirmedItems;
+                return this.records;
             }
         }
 
-        private bool removeInvalidItem(InferenceRecord record)
+        public double CheckReability()
         {
-            for(int i=0;i<this.invalidItems.Count;i++)
+            
+            List<MeasureTools> condtools = this.ConditionNodes.ConvertAll(node => MeasureTools.GetMeasure(node.Gene.Cataory));
+            List<MeasureTools> vartools = this.VariableNodes.ConvertAll(node => MeasureTools.GetMeasure(node.Gene.Cataory));
+
+            List<InferenceRecord> validRecords = new List<InferenceRecord>();
+            for (int i = 0; i < records.Count; i++)
             {
-                if (this.invalidItems[i].records.Contains(record))
+                InferenceRecord r1 = this.records[i];
+               // if (r1.usedCount <= 0) continue;
+                var r1MeanValues = r1.GetMeanValues();
+
+
+                bool valid = true;
+                for (int j = i + 1; j < records.Count; j++)
                 {
-                    this.invalidItems[i].records.Remove(record);
-                    if(this.invalidItems[i].records.Count<=0)
-                    {
-                        this.invalidItems.RemoveAt(i);
-                    }
-                    return true;
+                    InferenceRecord r2 = this.records[j];
+                   // if (r2.usedCount <= 0) continue;
+                    var r2MeanValues = r2.GetMeanValues();
+
+                    if (!net.IsTolerateDistance(condtools, r1MeanValues.condValues.flatten().Item1, r2MeanValues.condValues.flatten().Item1))
+                        continue;
+                    if (!net.IsTolerateDistance(vartools, r1MeanValues.varValues.flatten().Item1, r2MeanValues.varValues.flatten().Item1))
+                        valid = false;
                 }
-                
+                if (!valid) continue;
+                validRecords.Add(records[i]);
             }
-            return false;
+            if (validRecords.Count <= 0) return this.Gene.reability = 0;
+
+
+            List<double> distances = new List<double>();
+            for (int i=0;i< validRecords.Count;i++)
+            {
+                InferenceRecord r1 = validRecords[i];
+                var r1MeanValues = r1.GetMeanValues();
+                for (int j=i+1;j< validRecords.Count;j++)
+                {
+                   
+                    InferenceRecord r2 = validRecords[j];
+                    var r2MeanValues = r2.GetMeanValues();
+                    //if(!Vector.equals(r1MeanValues.condValues.flatten().Item1, r2MeanValues.condValues.flatten().Item1,0.01))
+                    if (!net.IsTolerateDistance(condtools, r1MeanValues.condValues.flatten().Item1, r2MeanValues.condValues.flatten().Item1))
+                        continue;
+                    double dis = 0.0;
+                    for(int k=0;k<r1MeanValues.varValues.Count;k++)
+                    {
+                        dis += vartools[k].distance(r1MeanValues.varValues[k][0], r2MeanValues.varValues[k][0]);
+                    }
+                    distances.Add(dis);
+
+                }
+            }
+            if(distances.Count<=0) return this.Gene.reability = 0;
+            double min = distances.Min();
+            double max = distances.Max();
+            double u = max - min;
+            distances = distances.ConvertAll(d => (max-d) / u);
+            return this.Gene.reability = distances.Average();
         }
+        
         private String checkRecord(InferenceRecord record,bool removed=false,int validOccurCount=2)
         {
+            return "";
             if (record == null) return "";
-            if (record.acceptCount >= validOccurCount)
+
+            if(record.acceptCount >= validOccurCount)
             {
-                if (unconfirmedItems.Contains(record)) unconfirmedItems.Remove(record);
-                else this.removeInvalidItem(record);
-                if (!this.validItems.Contains(record))
-                    this.validItems.Add(record);
+                validItems.Add(record);
                 return Valid;
             }
-
+            
             double error = Session.GetConfiguration().realerror;
             (List<Vector> condValues, List<Vector> varValues) = record.GetMeanValues();
 
-            for (int i=0;i<unconfirmedItems.Count;i++)
+            for(int i=0;i<validItems.Count;i++)
             {
-                var meanValues = unconfirmedItems[i].GetMeanValues();
-                if (!Vector.equals(condValues, meanValues.condValues, error))
+                if (validItems[i] == record) continue;
+                var meanValues = validItems[i].GetMeanValues();
+                List<MeasureTools> tools = this.ConditionNodes.ConvertAll(node => MeasureTools.GetMeasure(node.Gene.Cataory));
+                if (!net.IsTolerateDistance(tools, condValues.flatten().Item1, meanValues.condValues.flatten().Item1))
                     continue;
-                if (Vector.equals(varValues, meanValues.varValues, error))
+
+                tools = this.VariableNodes.ConvertAll(node => MeasureTools.GetMeasure(node.Gene.Cataory));
+                if (net.IsTolerateDistance(tools, varValues.flatten().Item1, meanValues.varValues.flatten().Item1))
                 {
-                    unconfirmedItems[i].acceptCount += 1;
-                    if (unconfirmedItems[i].acceptCount < validOccurCount)
-                    {
-                        this.GetGene().CheckGeneValidity(this.unconfirmedItems.Count,this.validItems.Count,this.invalidItems.Count);
-                        return Unconfirmed;
-                    }
-                    else
-                    {
-                        validItems.Add(unconfirmedItems[i]);
-                        this.GetGene().CheckGeneValidity(this.unconfirmedItems.Count, this.validItems.Count, this.invalidItems.Count);
-                        this.unconfirmedItems.RemoveAt(i);
-                        return Valid;
-                    }
+                    if (!this.validItems.Contains(record))
+                        this.validItems.Add(record);
+                    return Valid;
                 }
                 else
                 {
-                    InvalidItem invalidItem = new InvalidItem();
-                    invalidItem.records.Add(unconfirmedItems[i]);
-                    invalidItem.records.Add(record);
-                    this.invalidItems.Add(invalidItem);
+                    invalidItems.Add(validItems[i]);
+                    invalidItems.Add(record);
+                    validItems.RemoveAt(i);
+                    return Invalid;
+                }
+            }
+
+            for (int i = 0; i < this.invalidItems.Count; i++)
+            {
+                if (invalidItems[i] == record) continue;
+                List<MeasureTools> tools = this.ConditionNodes.ConvertAll(node => MeasureTools.GetMeasure(node.Gene.Cataory));
+                var meanValues = invalidItems[i].GetMeanValues();
+                if (!net.IsTolerateDistance(tools, condValues.flatten().Item1, meanValues.condValues.flatten().Item1))
+                    continue;
+                invalidItems.Add(record);
+                return Invalid;
+            }
+
+
+
+            for (int i=0;i< unconfirmedItems.Count;i++)
+            {
+                if (unconfirmedItems[i] == record) continue;
+
+                var meanValues = unconfirmedItems[i].GetMeanValues();
+
+                List<MeasureTools> tools = this.ConditionNodes.ConvertAll(node => MeasureTools.GetMeasure(node.Gene.Cataory));
+                if (!net.IsTolerateDistance(tools, condValues.flatten().Item1, meanValues.condValues.flatten().Item1))
+                    continue;
+
+                //if (!Vector.equals(condValues, meanValues.condValues, error))
+                //    continue;
+
+                tools = this.VariableNodes.ConvertAll(node => MeasureTools.GetMeasure(node.Gene.Cataory));
+                if(net.IsTolerateDistance(tools, varValues.flatten().Item1, meanValues.varValues.flatten().Item1))
+                //if (Vector.equals(varValues, meanValues.varValues, error))
+                {
+                    validItems.Add(unconfirmedItems[i]);
+                    validItems.Add(record);
+                    this.unconfirmedItems.RemoveAt(i);
+                    return Valid;
+                }
+                else
+                {
+                    invalidItems.Add(unconfirmedItems[i]);
+                    invalidItems.Add(record);
                     this.unconfirmedItems.RemoveAt(i);
                     return Invalid;
                 }
 
             }
-            for (int i=0;i<validItems.Count;i++)
-            {
-                var meanValues = validItems[i].GetMeanValues();
-                if (!Vector.equals(condValues, meanValues.condValues, error))
-                    continue;
-                if(Vector.equals(varValues, meanValues.varValues, error))
-                {
-                    validItems[i].acceptCount += 1;
-                    this.GetGene().CheckGeneValidity(this.unconfirmedItems.Count, this.validItems.Count, this.invalidItems.Count);
-                    return Valid;
-                }
 
-                InvalidItem invalidItem = new InvalidItem();
-                invalidItem.records.Add(validItems[i]);
-                invalidItem.records.Add(record);
-                this.invalidItems.Add(invalidItem);
-                this.validItems.RemoveAt(i);
-                return Invalid;
-            }
-            for(int i=0;i<this.invalidItems.Count;i++)
-            {
-                var meanValues = invalidItems[i].records[0].GetMeanValues();
-                if (!Vector.equals(condValues, meanValues.condValues, error))
-                    continue;
-                invalidItems[i].records.Add(record);
-                this.GetGene().CheckGeneValidity(this.unconfirmedItems.Count, this.validItems.Count, this.invalidItems.Count);
-                return Invalid;
-            }
             
+
             this.unconfirmedItems.Add(record);
-            this.GetGene().CheckGeneValidity(this.unconfirmedItems.Count, this.validItems.Count, this.invalidItems.Count);
             return Unconfirmed;
         }
         

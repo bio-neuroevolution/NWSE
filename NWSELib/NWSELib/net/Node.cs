@@ -64,7 +64,7 @@ namespace NWSELib.net
         /// <returns></returns>
         public virtual List<Node> getInputNodes(Network net)
         {
-            return new List<Node>();
+            return this.Gene.GetInputGenes().ConvertAll(g => net[g.Id]);
         }
 
         /// <summary>

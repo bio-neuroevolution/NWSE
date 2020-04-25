@@ -1,0 +1,3 @@
+net id=1,fitness=7.8572,reability=0.0000,extinct=False,childs=2,parent=0,depth=0,net=1
+net id=2,fitness=18.6657,reability=0.3505,extinct=False,childs=0,parent=1,depth=1,net=2
+net id=3,fitness=2.5200,reability=0.8636,extinct=False,childs=0,parent=1,depth=1,net=3

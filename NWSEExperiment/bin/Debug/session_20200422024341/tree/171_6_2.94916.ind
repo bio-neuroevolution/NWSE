@@ -1,0 +1,26 @@
+171
+6
+ReceptorGene:d1;info:id=1,name=d1,desc=left,generation=1,cataory=distance,group=env.distance,validity=0.0000;param:abstractLevel=0
+ReceptorGene:d2;info:id=2,name=d2,desc=left front,generation=1,cataory=distance,group=env.distance,validity=0.0000;param:abstractLevel=0
+ReceptorGene:d3;info:id=3,name=d3,desc=front,generation=1,cataory=distance,group=env.distance,validity=0.0000;param:abstractLevel=0
+ReceptorGene:d4;info:id=4,name=d4,desc=right front,generation=1,cataory=distance,group=env.distance,validity=0.0000;param:abstractLevel=0
+ReceptorGene:d5;info:id=5,name=d5,desc=right,generation=1,cataory=distance,group=env.distance,validity=0.0000;param:abstractLevel=0
+ReceptorGene:d6;info:id=6,name=d6,desc=rear,generation=1,cataory=distance,group=env.distance,validity=0.0000;param:abstractLevel=0
+ReceptorGene:b;info:id=7,name=b,desc=collision,generation=1,cataory=onoff,group=env.collision.reward,validity=0.0000;param:abstractLevel=0
+ReceptorGene:heading;info:id=8,name=heading,desc=heading,generation=1,cataory=heading,group=body.heading,validity=0.0000;param:abstractLevel=0
+ReceptorGene:_a2;info:id=9,name=_a2,desc=action,generation=1,cataory=rotate,group=action,validity=0.0000;param:abstractLevel=0
+HandlerGene:diff(d1,d2);info:id=18,name=,desc=,generation=2,cataory=distance,group=env.distance,validity=0.0000;function=diff;inputs=1,2;param=
+HandlerGene:diff(d2,d3);info:id=33,name=,desc=,generation=3,cataory=distance,group=env.distance,validity=0.0000;function=diff;inputs=2,3;param=
+HandlerGene:variation(heading);info:id=79,name=,desc=,generation=7,cataory=heading,group=body.heading,validity=0.0000;function=variation;inputs=8;param=
+InferenceGene:_a2[t-1]=>d2[t];dimensions:9=>2;timediff:1;info:id=11,name=,desc=,generation=1,cataory=,group=,validity=0.8957;param:
+InferenceGene:_a2[t-1]=>d4[t];dimensions:9=>4;timediff:1;info:id=13,name=,desc=,generation=1,cataory=,group=,validity=0.8941;param:
+InferenceGene:d6,_a2[t-1]=>diff(d1,d2)[t];dimensions:6,9=>18;timediff:1;info:id=20,name=,desc=,generation=2,cataory=distance,group=,validity=0.8770;param:
+InferenceGene:heading,_a2[t-1]=>d1[t];dimensions:8,9=>1;timediff:1;info:id=90,name=,desc=,generation=1,cataory=,group=,validity=0.9950;param:
+InferenceGene:diff(d2,d3)[t-1]=>d3[t];dimensions:33=>3;timediff:1;info:id=230,name=,desc=,generation=1,cataory=,group=,validity=0.8594;param:
+InferenceGene:d6[t-1]=>d5[t];dimensions:6=>5;timediff:1;info:id=231,name=,desc=,generation=1,cataory=,group=,validity=0.7987;param:
+InferenceGene:d4[t-1]=>d6[t];dimensions:4=>6;timediff:1;info:id=232,name=,desc=,generation=1,cataory=,group=,validity=0.8434;param:
+InferenceGene:d5,_a2[t-1]=>heading[t];dimensions:5,9=>8;timediff:1;info:id=233,name=,desc=,generation=1,cataory=,group=,validity=0.8565;param:
+InferenceGene:d6[t-1]=>b[t];dimensions:6=>7;timediff:1;info:id=78,name=,desc=,generation=1,cataory=,group=,validity=0.8488;param:
+InferenceGene:d3,d6,b[t-1]=>diff(d2,d3)[t];dimensions:3,6,7=>33;timediff:1;info:id=234,name=,desc=,generation=3,cataory=distance,group=,validity=0.9519;param:
+InferenceGene:_a2[t-1]=>variation(heading)[t];dimensions:9=>79;timediff:1;info:id=80,name=,desc=,generation=7,cataory=heading,group=,validity=0.9811;param:
+handlerSelectionProb=0.350,0.350,0.300,0.000,0.000,0.000,0.000,0.000,0.000,0.000

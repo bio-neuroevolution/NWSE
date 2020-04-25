@@ -1,0 +1,8 @@
+net id=1,fitness=3.6126,reability=0.8158,extinct=False,childs=4,parent=0,depth=0,net=1
+net id=2,fitness=4.6800,reability=0.8371,extinct=False,childs=2,parent=1,depth=1,net=2
+net id=3,fitness=1.9915,reability=0.8153,extinct=False,childs=1,parent=1,depth=1,net=3
+net id=4,fitness=1.9367,reability=0.8329,extinct=False,childs=0,parent=1,depth=1,net=4
+net id=5,fitness=2.4760,reability=0.8175,extinct=False,childs=0,parent=1,depth=1,net=5
+net id=6,fitness=4.7388,reability=0.8657,extinct=False,childs=0,parent=2,depth=2,net=6
+net id=7,fitness=2.7848,reability=0.8495,extinct=False,childs=0,parent=2,depth=2,net=7
+net id=8,fitness=1.9632,reability=0.8462,extinct=False,childs=0,parent=3,depth=2,net=8

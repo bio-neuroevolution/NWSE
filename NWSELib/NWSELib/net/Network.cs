@@ -331,7 +331,7 @@ namespace NWSELib.net
         
         public List<NodeGene> FindVaildInferences(bool newOnly=true,int validUpperLimit=2)
         {
-            List<Inference> infs = this.Inferences.FindAll(inf => inf.ValidRecordCount>= validUpperLimit);
+            List<Inference> infs = this.Inferences.FindAll(inf => inf.Reability >= Session.config.evaluation.gene_reability_range.Max);
             if (infs == null || infs.Count <= 0) return new List<NodeGene>();
             List<NodeGene> genes = infs.ConvertAll(inf => inf.Gene);
             if (newOnly)genes = genes.FindAll(g=>!this.genome.isVaildGene(g));
@@ -356,7 +356,7 @@ namespace NWSELib.net
        
         public List<Inference> FindInvaildInference(bool newOnly=true, int validUpperLimit = 2)
         {
-            List<Inference> infs = this.Inferences.FindAll(inf => inf.ValidRecordCount < validUpperLimit);
+            List<Inference> infs = this.Inferences.FindAll(inf => inf.Reability <= Session.config.evaluation.gene_reability_range.Min);
             if (newOnly)
                 infs = infs.FindAll(inf => !Session.IsInvaildGene(inf.GetGene()));
             return infs;
@@ -469,7 +469,7 @@ namespace NWSELib.net
         /// <param name="envirment">初始环境</param>
         /// <param name="count">预测次数</param>
         /// <returns></returns>
-        public double DoForcastReward(int time,Vector gesture,Vector env,int count=3,int rewardLowlimit=0)
+        public double DoForcastReward(int time,Vector gesture,Vector env,int count=2,int rewardLowlimit=0)
         {
             List<double> actions = ActionPlan.MaintainAction;
             List<Vector> observations = this.GetReceoptorValues();
@@ -527,7 +527,7 @@ namespace NWSELib.net
                         for(int k=0;k<handlers.Count;k++)
                         {
                             //这个handler没有计算出来值
-                            if (!handlerValueDict.ContainsKey(Handlers[k])) continue;
+                            if (!handlerValueDict.ContainsKey(handlers[k])) continue;
                             if(handlers[k] is DiffHandler)
                             {
                                 List<Node> inputs = handlers[k].getInputNodes(this);

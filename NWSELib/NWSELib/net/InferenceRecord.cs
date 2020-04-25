@@ -135,7 +135,7 @@ namespace NWSELib.net
 
         public String Summary()
         {
-            return this.means.toString() + ",e=" + evulation.ToString("F4")+",accept="+acceptCount.ToString();
+            return this.means.toString();
         }
 
         #endregion

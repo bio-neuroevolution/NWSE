@@ -431,6 +431,14 @@ namespace NWSELib
                     return Utility.parse(handlerprob);
                 }
             }
+            [XmlAttribute]
+            public double infMutateProb;
+            [XmlAttribute]
+            public double infMutateAddProb;
+            [XmlAttribute]
+            public double infMutateRemoveProb;
+            [XmlAttribute]
+            public double newHandleGeneProb;
         }
 
         public class Handler

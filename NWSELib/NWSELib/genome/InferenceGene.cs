@@ -147,7 +147,7 @@ namespace NWSELib.genome
             int t3 = s.IndexOf(";timediff:") -1;
             String dimensions = s.Substring(t2, t3 - t2 + 1);
 
-            t3 += ";timediff:".Length;
+            t3 += ";timediff:".Length+1;
             int t4 = s.IndexOf(";info:") - 1;
             String timediff = s.Substring(t3, t4 - t3 + 1);
 

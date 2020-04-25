@@ -321,6 +321,7 @@ namespace NWSELib
                 {
                     this.doNetworkEvaluation(net);
                     judgePaused();
+                    
                 }
 
                 //record optima individual
@@ -359,30 +360,37 @@ namespace NWSELib
             //We need to evaluate many times only in noisy environments
             if (!double.IsNaN(net.Fitness) && !Session.GetConfiguration().evaluation.repeat) return net.Fitness;
 
-
-            //init enviorment and network
-
-            (List<double> obs, List<double> gesture) = env.reset(net);
-            net.Reset();
-            double reward = 0.0;
+            int runcount = 0;
             bool end = false;
-            this.triggerEvent(EVT_EVAULATION_IND_BEGIN, net);
-            this.triggerEvent(EVT_STEP, net, 0,obs,gesture,null,reward,end);
-
-            //2 Run the network until the maximum number of iterations is reached or the end signal returns from the environment
-            int maxtime = Session.GetConfiguration().evaluation.run_count;
-            for (int time = 0; time < maxtime; time++)
+            while (true)
             {
-                List<double> inputs = new List<double>(obs);
-                inputs.AddRange(gesture);
-                List<double> actions = net.Activate(inputs, time, this, reward);
-                (obs, gesture, actions, reward, end) = env.action(net, actions);
-                this.triggerEvent(EVT_STEP, net, time, obs, gesture, actions,reward,end);
-                if (end) break;
-                judgePaused();
+                //init enviorment and network
+                (List<double> obs, List<double> gesture) = env.reset(net);
+                net.Reset();
+                double reward = 0.0;
+                this.triggerEvent(EVT_EVAULATION_IND_BEGIN, net);
+                this.triggerEvent(EVT_STEP, net, 0, obs, gesture, null, reward, end);
+
+                //2 Run the network until the maximum number of iterations is reached or the end signal returns from the environment
+                int maxtime = Session.GetConfiguration().evaluation.run_count;
+                for (int time = 0; time < maxtime; time++)
+                {
+                    List<double> inputs = new List<double>(obs);
+                    inputs.AddRange(gesture);
+                    List<double> actions = net.Activate(inputs, time, this, reward);
+                    (obs, gesture, actions, reward, end) = env.action(net, actions);
+                    this.triggerEvent(EVT_STEP, net, time, obs, gesture, actions, reward, end);
+                    if (end) break;
+                    judgePaused();
+                }
+                runcount += 1;
+                if (!end) break;
+                if (end && runcount >= 2) break;
+                
             }
 
             //评估可靠性和适应度
+            net.Inferences.ForEach(inf => inf.CheckReability());
             var reability = net.Reability;
             net.Fitness = Session.fitnessHandler == null ? 0 : Session.fitnessHandler(net, this);
             net.TaskCompleted = end;

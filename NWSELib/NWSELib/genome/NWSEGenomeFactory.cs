@@ -46,7 +46,9 @@ namespace NWSELib.genome
             {
                 List<int> conditions = new List<int>();
                 conditions.Add(genome["_a2"].Id);
-                InferenceGene inferenceGene = new InferenceGene(genome,1,conditions, varids.ToList());
+                List<int> variables = new List<int>();
+                variables.Add(varids[i]);
+                InferenceGene inferenceGene = new InferenceGene(genome,1,conditions, variables);
                 inferenceGene.Generation = session.Generation;
                 inferenceGene.Id = Session.idGenerator.getGeneId(inferenceGene);
                 genome.inferenceGenes.Add(inferenceGene);

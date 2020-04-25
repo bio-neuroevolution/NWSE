@@ -46,7 +46,7 @@ namespace NWSELib.genome
         /// <summary>
         /// 有效性
         /// </summary>
-        public int validity;
+        public double reability;
 
         /// <summary>
         /// id值
@@ -198,7 +198,7 @@ namespace NWSELib.genome
             this.group = gene.group;
             this.owner = gene.owner;
             this.depth = gene.depth;
-            this.validity = gene.validity;
+            this.reability = gene.reability;
             
             
             return (T)this;
@@ -211,7 +211,7 @@ namespace NWSELib.genome
         public override string ToString()
         {
             return "id=" + this.id.ToString() + ",name=" + this.name + ",desc="+desc + 
-                ",generation=" + this.generation + ",cataory=" + this.cataory + ",group=" + this.group+ ",validity="+ validity.ToString();
+                ",generation=" + this.generation + ",cataory=" + this.cataory + ",group=" + this.group+ ",validity=" + reability.ToString("F4");
         }
         public static NodeGene parseGene(NWSEGenome genome,String s)
         {
@@ -267,7 +267,7 @@ namespace NWSELib.genome
             i2 = str.IndexOf("=", i1 + 1);
             i3 = str.Length;
             s = str.Substring(i2 + 1, i3 - i2 - 1);
-            validity = int.Parse(s);
+            reability = double.Parse(s);
 
 
 
@@ -296,21 +296,7 @@ namespace NWSELib.genome
         
         #endregion
 
-        #region 有效性检查
-        public int CheckGeneValidity(int unconfirmedCount,int validCount,int invalidCount,int validOccurCount = 2)
-        {
-            if(validCount <= validOccurCount)
-            {
-                if (unconfirmedCount <= 0) return this.validity = -1;
-                else return this.validity = 0;
-
-            }
-            else
-            {
-                return this.validity = validCount;
-            }
-        }
-        #endregion
+        
 
     }
 }

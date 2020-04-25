@@ -19,7 +19,7 @@ namespace NWSEExperiment.maze
         private DirectoryInfo mazeDirectionInfo;
         private FileInfo[] mazeFileInfos;
 
-        public void Execute(String networkPaths, String mazePath, NWSELib.EventHandler handler,int runcount = 1000)
+        public void Execute(String networkPaths, String mazePath, NWSELib.EventHandler handler,int runcount = 1200)
         {
             netDirectoryInfo = new DirectoryInfo(networkPaths);
             mazeDirectionInfo = new DirectoryInfo(mazePath);
